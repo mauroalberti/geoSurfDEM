@@ -9,6 +9,16 @@
 #define SPATIAL_HPP
 
 
+class Range1D {
+    double r_min, r_max;
+
+public:
+    bool within(double val);
+    bool intersects(Range1D);
+
+};
+
+
 class Point2D {
     double _x, _y;
 public:

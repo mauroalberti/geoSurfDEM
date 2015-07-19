@@ -2,6 +2,22 @@
 #include "geographic.hpp"
 
 
+
+bool Space3DPartition::intersects(const Space3DPartition& another) {
+
+    if (range_x.intersects(another.range_x) and
+        range_y.intersects(another.range_y) and
+        range_z.intersects(another.range_z) ) {
+            return true;
+        }
+    else {
+        return false;
+        };
+
+};
+
+
+
 RectangularDomain::RectangularDomain() {
 };
 

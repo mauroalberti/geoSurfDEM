@@ -2,6 +2,17 @@
 #include "spatial.hpp"
 
 
+class Space3DPartition {
+    Range1D range_x;
+    Range1D range_y;
+    Range1D range_z;
+
+public:
+    bool intersects(const Space3DPartition&);
+
+};
+
+
 class RectangularDomain {
     Point2D pt2d;  // generation point defined by x and y value
     double rot_alpha_degr;  // rotation angle Alpha, in degrees - with respect to x-axis

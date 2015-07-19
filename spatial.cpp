@@ -2,6 +2,26 @@
 #include "spatial.hpp"
 
 
+bool Range1D::within(double val) {
+    if (r_min <= val and val <= r_max) {
+        return true;
+    }
+    else {
+        return false;
+    }
+};
+
+
+bool Range1D::intersects(Range1D another) {
+    if (within(another.r_min) or within(another.r_max) ) {
+        return true;
+    }
+    else {
+        return false;
+    };
+};
+
+
 Point2D::Point2D() {
 }
 
@@ -345,6 +365,7 @@ Vector3D CartesianPlane::perp_versor_in_plane(Vector3D inplane_vect3d) {
     return inplane_vect3d.vector_prod( normal_versor() ).versor();
 };
 
+
 Vector3D CartesianPlane::intersect_versor(CartesianPlane another) {
 
     // TODO: consider the special case of two parallel planes
@@ -403,9 +424,6 @@ Line3D CartesianPlane::intersect(CartesianPlane another) {
     return Line3D( pt3d, vers);
 
 };
-
-
-
 
 
 Triangle3D::Triangle3D(Point3D pt_a, Point3D pt_b, Point3D pt_c) :
