@@ -28,4 +28,8 @@
 *.app
 
 
-/test_data
+test_data/
+
+geoSurfDEM.cbp
+geoSurfDEM.depend
+geoSurfDEM.layout

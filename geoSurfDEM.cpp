@@ -220,7 +220,7 @@ MeshTriangleStrip read_vtk_data_ascii( std::string input_vtk_path ) {
 int main() {
 
     // read DEM data from input file
-    std::string input_dem_path = "malpi_w4u2n_src.asc";
+    std::string input_dem_path = "./test_data/malpi_w4u2n_src.asc";
     DataRRGrid datagrid;
     try {
         datagrid = read_esri_ascii_dem( input_dem_path ); }
@@ -229,7 +229,7 @@ int main() {
         return -1; }
 
     // read VTK data from input file
-    std::string input_vtk_path = "surf3d_sim_01_rot45_04500.vtk";
+    std::string input_vtk_path = "./test_data/surf3d_sim_01_rot45_04500.vtk";
     MeshTriangleStrip surf3d_mesh;
     try {
         surf3d_mesh = read_vtk_data_ascii( input_vtk_path ); }
