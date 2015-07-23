@@ -36,6 +36,7 @@ public:
 class Point3D {
     double _x, _y, _z;
 public:
+    Point3D();
     Point3D(double, double, double);
     ~Point3D();
     double x();

@@ -59,6 +59,11 @@ double Point2D::distance(Point2D another) {
 };
 
 
+Point3D::Point3D() {
+
+};
+
+
 Point3D::Point3D(double x,  double y, double z) {
     _x = x;
     _y = y;

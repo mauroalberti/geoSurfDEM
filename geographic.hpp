@@ -70,3 +70,14 @@ public:
 };
 
 
+class PointTriplet {
+
+    Point3D triplet[3];
+
+public:
+    PointTriplet();
+    PointTriplet(const Point3D, const Point3D, const Point3D);
+    PointTriplet update(const Point3D);
+    Triangle3D to_triangle();
+
+};

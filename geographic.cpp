@@ -96,5 +96,32 @@ std::vector<std::vector<unsigned int> > MeshTriangleStrip::trianglestrips(){
 };
 
 
+PointTriplet::PointTriplet() {
+
+};
+
+
+PointTriplet::PointTriplet(const Point3D pt1, const Point3D pt2, const Point3D pt3) {
+
+    triplet[0] = pt1;
+    triplet[1] = pt2;
+    triplet[2] = pt3;
+
+};
+
+
+PointTriplet PointTriplet::update(const Point3D pt4) {
+
+    return PointTriplet(triplet[1], triplet[2], pt4);
+
+};
+
+
+Triangle3D PointTriplet::to_triangle() {
+
+    return Triangle3D(triplet[0], triplet[1], triplet[2]);
+
+};
+
 
 
