@@ -237,15 +237,21 @@ int main() {
         std::cout << "Program will stop\n";
         return -1; }
 
-
+    std::vector<Point3D> mesh_pts = surf3d_mesh.pts();
     std::vector<std::vector<unsigned int> > triangle_strips = surf3d_mesh.trianglestrips();
     unsigned int ndx_strip = 0;
     for(std::vector<std::vector<unsigned int> >::iterator ref_trstr = triangle_strips.begin(); ref_trstr != triangle_strips.end(); ++ref_trstr) {
         std::vector<unsigned int> triangle_strip = *ref_trstr;
+        PointTriplet curr_triplet = PointTriplet();
+        std::cout << "\nstart of strip # " << ndx_strip << " triplet num valid pts: " << curr_triplet.valid_pts() << "\n";
         for(std::vector<unsigned int>::iterator ref_ptndx = triangle_strip.begin(); ref_ptndx != triangle_strip.end(); ++ref_ptndx) {
-            std::cout << ndx_strip << ": " << *ref_ptndx << "\n";
+            unsigned int curr_pt_ndx = *ref_ptndx;
+            Point3D curr_pt = mesh_pts[curr_pt_ndx];
+            curr_triplet = curr_triplet.update(curr_pt);
+            std::cout << ndx_strip << ": " << curr_pt_ndx << " " << curr_triplet.valid_pts() << "\n";
         }
         ndx_strip++;
+        std::cout << "\n";
     };
 
 

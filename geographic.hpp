@@ -76,8 +76,11 @@ class PointTriplet {
 
 public:
     PointTriplet();
-    PointTriplet(const Point3D, const Point3D, const Point3D);
-    PointTriplet update(const Point3D);
+    PointTriplet(Point3D, Point3D, Point3D);
+    PointTriplet update(Point3D);
+    Point3D get(unsigned int i);
+    unsigned int valid_pts();
+    bool is_valid();
     Triangle3D to_triangle();
 
 };

@@ -34,11 +34,13 @@ public:
 
 
 class Point3D {
+    bool valid;
     double _x, _y, _z;
 public:
     Point3D();
     Point3D(double, double, double);
     ~Point3D();
+    bool is_valid();
     double x();
     double y();
     double z();

@@ -1,3 +1,4 @@
+#include <iostream>
 
 #include "geographic.hpp"
 
@@ -98,10 +99,14 @@ std::vector<std::vector<unsigned int> > MeshTriangleStrip::trianglestrips(){
 
 PointTriplet::PointTriplet() {
 
+    triplet[0] = Point3D();
+    triplet[1] = Point3D();
+    triplet[2] = Point3D();
+
 };
 
 
-PointTriplet::PointTriplet(const Point3D pt1, const Point3D pt2, const Point3D pt3) {
+PointTriplet::PointTriplet(Point3D pt1, Point3D pt2, Point3D pt3) {
 
     triplet[0] = pt1;
     triplet[1] = pt2;
@@ -110,9 +115,41 @@ PointTriplet::PointTriplet(const Point3D pt1, const Point3D pt2, const Point3D p
 };
 
 
-PointTriplet PointTriplet::update(const Point3D pt4) {
+Point3D PointTriplet::get(unsigned int i) {
 
-    return PointTriplet(triplet[1], triplet[2], pt4);
+    return triplet[i];
+
+};
+
+unsigned int PointTriplet::valid_pts() {
+
+    unsigned int num_valid_pts = 0;
+
+    for (int i = 0; i < 3; i++ ) {
+        Point3D curr_pt = get(i);
+        if (curr_pt.is_valid()) {
+            num_valid_pts++;
+        }
+    };
+
+    return num_valid_pts;
+
+};
+
+
+bool PointTriplet::is_valid() {
+
+    if (valid_pts() == 3) {
+        return true;
+    } else {
+        return false;
+    };
+};
+
+
+PointTriplet PointTriplet::update(Point3D pt4) {
+
+    return PointTriplet(get(1), get(2), pt4);
 
 };
 

@@ -61,21 +61,35 @@ double Point2D::distance(Point2D another) {
 
 Point3D::Point3D() {
 
+    valid = false;
+
 };
 
 
-Point3D::Point3D(double x,  double y, double z) {
+Point3D::Point3D(double x, double y, double z) {
+
+    valid =  true;
+
     _x = x;
     _y = y;
     _z = z;
+
 };
 
 
 Point3D::~Point3D() {
+
 }
+
+bool Point3D::is_valid() {
+
+    return valid;
+
+};
 
 
 double Point3D::x() {
+
     return _x;
 };
 
