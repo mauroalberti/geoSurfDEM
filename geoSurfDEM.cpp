@@ -248,7 +248,11 @@ int main() {
             unsigned int curr_pt_ndx = *ref_ptndx;
             Point3D curr_pt = mesh_pts[curr_pt_ndx];
             curr_triplet = curr_triplet.update(curr_pt);
-            std::cout << ndx_strip << ": " << curr_pt_ndx << " " << curr_triplet.valid_pts() << "\n";
+            if (curr_triplet.valid_pts() == 3) {
+                Triangle3D curr_geosurf_triagle = Triangle3D(curr_triplet.get(0), curr_triplet.get(1), curr_triplet.get(2));
+            };
+
+            //std::cout << ndx_strip << ": " << curr_pt_ndx << " " << curr_triplet.valid_pts() << "\n";
         }
         ndx_strip++;
         std::cout << "\n";
