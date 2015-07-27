@@ -13,6 +13,9 @@ class Range1D {
     double r_min, r_max;
 
 public:
+    Range1D();
+    Range1D(double, double);
+    ~Range1D();
     bool within(double val);
     bool intersects(Range1D);
 

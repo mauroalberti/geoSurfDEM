@@ -20,8 +20,8 @@ public:
     UnrotatedRectangularDomain();
     UnrotatedRectangularDomain(const Point2D&, const double&, const double&);
     ~UnrotatedRectangularDomain();
-    get_x_range();
-    get_y_range();
+    Range1D get_x_range();
+    Range1D get_y_range();
 };
 
 

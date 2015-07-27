@@ -1,3 +1,6 @@
+#include <vector>
+#include <algorithm>
+
 
 class Matrix2 {
 
@@ -23,3 +26,18 @@ public:
 };
 
 
+class NumericData {
+
+    std::vector<double> _values;
+    double _nodata_value;
+
+public:
+    NumericData();
+    NumericData(std::vector<double>, double);
+    ~NumericData();
+    std::vector<double> values();
+    double nodata_value();
+    double min();
+    double max();
+
+};

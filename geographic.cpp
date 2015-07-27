@@ -18,18 +18,6 @@ bool Space3DPartition::intersects(const Space3DPartition& another) {
 };
 
 
-class UnrotatedRectangularDomain {
-    Point2D pt2d;  // generation point defined by x and y value
-    double l_size, m_size;  // l, m domain sizes
-public:
-    UnrotatedRectangularDomain();
-    UnrotatedRectangularDomain(const Point2D&, const double&, const double&);
-    ~UnrotatedRectangularDomain();
-    get_x_range();
-    get_y_range();
-};
-
-
 UnrotatedRectangularDomain::UnrotatedRectangularDomain() {
 };
 

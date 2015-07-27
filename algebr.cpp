@@ -79,3 +79,65 @@ double Matrix3::determinant() {
 
 
 
+NumericData::NumericData() {
+
+};
+
+
+NumericData::NumericData(std::vector<double> vals, double nodata_val) :
+    _values(vals), _nodata_value(nodata_val) {
+
+};
+
+
+NumericData::~NumericData() {
+
+};
+
+
+std::vector<double> NumericData::values() {
+
+    return _values;
+
+};
+
+
+double NumericData::nodata_value() {
+
+    return _nodata_value;
+
+};
+
+
+//bool not_nodata(double x, double filter_out_value) { return (x - filter_out_value) < 1.0e-6; };
+
+
+std::vector<double> filter_data(std::vector<double> indata, double filter_out_value) {
+
+    std::vector<double> bar (indata.size());
+
+    auto it = std::copy_if(indata.begin(), indata.end(), bar.begin(), [filter_out_value](double d){return fabs(d-filter_out_value)< 1.0e-6;} );
+    bar.resize(std::distance(bar.begin(),it));  // shrink container to new size
+
+    return bar;
+
+};
+
+
+double NumericData::min() {
+
+    std::vector<double> foo = filter_data(values(), nodata_value());
+    return *std::min_element(foo.begin(), foo.end());
+
+};
+
+
+double NumericData::max() {
+
+    std::vector<double> foo = filter_data(values(), nodata_value());
+    return *std::max_element(foo.begin(), foo.end());
+
+};
+
+
+
