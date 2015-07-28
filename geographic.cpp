@@ -73,28 +73,31 @@ DataRRGrid::DataRRGrid() {
 };
 
 
-DataRRGrid::DataRRGrid(const RectRegularGrid& rrgrid, const std::vector<double> data, const double nodata_value) :
-    _rrgrid(rrgrid), _data(data), _nodata_value(nodata_value) {
+DataRRGrid::DataRRGrid(const RectRegularGrid& _rrgrid, const std::vector<double> _data, const double _nodata_value) {
+
+    rrgrid = _rrgrid;
+    data_vals = NumericData(_data, _nodata_value);
+
 };
 
 
 DataRRGrid::~DataRRGrid() {
+
 };
 
 
-RectRegularGrid DataRRGrid::rrgrid() {
-    return _rrgrid;
+RectRegularGrid DataRRGrid::rr_grid() {
+
+    return rrgrid;
+
 };
 
 
 
-std::vector<double> DataRRGrid::data() {
-    return _data;
-};
+NumericData DataRRGrid::data() {
 
+    return data_vals;
 
-double DataRRGrid::nodata_value() {
-    return _nodata_value;
 };
 
 

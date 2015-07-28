@@ -228,6 +228,19 @@ int main() {
         std::cout << "Program will stop\n";
         return -1; }
 
+    std::cout << datagrid.data().min() ;
+
+    /*
+    int n = 0;
+    for (std::vector<double>::iterator it = dem_raw_vals.begin() ; it != dem_raw_vals.end(); ++it) {
+        n++;
+        std::cout << n << " " << *it << "\n";
+    }
+    */
+
+
+
+    /*
     // read VTK data from input file
     std::string input_vtk_path = "./test_data/surf3d_sim_01_rot45_04500.vtk";
     MeshTriangleStrip surf3d_mesh;
@@ -257,6 +270,7 @@ int main() {
         ndx_strip++;
         std::cout << "\n";
     };
+    */
 
 
     return 0;

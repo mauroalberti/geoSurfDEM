@@ -116,7 +116,7 @@ std::vector<double> filter_data(std::vector<double> indata, double filter_out_va
 
     std::vector<double> bar (indata.size());
 
-    auto it = std::copy_if(indata.begin(), indata.end(), bar.begin(), [filter_out_value](double d){return fabs(d-filter_out_value)< 1.0e-6;} );
+    auto it = std::copy_if(indata.begin(), indata.end(), bar.begin(), [filter_out_value](double d){return (fabs(d-filter_out_value) > 1.0e-6);} );
     bar.resize(std::distance(bar.begin(),it));  // shrink container to new size
 
     return bar;
@@ -135,6 +135,7 @@ double NumericData::min() {
 double NumericData::max() {
 
     std::vector<double> foo = filter_data(values(), nodata_value());
+    std::cout << "foo size " << foo.size() << "\n";
     return *std::max_element(foo.begin(), foo.end());
 
 };

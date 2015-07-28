@@ -51,17 +51,15 @@ public:
 
 class DataRRGrid {
 
-    RectRegularGrid _rrgrid;
-    std::vector<double> _data;
-    double _nodata_value;
+    RectRegularGrid rrgrid;
+    NumericData data_vals;
 
 public:
     DataRRGrid();
     DataRRGrid(const RectRegularGrid&, const std::vector<double>, const double);
     ~DataRRGrid();
-    RectRegularGrid rrgrid();
-    std::vector<double> data();
-    double nodata_value();
+    RectRegularGrid rr_grid();
+    NumericData data();
 
 };
 

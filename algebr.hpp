@@ -1,6 +1,8 @@
 #include <vector>
 #include <algorithm>
 
+#include <iostream>
+
 
 class Matrix2 {
 
