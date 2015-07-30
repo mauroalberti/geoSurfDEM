@@ -2,6 +2,58 @@
 #include "algebr.hpp"
 
 
+const double PI  = 3.141592653589793238463;
+
+
+double radians(const double degrees) {
+
+    return degrees*PI/180.0;
+
+};
+
+
+double degrees(const double radians) {
+
+    return radians*180.0/PI;
+
+};
+
+
+Range1D::Range1D() {
+
+};
+
+
+Range1D::Range1D(double val_start, double val_end) : r_min(val_start), r_max(val_end) {
+
+};
+
+
+Range1D::~Range1D() {
+
+};
+
+
+bool Range1D::within(double val) {
+    if (r_min <= val and val <= r_max) {
+        return true;
+    }
+    else {
+        return false;
+    }
+};
+
+
+bool Range1D::intersects(Range1D another) {
+    if (within(another.r_min) or within(another.r_max) ) {
+        return true;
+    }
+    else {
+        return false;
+    };
+};
+
+
 Matrix2::Matrix2(double m11, double m12,double m21, double m22) {
 
     _matr[0][0] = m11;
@@ -137,6 +189,13 @@ double NumericData::max() {
     std::vector<double> foo = filter_data(values(), nodata_value());
     std::cout << "foo size " << foo.size() << "\n";
     return *std::max_element(foo.begin(), foo.end());
+
+};
+
+
+Range1D NumericData::range() {
+
+    return Range1D(min(), max());
 
 };
 

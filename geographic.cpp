@@ -4,6 +4,23 @@
 
 
 
+Space3DPartition::Space3DPartition() {
+
+};
+
+
+Space3DPartition::Space3DPartition(const Range1D& r_x, const Range1D& r_y, const Range1D& r_z) :
+    range_x(r_x), range_y(r_y), range_z(r_z)  {
+    };
+
+
+
+Space3DPartition::~Space3DPartition() {
+
+};
+
+
+
 bool Space3DPartition::intersects(const Space3DPartition& another) {
 
     if (range_x.intersects(another.range_x) and
@@ -56,6 +73,58 @@ RectangularDomain::~RectangularDomain() {
 };
 
 
+Point2D RectangularDomain::pt() {
+
+    return pt2d;
+
+};
+
+
+double RectangularDomain::rot_angle() {
+
+    return rot_alpha_degr;
+
+};
+
+
+double RectangularDomain::l() {
+
+    return l_size;
+
+};
+
+
+double RectangularDomain::m() {
+
+    return m_size;
+
+};
+
+
+Range1D RectangularDomain::range_x() {
+
+    double x_0 = pt().x();
+    double alpha_rad = radians(rot_alpha_degr);
+    double x_min = x_0 - m()*sin(alpha_rad);
+    double x_max = x_0 + l()*cos(alpha_rad);
+
+    return Range1D(x_min, x_max);
+
+};
+
+
+Range1D RectangularDomain::range_y() {
+
+    double y_0 = pt().y();
+    double alpha_rad = radians(rot_alpha_degr);
+    double y_max = y_0 + l()*sin(alpha_rad) + m()*cos(alpha_rad);
+
+    return Range1D(y_0, y_max);
+
+};
+
+
+
 RectRegularGrid::RectRegularGrid() {
 };
 
@@ -66,7 +135,30 @@ domain(domain_), ncols(ncols_), nrows(nrows_) {
 
 
 RectRegularGrid::~RectRegularGrid() {
+
 };
+
+
+RectangularDomain RectRegularGrid::rr_domain() {
+
+    return domain;
+
+};
+
+
+unsigned int RectRegularGrid::cols() {
+
+    return ncols;
+
+};
+
+
+unsigned int RectRegularGrid::rows() {
+
+    return nrows;
+
+};
+
 
 
 DataRRGrid::DataRRGrid() {
@@ -101,7 +193,21 @@ NumericData DataRRGrid::data() {
 };
 
 
+Space3DPartition DataRRGrid::space_partition() {
+
+    Range1D x_range = rr_grid().rr_domain().range_x();
+    Range1D y_range = rr_grid().rr_domain().range_y();
+    Range1D z_range = data().range();
+
+    return Space3DPartition(x_range,
+                            y_range,
+                            z_range);
+
+};
+
+
 MeshTriangleStrip::MeshTriangleStrip() {
+
     };
 
 

@@ -228,7 +228,7 @@ int main() {
         std::cout << "Program will stop\n";
         return -1; }
 
-    std::cout << datagrid.data().min() ;
+    std::cout << datagrid.data().min();
 
     /*
     int n = 0;

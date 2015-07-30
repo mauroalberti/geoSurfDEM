@@ -4,6 +4,23 @@
 #include <iostream>
 
 
+double radians(const double);
+double degrees(const double);
+
+
+class Range1D {
+    double r_min, r_max;
+
+public:
+    Range1D();
+    Range1D(double, double);
+    ~Range1D();
+    bool within(double val);
+    bool intersects(Range1D);
+
+};
+
+
 class Matrix2 {
 
     double _matr[2][2];
@@ -41,5 +58,6 @@ public:
     double nodata_value();
     double min();
     double max();
+    Range1D range();
 
 };

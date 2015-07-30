@@ -3,11 +3,15 @@
 
 
 class Space3DPartition {
+
     Range1D range_x;
     Range1D range_y;
     Range1D range_z;
 
 public:
+    Space3DPartition();
+    Space3DPartition(const Range1D&, const Range1D&, const Range1D&);
+    ~Space3DPartition();
     bool intersects(const Space3DPartition&);
 
 };
@@ -33,6 +37,12 @@ public:
     RectangularDomain();
     RectangularDomain(const Point2D&, const double&, const double&, const double&);
     ~RectangularDomain();
+    Point2D pt();
+    double rot_angle();
+    double l();
+    double m();
+    Range1D range_x();
+    Range1D range_y();
 
 };
 
@@ -42,10 +52,15 @@ class RectRegularGrid {
     RectangularDomain domain; // rectangular domain
     unsigned int ncols, nrows;  // cel size/number, along l and m directions
     //array // 2D array
+
 public:
     RectRegularGrid();
     RectRegularGrid(const RectangularDomain&, const unsigned int&, const unsigned int&);
     ~RectRegularGrid();
+    RectangularDomain rr_domain();
+    unsigned int cols();
+    unsigned int rows();
+
 };
 
 
@@ -60,6 +75,7 @@ public:
     ~DataRRGrid();
     RectRegularGrid rr_grid();
     NumericData data();
+    Space3DPartition space_partition();
 
 };
 

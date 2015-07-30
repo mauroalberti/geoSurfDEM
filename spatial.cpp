@@ -2,39 +2,6 @@
 #include "spatial.hpp"
 
 
-Range1D::Range1D() {
-
-};
-
-
-Range1D::Range1D(double val_start, double val_end) : r_min(val_start), r_max(val_end) {
-
-};
-
-
-Range1D::~Range1D() {
-
-};
-
-
-bool Range1D::within(double val) {
-    if (r_min <= val and val <= r_max) {
-        return true;
-    }
-    else {
-        return false;
-    }
-};
-
-
-bool Range1D::intersects(Range1D another) {
-    if (within(another.r_min) or within(another.r_max) ) {
-        return true;
-    }
-    else {
-        return false;
-    };
-};
 
 
 Point2D::Point2D() {
