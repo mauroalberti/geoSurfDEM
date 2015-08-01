@@ -34,6 +34,20 @@ Range1D::~Range1D() {
 };
 
 
+double Range1D::start() {
+
+    return r_min;
+
+};
+
+
+double Range1D::end() {
+
+    return r_max;
+
+};
+
+
 bool Range1D::within(double val) {
     if (r_min <= val and val <= r_max) {
         return true;

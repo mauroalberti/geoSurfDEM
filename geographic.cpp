@@ -14,11 +14,30 @@ Space3DPartition::Space3DPartition(const Range1D& r_x, const Range1D& r_y, const
     };
 
 
-
 Space3DPartition::~Space3DPartition() {
 
 };
 
+
+Range1D Space3DPartition::x_range() {
+
+    return range_x;
+
+};
+
+
+Range1D Space3DPartition::y_range() {
+
+    return range_y;
+
+};
+
+
+Range1D Space3DPartition::z_range() {
+
+    return range_z;
+
+};
 
 
 bool Space3DPartition::intersects(const Space3DPartition& another) {
@@ -32,31 +51,6 @@ bool Space3DPartition::intersects(const Space3DPartition& another) {
         return false;
         };
 
-};
-
-
-UnrotatedRectangularDomain::UnrotatedRectangularDomain() {
-};
-
-
-UnrotatedRectangularDomain::UnrotatedRectangularDomain(const Point2D& pt2d_, const double& l_size_, const double& m_size_) :
-pt2d(pt2d_), l_size(l_size_), m_size(m_size_) {
-};
-
-
-UnrotatedRectangularDomain::~UnrotatedRectangularDomain() {
-};
-
-
-Range1D UnrotatedRectangularDomain::get_x_range() {
-
-    return Range1D(pt2d.x(), pt2d.x() + l_size);
-};
-
-
-Range1D UnrotatedRectangularDomain::get_y_range() {
-
-    return Range1D(pt2d.y(), pt2d.y() + m_size);
 };
 
 
@@ -104,9 +98,13 @@ double RectangularDomain::m() {
 Range1D RectangularDomain::range_x() {
 
     double x_0 = pt().x();
+    //std::cout << "range_x x_0 " << x_0 << "\n";
     double alpha_rad = radians(rot_alpha_degr);
+    //std::cout << "range_x alpha_rad " << alpha_rad << "\n";
     double x_min = x_0 - m()*sin(alpha_rad);
+    //std::cout << "range_x x_min " << x_min << "\n";
     double x_max = x_0 + l()*cos(alpha_rad);
+    //std::cout << "range_x x_max " << x_max << "\n";
 
     return Range1D(x_min, x_max);
 
@@ -131,6 +129,7 @@ RectRegularGrid::RectRegularGrid() {
 
 RectRegularGrid::RectRegularGrid(const RectangularDomain& domain_, const unsigned int& ncols_, const unsigned int& nrows_) :
 domain(domain_), ncols(ncols_), nrows(nrows_) {
+
 };
 
 
@@ -162,13 +161,20 @@ unsigned int RectRegularGrid::rows() {
 
 
 DataRRGrid::DataRRGrid() {
+
 };
 
 
-DataRRGrid::DataRRGrid(const RectRegularGrid& _rrgrid, const std::vector<double> _data, const double _nodata_value) {
+DataRRGrid::DataRRGrid(RectRegularGrid _rrgrid, std::vector<double> _data, double _nodata_value):
+        rrgrid(_rrgrid), data_vals(NumericData(_data, _nodata_value))
+    {
 
-    rrgrid = _rrgrid;
-    data_vals = NumericData(_data, _nodata_value);
+    //rrgrid = RectRegularGrid(_rrgrid.rr_domain(), _rrgrid.cols(), _rrgrid.rows() );
+    //data_vals = NumericData(_data, _nodata_value);
+
+    //std::cout << "DataRRGrid _rrgrid domain pt2d " << _rrgrid.rr_domain().pt().x() << " " << _rrgrid.rr_domain().pt().y() << "\n";
+    //std::cout << "DataRRGrid rrgrid domain pt2d " << rrgrid.rr_domain().pt().x() << " " << rrgrid.rr_domain().pt().y() << "\n";
+    // OK
 
 };
 
@@ -179,6 +185,8 @@ DataRRGrid::~DataRRGrid() {
 
 
 RectRegularGrid DataRRGrid::rr_grid() {
+
+    //std::cout << "DataRRGrid::rr_grid() domain pt2d " << rrgrid.rr_domain().pt().x() << " " << rrgrid.rr_domain().pt().y() << "\n";
 
     return rrgrid;
 

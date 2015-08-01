@@ -12,28 +12,22 @@ public:
     Space3DPartition();
     Space3DPartition(const Range1D&, const Range1D&, const Range1D&);
     ~Space3DPartition();
+    Range1D x_range();
+    Range1D y_range();
+    Range1D z_range();
     bool intersects(const Space3DPartition&);
 
 };
 
 
-class UnrotatedRectangularDomain {
-    Point2D pt2d;  // generation point defined by x and y value
-    double l_size, m_size;  // l, m domain sizes
-public:
-    UnrotatedRectangularDomain();
-    UnrotatedRectangularDomain(const Point2D&, const double&, const double&);
-    ~UnrotatedRectangularDomain();
-    Range1D get_x_range();
-    Range1D get_y_range();
-};
-
-
 class RectangularDomain {
+
     Point2D pt2d;  // generation point defined by x and y value
     double rot_alpha_degr;  // rotation angle Alpha, in degrees - with respect to x-axis
     double l_size, m_size;  // l, m domain sizes
+
 public:
+
     RectangularDomain();
     RectangularDomain(const Point2D&, const double&, const double&, const double&);
     ~RectangularDomain();
@@ -71,7 +65,7 @@ class DataRRGrid {
 
 public:
     DataRRGrid();
-    DataRRGrid(const RectRegularGrid&, const std::vector<double>, const double);
+    DataRRGrid(RectRegularGrid, std::vector<double>, double);
     ~DataRRGrid();
     RectRegularGrid rr_grid();
     NumericData data();

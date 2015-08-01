@@ -117,11 +117,23 @@ DataRRGrid read_esri_ascii_dem( std::string dem_filepath ) {
 
     RectangularDomain domain { pt2d, 0.0, cellsize*ncols, cellsize*nrows };
 
+    std::cout << "domain pt2d " << domain.pt().x() << " " << domain.pt().y() << "\n";
+    // OK
+
     RectRegularGrid rrgrid { domain, ncols, nrows };
 
-    return DataRRGrid(rrgrid, data_vect, nodata_value);
+    //std::cout << "rrgrid domain pt2d " << rrgrid.rr_domain().pt().x() << " " << rrgrid.rr_domain().pt().y() << "\n";
+    // OK
+
+    DataRRGrid datarrgrid = DataRRGrid(rrgrid, data_vect, nodata_value);
+
+    //std::cout << "datarrgrid rrgrid domain pt2d " << datarrgrid.rr_grid().rr_domain().pt().x() << " " << datarrgrid.rr_grid().rr_domain().pt().y() << "\n";
+    // OK
+
+    return datarrgrid;
 
 };
+
 
 MeshTriangleStrip read_vtk_data_ascii( std::string input_vtk_path ) {
 
@@ -221,14 +233,27 @@ int main() {
 
     // read DEM data from input file
     std::string input_dem_path = "./test_data/malpi_w4u2n_src.asc";
-    DataRRGrid datagrid;
+
+    /*
+    DataRRGrid datarrgrid;
     try {
-        datagrid = read_esri_ascii_dem( input_dem_path ); }
+        datarrgrid = read_esri_ascii_dem( input_dem_path ); }
     catch (int e) {
         std::cout << "Program will stop\n";
         return -1; }
+    */
 
-    std::cout << datagrid.data().min();
+    DataRRGrid datarrgrid = read_esri_ascii_dem( input_dem_path );
+    std::cout << "datarrgrid rrgrid domain pt2d " << datarrgrid.rr_grid().rr_domain().pt().x() << " " << datarrgrid.rr_grid().rr_domain().pt().y() << "\n";
+
+    //std::cout << "datagrid rrgrid domain pt2d " << datagrid.rr_grid().rr_domain().pt().x() << " " << datagrid.rr_grid().rr_domain().pt().y() << "\n";
+    // NOK
+
+    Space3DPartition dem_vol = datarrgrid.space_partition();
+
+    std::cout << "x range " << dem_vol.x_range().start() << " " << dem_vol.x_range().end() << "\n";
+    std::cout << "y range " << dem_vol.y_range().start() << " " << dem_vol.y_range().end() << "\n";
+    std::cout << "z range " << dem_vol.z_range().start() << " " << dem_vol.z_range().end() << "\n";
 
     /*
     int n = 0;

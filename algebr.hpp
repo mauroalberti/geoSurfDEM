@@ -9,12 +9,15 @@ double degrees(const double);
 
 
 class Range1D {
+
     double r_min, r_max;
 
 public:
     Range1D();
     Range1D(double, double);
     ~Range1D();
+    double start();
+    double end();
     bool within(double val);
     bool intersects(Range1D);
 
