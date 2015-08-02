@@ -125,17 +125,6 @@ public:
 };
 
 
-class Triangle3D {
-
-    Point3D _pt_a, _pt_b, _pt_c;
-
-public:
-
-    Triangle3D(Point3D, Point3D, Point3D);
-    ~Triangle3D();
-    CartesianPlane to_cartes_plane();
-
-};
 
 
 #endif

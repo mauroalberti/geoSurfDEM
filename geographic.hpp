@@ -20,6 +20,22 @@ public:
 };
 
 
+class Triangle3D {
+
+    Point3D _pts [3];
+
+public:
+
+    Triangle3D();
+    Triangle3D(Point3D, Point3D, Point3D);
+    ~Triangle3D();
+    Point3D pt( unsigned int);
+    CartesianPlane to_cartes_plane();
+    Space3DPartition space_volume();
+
+};
+
+
 class RectangularDomain {
 
     Point2D pt2d;  // generation point defined by x and y value

@@ -49,22 +49,26 @@ double Range1D::end() {
 
 
 bool Range1D::within(double val) {
+
     if (r_min <= val and val <= r_max) {
         return true;
     }
     else {
         return false;
     }
+
 };
 
 
 bool Range1D::intersects(Range1D another) {
+
     if (within(another.r_min) or within(another.r_max) ) {
         return true;
     }
     else {
         return false;
     };
+
 };
 
 
@@ -80,6 +84,7 @@ Matrix2::Matrix2(double m11, double m12,double m21, double m22) {
 
 
 Matrix2::~Matrix2() {
+
 };
 
 
@@ -144,7 +149,6 @@ double Matrix3::determinant() {
 };
 
 
-
 NumericData::NumericData() {
 
 };
@@ -175,9 +179,6 @@ double NumericData::nodata_value() {
 };
 
 
-//bool not_nodata(double x, double filter_out_value) { return (x - filter_out_value) < 1.0e-6; };
-
-
 std::vector<double> filter_data(std::vector<double> indata, double filter_out_value) {
 
     std::vector<double> bar (indata.size());
@@ -201,7 +202,7 @@ double NumericData::min() {
 double NumericData::max() {
 
     std::vector<double> foo = filter_data(values(), nodata_value());
-    std::cout << "foo size " << foo.size() << "\n";
+    //std::cout << "foo size " << foo.size() << "\n";
     return *std::max_element(foo.begin(), foo.end());
 
 };

@@ -3,36 +3,47 @@
 
 
 
-
 Point2D::Point2D() {
+
 }
 
 
 Point2D::Point2D(double x,  double y) {
+
     _x = x;
     _y = y;
+
 };
 
 
 Point2D::~Point2D() {
+
 }
 
 
 double Point2D::x() {
+
     return _x;
+
 };
 
 
 double Point2D::y() {
+
     return _y;
+
 };
 
 
 Point2D Point2D::operator=(Point2D p2) {
+
     return Point2D(p2.x(), p2.y());
+
 };
 
+
 double Point2D::distance(Point2D another) {
+
     double dx = x() - another.x();
     double dy = y() - another.y();
 
@@ -63,6 +74,7 @@ Point3D::~Point3D() {
 
 }
 
+
 bool Point3D::is_valid() {
 
     return valid;
@@ -77,16 +89,21 @@ double Point3D::x() {
 
 
 double Point3D::y() {
+
     return _y;
+
 };
 
 
 double Point3D::z() {
+
     return _z;
+
 };
 
 
 double Point3D::distance(Point3D another) {
+
     double dx = x() - another.x();
     double dy = y() - another.y();
     double dz = z() - another.z();
@@ -114,37 +131,49 @@ Segment3D::Segment3D(Point3D start_pt, Point3D end_pt) :
 
 
 Segment3D::~Segment3D() {
+
 };
 
 
 Point3D Segment3D::start_pt(){
+
     return _start_pt;
+
 };
 
 
 Point3D Segment3D::end_pt(){
+
     return _end_pt;
+
 };
 
 
 double Segment3D::dx() {
+
     return _end_pt.x() - _start_pt.x();
+
 };
 
 
 double Segment3D::dy() {
+
     return _end_pt.y() - _start_pt.y();
+
 };
 
 
 double Segment3D::dz() {
+
     return _end_pt.z() - _start_pt.z();
+
 };
 
 
 Vector3D Segment3D::as_vector() {
 
     return Vector3D(dx(), dy(), dz() );
+
 };
 
 
@@ -173,11 +202,12 @@ bool Segment3D::is_point_projection_in_segment(Point3D pt_3d) {
 
 
 Line3D Segment3D::as_line() {
+
     Point3D start_pt3d = start_pt();
     Vector3D line_vect = as_vector();
     return Line3D(start_pt3d, line_vect);
-};
 
+};
 
 
 Vector3D::Vector3D(double x, double y, double z) :
@@ -195,42 +225,56 @@ Vector3D::Vector3D( Point3D pt3d_a, Point3D pt3d_b) {
 
 
 Vector3D::~Vector3D() {
+
 };
 
 
 double Vector3D::x() {
+
     return _x;
+
 };
 
 
 double Vector3D::y() {
+
     return _y;
+
 };
 
 
 double Vector3D::z() {
+
     return _z;
+
 };
 
 
 double Vector3D::length() {
+
     return sqrt(_x*_x + _y*_y + _z*_z);
+
 };
 
 
 Vector3D Vector3D::scale(double scale_factor) {
 
     return Vector3D(_x*scale_factor, _y*scale_factor, _z*scale_factor);
+
 };
 
 
 Vector3D Vector3D::versor() {
+
     return scale( 1.0 / length() );
+
 };
 
 
 double Vector3D::scalar_prod(Vector3D another) {
+
     return _x*another._x + _y*another._y + _z*another._z;
+
 };
 
 
@@ -241,16 +285,19 @@ Vector3D Vector3D::vector_prod(Vector3D another) {
     double z = _x * another.y() - _y * another.x();
 
     return Vector3D(x, y, z);
+
 };
 
 
 bool Vector3D::is_colinear(Vector3D another) {
+
     Vector3D vect_prod = vector_prod(another);
     double norm = vect_prod.length();
     if (norm < 1e-12) {
         return true; }
     else {
         return false; }
+
 };
 
 
@@ -275,6 +322,7 @@ Line3D::Line3D(Point3D orig_pt3d, Vector3D vers) :
 
 
 Line3D::~Line3D() {
+
 };
 
 
@@ -424,21 +472,6 @@ Line3D CartesianPlane::intersect(CartesianPlane another) {
 
     return Line3D( pt3d, vers);
 
-};
-
-
-Triangle3D::Triangle3D(Point3D pt_a, Point3D pt_b, Point3D pt_c) :
-    _pt_a(pt_a), _pt_b(pt_b), _pt_c(pt_c) {
-
-};
-
-
-Triangle3D::~Triangle3D() {
-};
-
-
-CartesianPlane Triangle3D::to_cartes_plane() {
-    return CartesianPlane(_pt_a, _pt_b, _pt_c);
 };
 
 

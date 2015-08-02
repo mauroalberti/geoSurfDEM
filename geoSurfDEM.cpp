@@ -15,6 +15,7 @@
 
 int get_dem_param_int(const std::string& rec_line, const std::string& par_name) {
     // read single key-uint value from row - ESRI ASCII DEM format
+
     unsigned int par_val;
     std::string str_raw, str;
     std::istringstream instr(rec_line);
@@ -22,10 +23,13 @@ int get_dem_param_int(const std::string& rec_line, const std::string& par_name) 
     transform(str_raw.begin(), str_raw.end(), back_inserter(str), ::toupper);
     if (str != par_name)
         throw -1;
+
     return par_val; }
+
 
 double get_dem_param_double(const std::string& rec_line, const std::string& par_name) {
     // read single key-double value from row - ESRI ASCII DEM format
+
     double par_val;
     std::string str_raw, str;
     std::istringstream instr(rec_line);
@@ -34,6 +38,7 @@ double get_dem_param_double(const std::string& rec_line, const std::string& par_
     if (str != par_name)
         throw -1;
     return par_val; }
+
 
 DataRRGrid read_esri_ascii_dem( std::string dem_filepath ) {
     // read DEM in ESRI Arc/Info ASCII format
@@ -117,7 +122,7 @@ DataRRGrid read_esri_ascii_dem( std::string dem_filepath ) {
 
     RectangularDomain domain { pt2d, 0.0, cellsize*ncols, cellsize*nrows };
 
-    std::cout << "domain pt2d " << domain.pt().x() << " " << domain.pt().y() << "\n";
+    //std::cout << "domain pt2d " << domain.pt().x() << " " << domain.pt().y() << "\n";
     // OK
 
     RectRegularGrid rrgrid { domain, ncols, nrows };
@@ -159,7 +164,7 @@ MeshTriangleStrip read_vtk_data_ascii( std::string input_vtk_path ) {
             instr >> dummy >> num_points >> dummy2; }
     } while ( ! found );
 
-    std::cout << "num points is " << num_points << "\n";
+    //std::cout << "num points is " << num_points << "\n";
 
     std::vector<Point3D> pt3d_vect;
     for (unsigned int n = 0; n < num_points; n++ ) {
@@ -213,6 +218,32 @@ MeshTriangleStrip read_vtk_data_ascii( std::string input_vtk_path ) {
 };
 
 
+std::vector<Triangle3D> extract_triangles_from_mesh(MeshTriangleStrip surf3d_mesh ) {
+
+    std::vector<Point3D> mesh_pts = surf3d_mesh.pts();
+    std::vector< std::vector<unsigned int> > triangle_strips = surf3d_mesh.trianglestrips();
+
+    // cycle within triangle strips
+    std::vector<Triangle3D> mesh_triangles;
+    for(std::vector< std::vector<unsigned int> >::iterator ref_trstr = triangle_strips.begin(); ref_trstr != triangle_strips.end(); ++ref_trstr) {
+        std::vector<unsigned int> triangle_strip = *ref_trstr;
+        PointTriplet curr_triplet = PointTriplet();
+
+        // cycle within points of a single triangle strip
+        for(std::vector<unsigned int>::iterator ref_ptndx = triangle_strip.begin(); ref_ptndx != triangle_strip.end(); ++ref_ptndx) {
+
+            unsigned int curr_pt_ndx = *ref_ptndx;
+            Point3D curr_pt = mesh_pts[curr_pt_ndx];
+            curr_triplet = curr_triplet.update(curr_pt);
+            if (curr_triplet.valid_pts() == 3) {
+                Triangle3D geosurf_triagle = Triangle3D(curr_triplet.get(0), curr_triplet.get(1), curr_triplet.get(2));
+                mesh_triangles.push_back( geosurf_triagle ); }; }; };
+
+    return mesh_triangles;
+
+};
+
+
 // ciclo sui punti di interesse dell'array del DEM
 
 // definisce doppietta, terzetto o quartetto di punti di interesse
@@ -233,28 +264,17 @@ int main() {
 
     // read DEM data from input file
     std::string input_dem_path = "./test_data/malpi_w4u2n_src.asc";
-
-    /*
-    DataRRGrid datarrgrid;
-    try {
-        datarrgrid = read_esri_ascii_dem( input_dem_path ); }
-    catch (int e) {
-        std::cout << "Program will stop\n";
-        return -1; }
-    */
-
     DataRRGrid datarrgrid = read_esri_ascii_dem( input_dem_path );
-    std::cout << "datarrgrid rrgrid domain pt2d " << datarrgrid.rr_grid().rr_domain().pt().x() << " " << datarrgrid.rr_grid().rr_domain().pt().y() << "\n";
+    //std::cout << "datarrgrid rrgrid domain pt2d " << datarrgrid.rr_grid().rr_domain().pt().x() << " " << datarrgrid.rr_grid().rr_domain().pt().y() << "\n";
+    //OK
 
-    //std::cout << "datagrid rrgrid domain pt2d " << datagrid.rr_grid().rr_domain().pt().x() << " " << datagrid.rr_grid().rr_domain().pt().y() << "\n";
-    // NOK
-
+    // solid volume used to check for mesh triangle volume intersection
     Space3DPartition dem_vol = datarrgrid.space_partition();
-
+    /*
     std::cout << "x range " << dem_vol.x_range().start() << " " << dem_vol.x_range().end() << "\n";
     std::cout << "y range " << dem_vol.y_range().start() << " " << dem_vol.y_range().end() << "\n";
     std::cout << "z range " << dem_vol.z_range().start() << " " << dem_vol.z_range().end() << "\n";
-
+    */
     /*
     int n = 0;
     for (std::vector<double>::iterator it = dem_raw_vals.begin() ; it != dem_raw_vals.end(); ++it) {
@@ -263,9 +283,6 @@ int main() {
     }
     */
 
-
-
-    /*
     // read VTK data from input file
     std::string input_vtk_path = "./test_data/surf3d_sim_01_rot45_04500.vtk";
     MeshTriangleStrip surf3d_mesh;
@@ -275,28 +292,13 @@ int main() {
         std::cout << "Program will stop\n";
         return -1; }
 
-    std::vector<Point3D> mesh_pts = surf3d_mesh.pts();
-    std::vector<std::vector<unsigned int> > triangle_strips = surf3d_mesh.trianglestrips();
-    unsigned int ndx_strip = 0;
-    for(std::vector<std::vector<unsigned int> >::iterator ref_trstr = triangle_strips.begin(); ref_trstr != triangle_strips.end(); ++ref_trstr) {
-        std::vector<unsigned int> triangle_strip = *ref_trstr;
-        PointTriplet curr_triplet = PointTriplet();
-        std::cout << "\nstart of strip # " << ndx_strip << " triplet num valid pts: " << curr_triplet.valid_pts() << "\n";
-        for(std::vector<unsigned int>::iterator ref_ptndx = triangle_strip.begin(); ref_ptndx != triangle_strip.end(); ++ref_ptndx) {
-            unsigned int curr_pt_ndx = *ref_ptndx;
-            Point3D curr_pt = mesh_pts[curr_pt_ndx];
-            curr_triplet = curr_triplet.update(curr_pt);
-            if (curr_triplet.valid_pts() == 3) {
-                Triangle3D curr_geosurf_triagle = Triangle3D(curr_triplet.get(0), curr_triplet.get(1), curr_triplet.get(2));
-            };
+    // get triangles (Triangle3D) from mesh
+    std::vector<Triangle3D> mesh_triangles = extract_triangles_from_mesh( surf3d_mesh );
 
-            //std::cout << ndx_strip << ": " << curr_pt_ndx << " " << curr_triplet.valid_pts() << "\n";
-        }
-        ndx_strip++;
-        std::cout << "\n";
-    };
-    */
+    std::cout << "num mesh triangles is " << mesh_triangles.size() << "\n";
+
 
 
     return 0;
+
 };

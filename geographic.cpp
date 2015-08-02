@@ -54,6 +54,63 @@ bool Space3DPartition::intersects(const Space3DPartition& another) {
 };
 
 
+Triangle3D::Triangle3D() {
+
+};
+
+
+Triangle3D::Triangle3D(Point3D pt_a, Point3D pt_b, Point3D pt_c) {
+
+    _pts[0] = pt_a;
+    _pts[1] = pt_b;
+    _pts[2] = pt_c;
+
+};
+
+
+Triangle3D::~Triangle3D() {
+
+};
+
+
+Point3D Triangle3D::pt( unsigned int i) {
+
+    return _pts[i];
+
+};
+
+
+CartesianPlane Triangle3D::to_cartes_plane() {
+
+    return CartesianPlane(pt(0), pt(1), pt(2));
+
+};
+
+
+Space3DPartition Triangle3D::space_volume() {
+
+    double xs[] = {pt(0).x(), pt(1).x(), pt(2).x()};
+    double ys[] = {pt(0).y(), pt(1).y(), pt(2).y()};
+    double zs[] = {pt(0).z(), pt(1).z(), pt(2).z()};
+
+    double min_x = *std::min_element(xs,xs+3);
+    double max_x = *std::max_element(xs,xs+3);
+
+    double min_y = *std::min_element(ys,ys+3);
+    double max_y = *std::max_element(ys,ys+3);
+
+    double min_z = *std::min_element(zs,zs+3);
+    double max_z = *std::max_element(zs,zs+3);
+
+    Range1D range_x = Range1D(min_x, max_x);
+    Range1D range_y = Range1D(min_y, max_y);
+    Range1D range_z = Range1D(min_z, max_z);
+
+    return Space3DPartition(range_x, range_y, range_z);
+
+};
+
+
 RectangularDomain::RectangularDomain() {
 };
 
@@ -64,6 +121,7 @@ pt2d(pt2d_), rot_alpha_degr(rot_alpha_degr_), l_size(l_size_), m_size(m_size_) {
 
 
 RectangularDomain::~RectangularDomain() {
+
 };
 
 
@@ -122,8 +180,8 @@ Range1D RectangularDomain::range_y() {
 };
 
 
-
 RectRegularGrid::RectRegularGrid() {
+
 };
 
 
@@ -159,7 +217,6 @@ unsigned int RectRegularGrid::rows() {
 };
 
 
-
 DataRRGrid::DataRRGrid() {
 
 };
@@ -193,7 +250,6 @@ RectRegularGrid DataRRGrid::rr_grid() {
 };
 
 
-
 NumericData DataRRGrid::data() {
 
     return data_vals;
@@ -225,16 +281,21 @@ MeshTriangleStrip::MeshTriangleStrip(const std::vector<Point3D>& pts, const std:
 
 
 MeshTriangleStrip::~MeshTriangleStrip() {
+
 };
 
 
 std::vector<Point3D> MeshTriangleStrip::pts() {
+
     return _pts;
+
 };
 
 
 std::vector<std::vector<unsigned int> > MeshTriangleStrip::trianglestrips(){
+
     return _trianglestrips;
+
 };
 
 
@@ -261,6 +322,7 @@ Point3D PointTriplet::get(unsigned int i) {
     return triplet[i];
 
 };
+
 
 unsigned int PointTriplet::valid_pts() {
 
