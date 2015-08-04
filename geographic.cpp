@@ -40,16 +40,14 @@ Range1D Space3DPartition::z_range() {
 };
 
 
-bool Space3DPartition::intersects(const Space3DPartition& another) {
+bool Space3DPartition::intersects(Space3DPartition another) {
 
-    if (range_x.intersects(another.range_x) and
-        range_y.intersects(another.range_y) and
-        range_z.intersects(another.range_z) ) {
-            return true;
-        }
+    if (x_range().intersects(another.x_range()) and
+        y_range().intersects(another.y_range()) and
+        z_range().intersects(another.z_range()) ) {
+            return true; }
     else {
-        return false;
-        };
+        return false; };
 
 };
 

@@ -15,7 +15,7 @@ public:
     Range1D x_range();
     Range1D y_range();
     Range1D z_range();
-    bool intersects(const Space3DPartition&);
+    bool intersects(Space3DPartition);
 
 };
 

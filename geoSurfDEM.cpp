@@ -270,11 +270,9 @@ int main() {
 
     // solid volume used to check for mesh triangle volume intersection
     Space3DPartition dem_vol = datarrgrid.space_partition();
-    /*
-    std::cout << "x range " << dem_vol.x_range().start() << " " << dem_vol.x_range().end() << "\n";
-    std::cout << "y range " << dem_vol.y_range().start() << " " << dem_vol.y_range().end() << "\n";
-    std::cout << "z range " << dem_vol.z_range().start() << " " << dem_vol.z_range().end() << "\n";
-    */
+
+
+
     /*
     int n = 0;
     for (std::vector<double>::iterator it = dem_raw_vals.begin() ; it != dem_raw_vals.end(); ++it) {
@@ -295,9 +293,33 @@ int main() {
     // get triangles (Triangle3D) from mesh
     std::vector<Triangle3D> mesh_triangles = extract_triangles_from_mesh( surf3d_mesh );
 
-    std::cout << "num mesh triangles is " << mesh_triangles.size() << "\n";
+    std::cout << "num mesh triangles is " << mesh_triangles.size() << "\n\n";
 
+    int n = 0;
+    for(std::vector<Triangle3D>::iterator ref_ptndx = mesh_triangles.begin(); ref_ptndx != mesh_triangles.end(); ++ref_ptndx) {
+        n++;
+        //std::cout << "current " << n << "\n";
+        Triangle3D mesh_triangle = *ref_ptndx;
+        Space3DPartition mesh_triangle_volume = mesh_triangle.space_volume();
 
+        /*
+        std::cout << "\nx range " << mesh_triangle_volume.x_range().start() << " " << mesh_triangle_volume.x_range().end() << "\n";
+        std::cout << "y range " << mesh_triangle_volume.y_range().start() << " " << mesh_triangle_volume.y_range().end() << "\n";
+        std::cout << "z range " << mesh_triangle_volume.z_range().start() << " " << mesh_triangle_volume.z_range().end() << "\n\n";
+        */
+
+        if (mesh_triangle_volume.intersects( dem_vol )) {
+            std::cout << n << " intersects\n"; }
+        else {
+            std::cout << n << " NOT intersects\n"; };
+
+    };
+
+    /*
+    std::cout << "\nDEM volume\nx range " << dem_vol.x_range().start() << " " << dem_vol.x_range().end() << "\n";
+    std::cout << "y range " << dem_vol.y_range().start() << " " << dem_vol.y_range().end() << "\n";
+    std::cout << "z range " << dem_vol.z_range().start() << " " << dem_vol.z_range().end() << "\n";
+    */
 
     return 0;
 

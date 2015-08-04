@@ -50,24 +50,24 @@ double Range1D::end() {
 
 bool Range1D::within(double val) {
 
-    if (r_min <= val and val <= r_max) {
-        return true;
-    }
+    //std::cout << "within " << start() << " - " <<  val << " - " << end();
+
+    if (start() <= val and val <= end()) {
+        //std::cout << "within " << start() << " - " <<  val << " - " << end() << "  -> YS\n";
+        return true; }
     else {
-        return false;
-    }
+        return false; }
 
 };
 
 
 bool Range1D::intersects(Range1D another) {
 
-    if (within(another.r_min) or within(another.r_max) ) {
-        return true;
-    }
+    if (within(another.start()) or within(another.end()) or
+        another.within( start()) or another.within( end() ) ) {
+        return true; }
     else {
-        return false;
-    };
+        return false; };
 
 };
 
