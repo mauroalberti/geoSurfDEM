@@ -244,6 +244,18 @@ std::vector<Triangle3D> extract_triangles_from_mesh(MeshTriangleStrip surf3d_mes
 };
 
 
+std::vector<Triangle3D> extract_intersecting_triangles(Space3DPartition dem_vol, std::vector<Triangle3D> mesh_triangles ) {
+
+    std::vector<Triangle3D> intersecting_mesh_triangles;
+    for(std::vector<Triangle3D>::iterator ref_ptndx = mesh_triangles.begin(); ref_ptndx != mesh_triangles.end(); ++ref_ptndx) {
+        Triangle3D mesh_triangle = *ref_ptndx;
+        Space3DPartition mesh_triangle_volume = mesh_triangle.space_volume();
+        if (mesh_triangle_volume.intersects( dem_vol )) {
+            intersecting_mesh_triangles.push_back( mesh_triangle ); }; };
+
+    return intersecting_mesh_triangles;  };
+
+
 // ciclo sui punti di interesse dell'array del DEM
 
 // definisce doppietta, terzetto o quartetto di punti di interesse
@@ -271,8 +283,6 @@ int main() {
     // solid volume used to check for mesh triangle volume intersection
     Space3DPartition dem_vol = datarrgrid.space_partition();
 
-
-
     /*
     int n = 0;
     for (std::vector<double>::iterator it = dem_raw_vals.begin() ; it != dem_raw_vals.end(); ++it) {
@@ -292,34 +302,13 @@ int main() {
 
     // get triangles (Triangle3D) from mesh
     std::vector<Triangle3D> mesh_triangles = extract_triangles_from_mesh( surf3d_mesh );
+    std::cout << "num total mesh triangles is " << mesh_triangles.size() << "\n\n";
 
-    std::cout << "num mesh triangles is " << mesh_triangles.size() << "\n\n";
+    // get mesh triangles intersecting with DEM boundaries
+    std::vector<Triangle3D> mesh_intersecting_triangles = extract_intersecting_triangles( dem_vol, mesh_triangles );
 
-    int n = 0;
-    for(std::vector<Triangle3D>::iterator ref_ptndx = mesh_triangles.begin(); ref_ptndx != mesh_triangles.end(); ++ref_ptndx) {
-        n++;
-        //std::cout << "current " << n << "\n";
-        Triangle3D mesh_triangle = *ref_ptndx;
-        Space3DPartition mesh_triangle_volume = mesh_triangle.space_volume();
+    std::cout << "num intersecting mesh triangles is " << mesh_intersecting_triangles.size() << "\n\n";
 
-        /*
-        std::cout << "\nx range " << mesh_triangle_volume.x_range().start() << " " << mesh_triangle_volume.x_range().end() << "\n";
-        std::cout << "y range " << mesh_triangle_volume.y_range().start() << " " << mesh_triangle_volume.y_range().end() << "\n";
-        std::cout << "z range " << mesh_triangle_volume.z_range().start() << " " << mesh_triangle_volume.z_range().end() << "\n\n";
-        */
-
-        if (mesh_triangle_volume.intersects( dem_vol )) {
-            std::cout << n << " intersects\n"; }
-        else {
-            std::cout << n << " NOT intersects\n"; };
-
-    };
-
-    /*
-    std::cout << "\nDEM volume\nx range " << dem_vol.x_range().start() << " " << dem_vol.x_range().end() << "\n";
-    std::cout << "y range " << dem_vol.y_range().start() << " " << dem_vol.y_range().end() << "\n";
-    std::cout << "z range " << dem_vol.z_range().start() << " " << dem_vol.z_range().end() << "\n";
-    */
 
     return 0;
 
