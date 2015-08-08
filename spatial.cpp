@@ -10,8 +10,8 @@ Point2D::Point2D() {
 
 Point2D::Point2D(double x,  double y) {
 
-    _x = x;
-    _y = y;
+    pt[0] = x;
+    pt[1] = y;
 
 };
 
@@ -21,16 +21,23 @@ Point2D::~Point2D() {
 }
 
 
+std::array<double, 2> Point2D::arr_pt()  // C++11
+{
+    return pt;
+}
+
+
+
 double Point2D::x() {
 
-    return _x;
+    return pt[0];
 
 };
 
 
 double Point2D::y() {
 
-    return _y;
+    return pt[1];
 
 };
 
@@ -48,6 +55,26 @@ double Point2D::distance(Point2D another) {
     double dy = y() - another.y();
 
     return sqrt( dx*dx + dy*dy);
+
+};
+
+
+Point2D Point2D::moveby(double move_x, double move_y) {
+
+    double new_x = x() + move_x;
+    double new_y = y() + move_y;
+
+    return Point2D(new_x, new_y);
+
+};
+
+
+Point2D Point2D::rotateby(Matrix2 rm) {
+
+    double new_x = rm.m11()*x() + rm.m12()*y();
+    double new_y = rm.m21()*x() + rm.m22()*y();
+
+    return Point2D(new_x, new_y);
 
 };
 

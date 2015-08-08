@@ -88,6 +88,34 @@ Matrix2::~Matrix2() {
 };
 
 
+double Matrix2::m11() {
+
+    return _matr[0][0];
+
+};
+
+
+double Matrix2::m12() {
+
+    return _matr[0][1];
+
+};
+
+
+double Matrix2::m21() {
+
+    return _matr[1][0];
+
+};
+
+
+double Matrix2::m22() {
+
+    return _matr[1][1];
+
+};
+
+
 double Matrix2::determinant() {
 
     double m11 = _matr[0][0];
@@ -97,6 +125,23 @@ double Matrix2::determinant() {
     double m22 = _matr[1][1];
 
     return m11*m22 - m12*m21;
+
+};
+
+
+Matrix2 angle_to_rot_matrix(double rot_angle_degr) {
+
+    double omega = radians(rot_angle_degr);
+
+    double sin_omega = std::sin(omega);
+    double cos_omega = std::cos(omega);
+
+    double rm11 = cos_omega;
+    double rm12 = -sin_omega;
+    double rm21 = sin_omega;
+    double rm22 = cos_omega;
+
+    return Matrix2(rm11, rm12, rm21, rm22);
 
 };
 

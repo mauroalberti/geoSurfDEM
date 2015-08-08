@@ -1,6 +1,6 @@
 #include <vector>
 #include <algorithm>
-
+#include <cmath>
 #include <iostream>
 
 
@@ -32,8 +32,15 @@ public:
 
     Matrix2(double, double, double, double);
     ~Matrix2();
+    double m11();
+    double m12();
+    double m21();
+    double m22();
     double determinant();
 };
+
+
+Matrix2 angle_to_rot_matrix( double);
 
 
 class Matrix3 {

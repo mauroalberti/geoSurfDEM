@@ -256,6 +256,10 @@ std::vector<Triangle3D> extract_intersecting_triangles(Space3DPartition dem_vol,
     return intersecting_mesh_triangles;  };
 
 
+    int vect_ndx(int i, int j, int n_cols) {
+        return i * n_cols + j; };
+
+
 // ciclo sui punti di interesse dell'array del DEM
 
 // definisce doppietta, terzetto o quartetto di punti di interesse
@@ -308,6 +312,31 @@ int main() {
     std::vector<Triangle3D> mesh_intersecting_triangles = extract_intersecting_triangles( dem_vol, mesh_triangles );
 
     std::cout << "num intersecting mesh triangles is " << mesh_intersecting_triangles.size() << "\n\n";
+
+    /*
+    // transform DEM data into a 2D matrix of points, valid or invalid
+    double cell_size_x, cell_size_y;
+    double rotation_angle_degr;
+    Point2D llcorner_pt;
+    vector<double> data;
+    double null_data_val;                                                                                                                                                                                                                         j*i + j
+    for (int i = 0; i <= n_rows; i++) {
+        for (int j = 0; j <= n_cols; j++) {
+            int ndx_vector = vect_ndx(i, j, n_cols);
+            double z = data[ndx_vector];
+
+
+
+    };
+    dato i e j, ricupera z dal vector<double>, valuta se valido o invalido
+    se valido, calcola x e y, crea Point3D valido
+    attribuisci a cella array il Point3D
+
+
+    // create vector of valid DEM triangles, for intersecting with the mesh traingles
+
+    */
+
 
 
     return 0;

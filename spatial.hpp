@@ -1,5 +1,7 @@
 #include <vector>
-#include <cmath>
+
+
+#include <array>
 
 
 #include "algebr.hpp"
@@ -11,16 +13,23 @@
 
 
 class Point2D {
-    double _x, _y;
+
+    std::array<double, 2> pt;
+
 public:
     //Point2D();
     Point2D();
     Point2D(double, double);
     ~Point2D();
+    //double arr_pt [2];
+    std::array<double, 2> arr_pt();
     double x();
     double y();
     Point2D operator=(Point2D);
     double distance(Point2D);
+    Point2D moveby(double, double);
+    Point2D rotateby(Matrix2);
+
 };
 
 
