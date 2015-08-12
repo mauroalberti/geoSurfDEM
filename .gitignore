@@ -27,7 +27,8 @@
 *.out
 *.app
 
-
+.directory
+bin/
 test_data/
 
 geoSurfDEM.cbp

@@ -40,50 +40,36 @@ class RectangularDomain {
 
     Point2D pt2d;  // generation point defined by x and y value
     double rot_alpha_degr;  // rotation angle Alpha, in degrees - with respect to x-axis
-    double l_size, m_size;  // l, m domain sizes
+    double l_size, m_size; // l, m domain sizes
+    int n_cols, n_rows;
 
 public:
 
     RectangularDomain();
-    RectangularDomain(const Point2D&, const double&, const double&, const double&);
+    RectangularDomain(const Point2D&, const double&, const double&, const double&, const unsigned int&, const unsigned int&);
     ~RectangularDomain();
     Point2D pt();
     double rot_angle();
     double l();
     double m();
+    unsigned int ncols();
+    unsigned int nrows();
     Range1D range_x();
     Range1D range_y();
 
 };
 
 
-class RectRegularGrid {
-    // ? planar CRS - starting with undefined CRS
-    RectangularDomain domain; // rectangular domain
-    unsigned int ncols, nrows;  // cel size/number, along l and m directions
-    //array // 2D array
-
-public:
-    RectRegularGrid();
-    RectRegularGrid(const RectangularDomain&, const unsigned int&, const unsigned int&);
-    ~RectRegularGrid();
-    RectangularDomain rr_domain();
-    unsigned int cols();
-    unsigned int rows();
-
-};
-
-
 class DataRRGrid {
 
-    RectRegularGrid rrgrid;
+    RectangularDomain rrgrid;
     NumericData data_vals;
 
 public:
     DataRRGrid();
-    DataRRGrid(RectRegularGrid, std::vector<double>, double);
+    DataRRGrid(RectangularDomain, std::vector<double>, double);
     ~DataRRGrid();
-    RectRegularGrid rr_grid();
+    RectangularDomain rr_grid();
     NumericData data();
     Space3DPartition space_partition();
 

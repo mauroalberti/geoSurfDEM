@@ -7,7 +7,7 @@
 
 #include <stdlib.h>     /* atof */
 
-
+#include "Matrix.h"
 
 #include "geographic.hpp"
 
@@ -120,17 +120,9 @@ DataRRGrid read_esri_ascii_dem( std::string dem_filepath ) {
 
     Point2D pt2d {xllcorner, yllcorner};
 
-    RectangularDomain domain { pt2d, 0.0, cellsize*ncols, cellsize*nrows };
+    RectangularDomain domain { pt2d, 0.0, cellsize, cellsize, ncols, nrows };
 
-    //std::cout << "domain pt2d " << domain.pt().x() << " " << domain.pt().y() << "\n";
-    // OK
-
-    RectRegularGrid rrgrid { domain, ncols, nrows };
-
-    //std::cout << "rrgrid domain pt2d " << rrgrid.rr_domain().pt().x() << " " << rrgrid.rr_domain().pt().y() << "\n";
-    // OK
-
-    DataRRGrid datarrgrid = DataRRGrid(rrgrid, data_vect, nodata_value);
+    DataRRGrid datarrgrid = DataRRGrid(domain, data_vect, nodata_value);
 
     //std::cout << "datarrgrid rrgrid domain pt2d " << datarrgrid.rr_grid().rr_domain().pt().x() << " " << datarrgrid.rr_grid().rr_domain().pt().y() << "\n";
     // OK
@@ -256,9 +248,25 @@ std::vector<Triangle3D> extract_intersecting_triangles(Space3DPartition dem_vol,
     return intersecting_mesh_triangles;  };
 
 
-    int vect_ndx(int i, int j, int n_cols) {
-        return i * n_cols + j; };
+int vect_ndx(int i, int j, int n_cols) {
 
+    return i * n_cols + j; };
+
+
+/*
+Matrix<Point2D,2> create_pts_matrix(NumericData grid_data, RectangularDomain grid_geograph) {
+
+    double cell_size_x = grid_geograph.rr_domain()., cell_size_y;
+    double rotation_angle_degr;
+    Point2D llcorner_pt;
+    vector<double> data = grid_data.values();
+    double null_data_val = grid_data.nodata_value();                                                                                                                                                                                                                         j*i + j
+    for (int i = 0; i <= n_rows; i++) {
+        for (int j = 0; j <= n_cols; j++) {
+            int ndx_vector = vect_ndx(i, j, n_cols);
+            double z = data[ndx_vector]; };
+};
+*/
 
 // ciclo sui punti di interesse dell'array del DEM
 
@@ -313,28 +321,20 @@ int main() {
 
     std::cout << "num intersecting mesh triangles is " << mesh_intersecting_triangles.size() << "\n\n";
 
-    /*
+
     // transform DEM data into a 2D matrix of points, valid or invalid
-    double cell_size_x, cell_size_y;
-    double rotation_angle_degr;
-    Point2D llcorner_pt;
-    vector<double> data;
-    double null_data_val;                                                                                                                                                                                                                         j*i + j
-    for (int i = 0; i <= n_rows; i++) {
-        for (int j = 0; j <= n_cols; j++) {
-            int ndx_vector = vect_ndx(i, j, n_cols);
-            double z = data[ndx_vector];
+    //Matrix<Point2D,2> dem_pts_matrix = create_pts_matrix(datarrgrid.data(), datarrgrid.rr_grid());
 
-
-
-    };
+    /*
     dato i e j, ricupera z dal vector<double>, valuta se valido o invalido
     se valido, calcola x e y, crea Point3D valido
     attribuisci a cella array il Point3D
+    */
 
 
     // create vector of valid DEM triangles, for intersecting with the mesh traingles
 
+    /*
     */
 
 
