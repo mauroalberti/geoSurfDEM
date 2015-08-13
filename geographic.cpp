@@ -168,14 +168,10 @@ unsigned int RectangularDomain::nrows() {
 Range1D RectangularDomain::range_x() {
 
     double x_0 = pt().x();
-    //std::cout << "range_x x_0 " << x_0 << "\n";
     double alpha_rad = radians(rot_alpha_degr);
-    //std::cout << "range_x alpha_rad " << alpha_rad << "\n";
-    double x_min = x_0 - m()*sin(alpha_rad);
-    //std::cout << "range_x x_min " << x_min << "\n";
-    double x_max = x_0 + l()*cos(alpha_rad);
-    //std::cout << "range_x x_max " << x_max << "\n";
-
+    double x_min = x_0 - nrows()*m()*sin(alpha_rad);
+    double x_max = x_0 + ncols()*l()*cos(alpha_rad);
+    std::cout << "x_max: " << x_max << "\n";
     return Range1D(x_min, x_max);
 
 };
@@ -185,7 +181,9 @@ Range1D RectangularDomain::range_y() {
 
     double y_0 = pt().y();
     double alpha_rad = radians(rot_alpha_degr);
-    double y_max = y_0 + l()*sin(alpha_rad) + m()*cos(alpha_rad);
+    //std::cout << "rot_alpha_degr: " << rot_alpha_degr << " alpha_rad: " << alpha_rad << "\n";
+    double y_max = y_0 + ncols()*l()*sin(alpha_rad) + nrows()*m()*cos(alpha_rad);
+
 
     return Range1D(y_0, y_max);
 
@@ -198,14 +196,14 @@ DataRRGrid::DataRRGrid() {
 };
 
 
-DataRRGrid::DataRRGrid(RectangularDomain _rrgrid, std::vector<double> _data, double _nodata_value):
-        rrgrid(_rrgrid), data_vals(NumericData(_data, _nodata_value))
+DataRRGrid::DataRRGrid(RectangularDomain _rdomain, std::vector<double> _data, double _nodata_value):
+        rdomain(_rdomain), data_vals(NumericData(_data, _nodata_value))
     {
 
-    //rrgrid = RectRegularGrid(_rrgrid.rr_domain(), _rrgrid.cols(), _rrgrid.rows() );
+    //rrgrid = RectRegularGrid(_rdomain.rr_domain(), _rdomain.cols(), _rdomain.rows() );
     //data_vals = NumericData(_data, _nodata_value);
 
-    //std::cout << "DataRRGrid _rrgrid domain pt2d " << _rrgrid.rr_domain().pt().x() << " " << _rrgrid.rr_domain().pt().y() << "\n";
+    //std::cout << "DataRRGrid _rdomain domain pt2d " << _rdomain.rr_domain().pt().x() << " " << _rdomain.rr_domain().pt().y() << "\n";
     //std::cout << "DataRRGrid rrgrid domain pt2d " << rrgrid.rr_domain().pt().x() << " " << rrgrid.rr_domain().pt().y() << "\n";
     // OK
 
@@ -217,11 +215,11 @@ DataRRGrid::~DataRRGrid() {
 };
 
 
-RectangularDomain DataRRGrid::rr_grid() {
+RectangularDomain DataRRGrid::rect_domain() {
 
-    //std::cout << "DataRRGrid::rr_grid() domain pt2d " << rrgrid.rr_domain().pt().x() << " " << rrgrid.rr_domain().pt().y() << "\n";
+    //std::cout << "DataRRGrid::rect_domain() domain pt2d " << rrgrid.rr_domain().pt().x() << " " << rrgrid.rr_domain().pt().y() << "\n";
 
-    return rrgrid;
+    return rdomain;
 
 };
 
@@ -235,8 +233,8 @@ NumericData DataRRGrid::data() {
 
 Space3DPartition DataRRGrid::space_partition() {
 
-    Range1D x_range = rr_grid().range_x();
-    Range1D y_range = rr_grid().range_y();
+    Range1D x_range = rect_domain().range_x();
+    Range1D y_range = rect_domain().range_y();
     Range1D z_range = data().range();
 
     return Space3DPartition(x_range,

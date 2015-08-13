@@ -62,14 +62,14 @@ public:
 
 class DataRRGrid {
 
-    RectangularDomain rrgrid;
+    RectangularDomain rdomain;
     NumericData data_vals;
 
 public:
     DataRRGrid();
     DataRRGrid(RectangularDomain, std::vector<double>, double);
     ~DataRRGrid();
-    RectangularDomain rr_grid();
+    RectangularDomain rect_domain();
     NumericData data();
     Space3DPartition space_partition();
 

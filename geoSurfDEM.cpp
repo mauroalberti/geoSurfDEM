@@ -124,7 +124,7 @@ DataRRGrid read_esri_ascii_dem( std::string dem_filepath ) {
 
     DataRRGrid datarrgrid = DataRRGrid(domain, data_vect, nodata_value);
 
-    //std::cout << "datarrgrid rrgrid domain pt2d " << datarrgrid.rr_grid().rr_domain().pt().x() << " " << datarrgrid.rr_grid().rr_domain().pt().y() << "\n";
+    //std::cout << "datarrgrid rrgrid domain pt2d " << datarrgrid.rect_domain().rr_domain().pt().x() << " " << datarrgrid.rect_domain().rr_domain().pt().y() << "\n";
     // OK
 
     return datarrgrid;
@@ -289,7 +289,14 @@ int main() {
     // read DEM data from input file
     std::string input_dem_path = "./test_data/malpi_w4u2n_src.asc";
     DataRRGrid datarrgrid = read_esri_ascii_dem( input_dem_path );
-    //std::cout << "datarrgrid rrgrid domain pt2d " << datarrgrid.rr_grid().rr_domain().pt().x() << " " << datarrgrid.rr_grid().rr_domain().pt().y() << "\n";
+    RectangularDomain rect_dom = datarrgrid.rect_domain();
+
+    //std::cout << "l: " << rect_dom.l() << ", m: " << rect_dom.m() << "\n";
+    //std::cout << "range_x: " << rect_dom.range_x() << ", range_y: " << rect_dom.range_y() << "\n";
+
+    std::cout << "range_x: " << rect_dom.range_x().start() << " " << rect_dom.range_x().end() << "\n";
+    std::cout << "range_y: " << rect_dom.range_y().start() << " " << rect_dom.range_y().end() << "\n";
+    //std::cout << "datarrgrid rrgrid domain pt2d " << datarrgrid.rect_domain().pt().x() << " " << datarrgrid.rect_domain().pt().y() << "\n";
     //OK
 
     // solid volume used to check for mesh triangle volume intersection
@@ -323,7 +330,7 @@ int main() {
 
 
     // transform DEM data into a 2D matrix of points, valid or invalid
-    //Matrix<Point2D,2> dem_pts_matrix = create_pts_matrix(datarrgrid.data(), datarrgrid.rr_grid());
+    //Matrix<Point2D,2> dem_pts_matrix = create_pts_matrix(datarrgrid.data(), datarrgrid.rect_domain());
 
     /*
     dato i e j, ricupera z dal vector<double>, valuta se valido o invalido
