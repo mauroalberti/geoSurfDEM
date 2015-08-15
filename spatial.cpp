@@ -69,6 +69,16 @@ Point2D Point2D::moveby(double move_x, double move_y) {
 };
 
 
+Point2D Point2D::moveby(Point2D shift_pt) {
+
+    double new_x = x() + shift_pt.x();
+    double new_y = y() + shift_pt.y();
+
+    return Point2D(new_x, new_y);
+
+};
+
+
 Point2D Point2D::rotateby(Matrix2 rm) {
 
     double new_x = rm.m11()*x() + rm.m12()*y();
@@ -83,6 +93,21 @@ Point3D::Point3D() {
 
     valid = false;
 
+    _x = 0.0;
+    _y = 0.0;
+    _z = 0.0;
+
+};
+
+
+Point3D::Point3D(double x, double y, double z, bool valid_) {
+
+    valid =  valid_;
+
+    _x = x;
+    _y = y;
+    _z = z;
+
 };
 
 
@@ -92,6 +117,29 @@ Point3D::Point3D(double x, double y, double z) {
 
     _x = x;
     _y = y;
+    _z = z;
+
+};
+
+
+
+Point3D::Point3D(Point2D pt2d, double z, bool valid_) {
+
+    valid = valid_;
+
+    _x = pt2d.x();
+    _y = pt2d.y();
+    _z = z;
+
+};
+
+
+Point3D::Point3D(Point2D pt2d, double z) {
+
+    valid = true;
+
+    _x = pt2d.x();
+    _y = pt2d.y();
     _z = z;
 
 };

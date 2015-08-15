@@ -28,6 +28,7 @@ public:
     Point2D operator=(Point2D);
     double distance(Point2D);
     Point2D moveby(double, double);
+    Point2D moveby(Point2D);
     Point2D rotateby(Matrix2);
 
 };
@@ -38,7 +39,10 @@ class Point3D {
     double _x, _y, _z;
 public:
     Point3D();
+    Point3D(double, double, double, bool);
     Point3D(double, double, double);
+    Point3D(Point2D, double, bool);
+    Point3D(Point2D, double);
     ~Point3D();
     bool is_valid();
     double x();

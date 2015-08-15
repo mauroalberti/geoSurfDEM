@@ -50,10 +50,7 @@ double Range1D::end() {
 
 bool Range1D::within(double val) {
 
-    //std::cout << "within " << start() << " - " <<  val << " - " << end();
-
     if (start() <= val and val <= end()) {
-        //std::cout << "within " << start() << " - " <<  val << " - " << end() << "  -> YS\n";
         return true; }
     else {
         return false; }
@@ -247,7 +244,6 @@ double NumericData::min() {
 double NumericData::max() {
 
     std::vector<double> foo = filter_data(values(), nodata_value());
-    //std::cout << "foo size " << foo.size() << "\n";
     return *std::max_element(foo.begin(), foo.end());
 
 };

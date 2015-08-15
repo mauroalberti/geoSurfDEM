@@ -7,8 +7,6 @@
 
 #include <stdlib.h>     /* atof */
 
-#include "Matrix.h"
-
 #include "geographic.hpp"
 
 
@@ -124,9 +122,6 @@ DataRRGrid read_esri_ascii_dem( std::string dem_filepath ) {
 
     DataRRGrid datarrgrid = DataRRGrid(domain, data_vect, nodata_value);
 
-    //std::cout << "datarrgrid rrgrid domain pt2d " << datarrgrid.rect_domain().rr_domain().pt().x() << " " << datarrgrid.rect_domain().rr_domain().pt().y() << "\n";
-    // OK
-
     return datarrgrid;
 
 };
@@ -155,8 +150,6 @@ MeshTriangleStrip read_vtk_data_ascii( std::string input_vtk_path ) {
             std::istringstream instr(rec_line);
             instr >> dummy >> num_points >> dummy2; }
     } while ( ! found );
-
-    //std::cout << "num points is " << num_points << "\n";
 
     std::vector<Point3D> pt3d_vect;
     for (unsigned int n = 0; n < num_points; n++ ) {
@@ -253,20 +246,70 @@ int vect_ndx(int i, int j, int n_cols) {
     return i * n_cols + j; };
 
 
-/*
-Matrix<Point2D,2> create_pts_matrix(NumericData grid_data, RectangularDomain grid_geograph) {
+std::vector<int> dem_indices(int ndx, int ncols) {
 
-    double cell_size_x = grid_geograph.rr_domain()., cell_size_y;
-    double rotation_angle_degr;
-    Point2D llcorner_pt;
-    vector<double> data = grid_data.values();
-    double null_data_val = grid_data.nodata_value();                                                                                                                                                                                                                         j*i + j
-    for (int i = 0; i <= n_rows; i++) {
-        for (int j = 0; j <= n_cols; j++) {
-            int ndx_vector = vect_ndx(i, j, n_cols);
-            double z = data[ndx_vector]; };
+    int i = ndx / ncols;
+    int j = ndx - i*ncols;
+    std::vector<int> indices {i, j};
+
+    return indices;
+
 };
-*/
+
+
+std::vector<double> unrotated_coords(int n_rows, int i, int j, double l_size, double m_size) {
+
+    double x_unrot = l_size * ( double(j) + 0.5);
+    double y_unrot = m_size * (n_rows - double(i) -0.5 );
+
+    std::vector<double>  unrot_coords {x_unrot, y_unrot};
+
+    return unrot_coords;
+
+};
+
+
+std::vector<Point3D> create_pts_vector(NumericData grid_data, RectangularDomain grid_geograph) {
+
+    int n_rows = grid_geograph.nrows(), n_cols = grid_geograph.ncols();
+    double l_size = grid_geograph.l(), m_size = grid_geograph.m();
+    double rotation_angle_degr = grid_geograph.rot_angle();
+    Point2D llcorner_pt = grid_geograph.pt();
+
+    std::vector<double> data = grid_data.values();
+    double null_data_val = grid_data.nodata_value();
+
+    Matrix2 dem_rot_matrix = angle_to_rot_matrix(rotation_angle_degr);
+
+
+    std::vector<Point3D> dem_pts_vector;
+    int vector_pts_ndx = -1;
+    for(std::vector<double>::iterator ref_ptndx = data.begin(); ref_ptndx != data.end(); ++ref_ptndx) {
+
+        vector_pts_ndx++;
+
+
+        double z = *ref_ptndx;
+        bool valid_pt = fabs(z - null_data_val) > 1.0e-12;
+        std::vector<int> dem_ndxs = dem_indices(vector_pts_ndx, n_cols);
+        int i = dem_ndxs[0], j = dem_ndxs[1];
+
+        std::vector<double> unrot_coords = unrotated_coords(n_rows, i, j, l_size, m_size);
+        double x_unrot = unrot_coords[0], y_unrot = unrot_coords[1];
+        Point2D unrot_pt2d = Point2D(x_unrot, y_unrot);
+        Point2D rot_pt2 = unrot_pt2d.rotateby(dem_rot_matrix);
+        Point2D shftd_pt2d = rot_pt2.moveby(llcorner_pt);
+        Point3D dem_pts3d = Point3D(shftd_pt2d, z, valid_pt);
+
+        dem_pts_vector.push_back(dem_pts3d);
+
+        };
+
+
+
+    return dem_pts_vector;
+
+};
 
 // ciclo sui punti di interesse dell'array del DEM
 
@@ -291,24 +334,8 @@ int main() {
     DataRRGrid datarrgrid = read_esri_ascii_dem( input_dem_path );
     RectangularDomain rect_dom = datarrgrid.rect_domain();
 
-    //std::cout << "l: " << rect_dom.l() << ", m: " << rect_dom.m() << "\n";
-    //std::cout << "range_x: " << rect_dom.range_x() << ", range_y: " << rect_dom.range_y() << "\n";
-
-    std::cout << "range_x: " << rect_dom.range_x().start() << " " << rect_dom.range_x().end() << "\n";
-    std::cout << "range_y: " << rect_dom.range_y().start() << " " << rect_dom.range_y().end() << "\n";
-    //std::cout << "datarrgrid rrgrid domain pt2d " << datarrgrid.rect_domain().pt().x() << " " << datarrgrid.rect_domain().pt().y() << "\n";
-    //OK
-
     // solid volume used to check for mesh triangle volume intersection
     Space3DPartition dem_vol = datarrgrid.space_partition();
-
-    /*
-    int n = 0;
-    for (std::vector<double>::iterator it = dem_raw_vals.begin() ; it != dem_raw_vals.end(); ++it) {
-        n++;
-        std::cout << n << " " << *it << "\n";
-    }
-    */
 
     // read VTK data from input file
     std::string input_vtk_path = "./test_data/surf3d_sim_01_rot45_04500.vtk";
@@ -328,23 +355,10 @@ int main() {
 
     std::cout << "num intersecting mesh triangles is " << mesh_intersecting_triangles.size() << "\n\n";
 
-
-    // transform DEM data into a 2D matrix of points, valid or invalid
-    //Matrix<Point2D,2> dem_pts_matrix = create_pts_matrix(datarrgrid.data(), datarrgrid.rect_domain());
-
-    /*
-    dato i e j, ricupera z dal vector<double>, valuta se valido o invalido
-    se valido, calcola x e y, crea Point3D valido
-    attribuisci a cella array il Point3D
-    */
-
+    // transform DEM data into a vector of 3D points, valid or invalid
+    std::vector<Point3D> dem_3dpts = create_pts_vector(datarrgrid.data(), datarrgrid.rect_domain());
 
     // create vector of valid DEM triangles, for intersecting with the mesh traingles
-
-    /*
-    */
-
-
 
     return 0;
 
