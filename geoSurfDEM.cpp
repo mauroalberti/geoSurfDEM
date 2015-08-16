@@ -311,6 +311,44 @@ std::vector<Point3D> create_pts_vector(NumericData grid_data, RectangularDomain 
 
 };
 
+
+bool check_triangle_points_validity(Point3D pt_a, Point3D pt_b, Point3D pt_c) {
+
+    if (pt_a.is_valid() && pt_b.is_valid() && pt_c.is_valid()) {
+        return true; }
+    else {
+        return false; };
+
+};
+
+
+std::vector<Triangle3D> create_dem_triangles(std::vector<Point3D> dem_3dpts, int nrows, int ncols ) {
+
+    std::vector<Triangle3D> dem_triangles;
+
+    for (int i = 0; i < nrows-1; ++i) {
+        for (int j = 0; j < ncols-1; ++j) {
+
+          int pt_i0_j0_ndx = vect_ndx(i, j, ncols);
+          int pt_i0_j1_ndx = vect_ndx(i, j+1, ncols);
+          int pt_i1_j0_ndx = vect_ndx(i+1, j, ncols);
+          int pt_i1_j1_ndx = vect_ndx(i+1, j+1, ncols);
+
+          Point3D pt_i0_j0 = dem_3dpts[pt_i0_j0_ndx];
+          Point3D pt_i0_j1 = dem_3dpts[pt_i0_j1_ndx];
+          Point3D pt_i1_j0 = dem_3dpts[pt_i1_j0_ndx];
+          Point3D pt_i1_j1 = dem_3dpts[pt_i1_j1_ndx];
+
+          if (check_triangle_points_validity(pt_i0_j0, pt_i0_j1, pt_i1_j0)) {
+            dem_triangles.push_back( Triangle3D( pt_i0_j0, pt_i0_j1, pt_i1_j0 )); };
+
+          if (check_triangle_points_validity(pt_i1_j1, pt_i0_j1, pt_i1_j0)) {
+            dem_triangles.push_back( Triangle3D( pt_i1_j1, pt_i0_j1, pt_i1_j0 )); }; }; };
+
+    return dem_triangles;
+
+};
+
 // ciclo sui punti di interesse dell'array del DEM
 
 // definisce doppietta, terzetto o quartetto di punti di interesse
@@ -329,6 +367,9 @@ std::vector<Point3D> create_pts_vector(NumericData grid_data, RectangularDomain 
 
 int main() {
 
+    std::cout << "\n ** geoSurfDEM ** \n";
+    std::cout << "\nApplication for determining intersections between 3D geosurfaces and DEM topography\n\n";
+
     // read DEM data from input file
     std::string input_dem_path = "./test_data/malpi_w4u2n_src.asc";
     DataRRGrid datarrgrid = read_esri_ascii_dem( input_dem_path );
@@ -343,22 +384,25 @@ int main() {
     try {
         surf3d_mesh = read_vtk_data_ascii( input_vtk_path ); }
     catch (int e) {
-        std::cout << "Program will stop\n";
+        std::cout << "\n ***** Program will stop *****\n";
         return -1; }
 
     // get triangles (Triangle3D) from mesh
     std::vector<Triangle3D> mesh_triangles = extract_triangles_from_mesh( surf3d_mesh );
-    std::cout << "num total mesh triangles is " << mesh_triangles.size() << "\n\n";
+    std::cout << "\nnum. total mesh triangles is " << mesh_triangles.size() << "\n";
 
     // get mesh triangles intersecting with DEM boundaries
     std::vector<Triangle3D> mesh_intersecting_triangles = extract_intersecting_triangles( dem_vol, mesh_triangles );
-
-    std::cout << "num intersecting mesh triangles is " << mesh_intersecting_triangles.size() << "\n\n";
+    std::cout << "\nnum. intersecting mesh triangles is " << mesh_intersecting_triangles.size() << "\n";
 
     // transform DEM data into a vector of 3D points, valid or invalid
     std::vector<Point3D> dem_3dpts = create_pts_vector(datarrgrid.data(), datarrgrid.rect_domain());
+    std::cout << "\nnum. dem 3d pts is " << dem_3dpts.size() << "\n";
 
     // create vector of valid DEM triangles, for intersecting with the mesh traingles
+    std::vector<Triangle3D> dem_triangles = create_dem_triangles( dem_3dpts, datarrgrid.rect_domain().nrows(), datarrgrid.rect_domain().ncols() );
+    std::cout << "\nnum. dem 3d triangles is " << dem_triangles.size() << "\n";
+
 
     return 0;
 
