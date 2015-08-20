@@ -349,20 +349,56 @@ std::vector<Triangle3D> create_dem_triangles(std::vector<Point3D> dem_3dpts, int
 
 };
 
-// ciclo sui punti di interesse dell'array del DEM
 
-// definisce doppietta, terzetto o quartetto di punti di interesse
+std::vector<Point3D> get_inters_pts(Triangle3D mesh_triangle, Triangle3D dem_triangle) {
 
-// processamento su unità mesh (triangolo)
+    std::vector<Point3D> inters_pts;
 
-// ?fast boundaries (parallelepipedo rettangolo) su DEM triangle
+    CartesianPlane mesh_tr_plane = mesh_triangle.to_cartes_plane();
+    CartesianPlane dem_tr_plane = dem_triangle.to_cartes_plane();
 
-// ?fast boundaries su GAS triangle
+    Line3D inters_line = mesh_tr_plane.intersect(dem_tr_plane);
 
-// ? do they intersect ?
+    Segment3D dem_segment_a = Segment3D(dem_triangle.pt(0), dem_triangle.pt(1));
+    Line3D dem_line_a = dem_segment_a.as_line();
 
-// check if intersection
-// if intersection: set intersection params: local surface attitude
+    Point3D inters_pt = inters_line.intersect_coplanar(dem_line_a);
+
+    if (dem_segment_a.is_point_projection_in_segment(inters_pt)) {
+
+        inters_pts.push_back(inters_pt);
+    };
+
+
+
+
+    return inters_pts;
+
+};
+
+
+std::vector<Point3D> intersect_dem_geosurface(std::vector<Triangle3D> dem_triangles, std::vector<Triangle3D> mesh_intersecting_triangles) {
+
+    std::vector<Point3D> intersecting_pts;
+
+    for(std::vector<Triangle3D>::iterator mesh_ref_ptndx = mesh_intersecting_triangles.begin(); mesh_ref_ptndx != mesh_intersecting_triangles.end(); ++mesh_ref_ptndx) {
+
+        Triangle3D mesh_triangle = *mesh_ref_ptndx;
+
+        for(std::vector<Triangle3D>::iterator dem_ref_ptndx = dem_triangles.begin(); dem_ref_ptndx != dem_triangles.end(); ++dem_ref_ptndx) {
+
+            Triangle3D dem_triangle = *dem_ref_ptndx;
+
+            std::vector<Point3D> inters_pts = get_inters_pts(mesh_triangle, dem_triangle);
+            if (inters_pts.size() > 0) {
+                for(std::vector<Point3D>::iterator pt_ref_ptndx = inters_pts.begin(); pt_ref_ptndx != inters_pts.end(); ++pt_ref_ptndx) {
+                    Point3D inters_pt = *pt_ref_ptndx;
+                    intersecting_pts.push_back(inters_pt); };  };  };  };
+
+    return intersecting_pts;
+
+};
+
 
 
 int main() {
@@ -403,6 +439,9 @@ int main() {
     std::vector<Triangle3D> dem_triangles = create_dem_triangles( dem_3dpts, datarrgrid.rect_domain().nrows(), datarrgrid.rect_domain().ncols() );
     std::cout << "\nnum. dem 3d triangles is " << dem_triangles.size() << "\n";
 
+    // get intersection points
+    std::vector<Point3D> intersection_pts = intersect_dem_geosurface(dem_triangles, mesh_intersecting_triangles);
+    std::cout << "\nnum. intersecting pts is " << intersection_pts.size() << "\n";
 
     return 0;
 
