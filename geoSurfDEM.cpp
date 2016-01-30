@@ -377,23 +377,42 @@ std::vector<Point3D> get_inters_pts(Triangle3D mesh_triangle, Triangle3D dem_tri
 };
 
 
-std::vector<Point3D> intersect_dem_geosurface(std::vector<Triangle3D> dem_triangles, std::vector<Triangle3D> mesh_intersecting_triangles) {
+std::vector<Point3D> intersect_dem_geosurface(std::string output_logfile_path, std::vector<Triangle3D> dem_triangles, std::vector<Triangle3D> mesh_intersecting_triangles) {
+
+    std::ofstream logfile{output_logfile_path, std::ofstream::app};
+    //if (!logfile) error("can't open output file", output_logfile_path);
 
     std::vector<Point3D> intersecting_pts;
 
+    int ndx_curr_mesh = 0;
     for(std::vector<Triangle3D>::iterator mesh_ref_ptndx = mesh_intersecting_triangles.begin(); mesh_ref_ptndx != mesh_intersecting_triangles.end(); ++mesh_ref_ptndx) {
+
+        ++ndx_curr_mesh;
 
         Triangle3D mesh_triangle = *mesh_ref_ptndx;
 
+        int ndx_curr_dem_triangle = 0;
         for(std::vector<Triangle3D>::iterator dem_ref_ptndx = dem_triangles.begin(); dem_ref_ptndx != dem_triangles.end(); ++dem_ref_ptndx) {
+
+            ++ndx_curr_dem_triangle;
 
             Triangle3D dem_triangle = *dem_ref_ptndx;
 
             std::vector<Point3D> inters_pts = get_inters_pts(mesh_triangle, dem_triangle);
+
             if (inters_pts.size() > 0) {
+
+                int ndx_curr_inters_pt = 0;
                 for(std::vector<Point3D>::iterator pt_ref_ptndx = inters_pts.begin(); pt_ref_ptndx != inters_pts.end(); ++pt_ref_ptndx) {
+
+                    ++ndx_curr_inters_pt;
+
                     Point3D inters_pt = *pt_ref_ptndx;
-                    intersecting_pts.push_back(inters_pt); };  };  };  };
+                    intersecting_pts.push_back(inters_pt); };  };  };
+
+        logfile << "\nmesh: " << ndx_curr_mesh << " - current total intersections: " << intersecting_pts.size() << "\n";
+
+        };
 
     return intersecting_pts;
 
@@ -408,6 +427,14 @@ int main() {
 
     // read DEM data from input file
     std::string input_dem_path = "./test_data/malpi_w4u2n_src.asc";
+
+    // debug output file
+    std::string output_logfile_path = "./test_data/log.asc";
+
+    // output data file
+    std::string output_datafile_path = "./test_data/outdata.asc";
+
+    // read input DEM data
     DataRRGrid datarrgrid = read_esri_ascii_dem( input_dem_path );
     RectangularDomain rect_dom = datarrgrid.rect_domain();
 
@@ -440,8 +467,19 @@ int main() {
     std::cout << "\nnum. dem 3d triangles is " << dem_triangles.size() << "\n";
 
     // get intersection points
-    std::vector<Point3D> intersection_pts = intersect_dem_geosurface(dem_triangles, mesh_intersecting_triangles);
+    std::vector<Point3D> intersection_pts = intersect_dem_geosurface(output_logfile_path, dem_triangles, mesh_intersecting_triangles);
     std::cout << "\nnum. intersecting pts is " << intersection_pts.size() << "\n";
+
+
+    if (intersection_pts.size() > 0) {
+
+        std::ofstream outdatafile{output_datafile_path};
+
+        for(std::vector<Point3D>::iterator pt_ref_ptndx = intersection_pts.begin(); pt_ref_ptndx != intersection_pts.end(); ++pt_ref_ptndx) {
+
+            Point3D inters_pt = *pt_ref_ptndx;
+
+            outdatafile << inters_pt.x() << "," << inters_pt.y() << "," << inters_pt.z() << "\n"; };  };
 
     return 0;
 
