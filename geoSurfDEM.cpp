@@ -305,8 +305,6 @@ std::vector<Point3D> create_pts_vector(NumericData grid_data, RectangularDomain 
 
         };
 
-
-
     return dem_pts_vector;
 
 };
@@ -369,9 +367,6 @@ std::vector<Point3D> get_inters_pts(Triangle3D mesh_triangle, Triangle3D dem_tri
         inters_pts.push_back(inters_pt);
     };
 
-
-
-
     return inters_pts;
 
 };
@@ -384,19 +379,15 @@ std::vector<Point3D> intersect_dem_geosurface(std::string output_logfile_path, s
 
     std::vector<Point3D> intersecting_pts;
 
-    int ndx_curr_mesh = 0;
-    for(std::vector<Triangle3D>::iterator mesh_ref_ptndx = mesh_intersecting_triangles.begin(); mesh_ref_ptndx != mesh_intersecting_triangles.end(); ++mesh_ref_ptndx) {
+    int ndx_curr_dem_triangle = 0;
+    for(std::vector<Triangle3D>::iterator dem_ref_ptndx = dem_triangles.begin(); dem_ref_ptndx != dem_triangles.end(); ++dem_ref_ptndx) {
+        ++ndx_curr_dem_triangle;
+        Triangle3D dem_triangle = *dem_ref_ptndx;
 
-        ++ndx_curr_mesh;
-
-        Triangle3D mesh_triangle = *mesh_ref_ptndx;
-
-        int ndx_curr_dem_triangle = 0;
-        for(std::vector<Triangle3D>::iterator dem_ref_ptndx = dem_triangles.begin(); dem_ref_ptndx != dem_triangles.end(); ++dem_ref_ptndx) {
-
-            ++ndx_curr_dem_triangle;
-
-            Triangle3D dem_triangle = *dem_ref_ptndx;
+        int ndx_curr_mesh = 0;
+        for(std::vector<Triangle3D>::iterator mesh_ref_ptndx = mesh_intersecting_triangles.begin(); mesh_ref_ptndx != mesh_intersecting_triangles.end(); ++mesh_ref_ptndx) {
+            ++ndx_curr_mesh;
+            Triangle3D mesh_triangle = *mesh_ref_ptndx;
 
             std::vector<Point3D> inters_pts = get_inters_pts(mesh_triangle, dem_triangle);
 
@@ -422,17 +413,23 @@ std::vector<Point3D> intersect_dem_geosurface(std::string output_logfile_path, s
 
 int main() {
 
-    std::cout << "\n ** geoSurfDEM ** \n";
-    std::cout << "\nApplication for determining intersections between 3D geosurfaces and DEM topography\n\n";
-
     // read DEM data from input file
-    std::string input_dem_path = "./test_data/malpi_w4u2n_src.asc";
+    std::string input_dem_path = "./test_data/malpi_aster_w4u3_rit.asc";
+
+    // input 3D geosurface (VTK format)
+    std::string input_vtk_path = "./test_data/geosurf3d_01.vtk";
 
     // debug output file
-    std::string output_logfile_path = "./test_data/log.asc";
+    std::string output_logfile_path = "./test_data/log_02.txt";
 
     // output data file
-    std::string output_datafile_path = "./test_data/outdata.asc";
+    std::string output_datafile_path = "./test_data/outdata_02.xyz";
+
+    ///////////////////////////
+
+
+    std::cout << "\n ** geoSurfDEM ** \n";
+    std::cout << "\nApplication for determining intersections between 3D geosurfaces and DEM topography\n\n";
 
     // read input DEM data
     DataRRGrid datarrgrid = read_esri_ascii_dem( input_dem_path );
@@ -442,7 +439,6 @@ int main() {
     Space3DPartition dem_vol = datarrgrid.space_partition();
 
     // read VTK data from input file
-    std::string input_vtk_path = "./test_data/surf3d_sim_01_rot45_04500.vtk";
     MeshTriangleStrip surf3d_mesh;
     try {
         surf3d_mesh = read_vtk_data_ascii( input_vtk_path ); }
