@@ -129,7 +129,7 @@ DataRRGrid read_esri_ascii_dem( std::string dem_filepath ) {
 
 MeshTriangleStrip read_vtk_data_ascii( std::string input_vtk_path ) {
 
-    unsigned int num_points, num_triangle_strips, num_dummy;
+    unsigned int num_points, num_triangle_strips, dummy_num;
 
     std::ifstream infile;
     infile.open(input_vtk_path.c_str(), std::ios::binary);
@@ -173,7 +173,7 @@ MeshTriangleStrip read_vtk_data_ascii( std::string input_vtk_path ) {
 
     std::istringstream instr(rec_line);
     std::string dummy_str;
-    instr >> dummy_str >> num_triangle_strips >> num_dummy;
+    instr >> dummy_str >> num_triangle_strips >> dummy_num;
 
     std::vector<std::vector<unsigned int> > triangle_strips;
     std::string blank_space = " ";
@@ -221,8 +221,8 @@ std::vector<Triangle3D> extract_triangles_from_mesh(MeshTriangleStrip surf3d_mes
             Point3D curr_pt = mesh_pts[curr_pt_ndx];
             curr_triplet = curr_triplet.update(curr_pt);
             if (curr_triplet.valid_pts() == 3) {
-                Triangle3D geosurf_triagle = Triangle3D(curr_triplet.get(0), curr_triplet.get(1), curr_triplet.get(2));
-                mesh_triangles.push_back( geosurf_triagle ); }; }; };
+                Triangle3D geosurf_triangle = Triangle3D(curr_triplet.get(0), curr_triplet.get(1), curr_triplet.get(2));
+                mesh_triangles.push_back( geosurf_triangle ); }; }; };
 
     return mesh_triangles;
 
@@ -341,7 +341,7 @@ std::vector<Triangle3D> create_dem_triangles(std::vector<Point3D> dem_3dpts, int
             dem_triangles.push_back( Triangle3D( pt_i0_j0, pt_i0_j1, pt_i1_j0 )); };
 
           if (check_triangle_points_validity(pt_i1_j1, pt_i0_j1, pt_i1_j0)) {
-            dem_triangles.push_back( Triangle3D( pt_i1_j1, pt_i0_j1, pt_i1_j0 )); }; }; };
+            dem_triangles.push_back( Triangle3D( pt_i1_j0, pt_i0_j1, pt_i1_j1 )); }; }; };
 
     return dem_triangles;
 
@@ -420,10 +420,10 @@ int main() {
     std::string input_vtk_path = "./test_data/geosurf3d_01.vtk";
 
     // debug output file
-    std::string output_logfile_path = "./test_data/log_02.txt";
+    std::string output_logfile_path = "./test_data/log_03.txt";
 
     // output data file
-    std::string output_datafile_path = "./test_data/outdata_02.xyz";
+    std::string output_datafile_path = "./test_data/outdata_03.xyz";
 
     ///////////////////////////
 
@@ -466,7 +466,7 @@ int main() {
     std::vector<Point3D> intersection_pts = intersect_dem_geosurface(output_logfile_path, dem_triangles, mesh_intersecting_triangles);
     std::cout << "\nnum. intersecting pts is " << intersection_pts.size() << "\n";
 
-
+    // write intersection points
     if (intersection_pts.size() > 0) {
 
         std::ofstream outdatafile{output_datafile_path};
