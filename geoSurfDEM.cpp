@@ -4,6 +4,8 @@
 #include <string>
 #include <algorithm>
 #include <vector>
+#include <tuple>
+#include <assert.h>
 
 #include <stdlib.h>     /* atof */
 
@@ -127,12 +129,14 @@ DataRRGrid read_esri_ascii_dem( std::string dem_filepath ) {
 };
 
 
-MeshTriangleStrip read_vtk_data_ascii( std::string input_vtk_path ) {
+MeshTriangleStrip read_vtk_data_ascii( std::string output_debmeshfile_path, std::string input_vtk_path ) {
 
     unsigned int num_points, num_triangle_strips, dummy_num;
 
     std::ifstream infile;
     infile.open(input_vtk_path.c_str(), std::ios::binary);
+
+    std::ofstream debmeshfile{output_debmeshfile_path};
 
     if (infile.fail() ) {
         std::cout << "\nInput file " << input_vtk_path << " not available\n";
@@ -157,9 +161,11 @@ MeshTriangleStrip read_vtk_data_ascii( std::string input_vtk_path ) {
         std::istringstream instr(rec_line);
         double x, y, z;
         instr >> x >> y >> z;
+        debmeshfile << n << ", " << x << ", " << y << ", " << z << "\n";
         pt3d_vect.push_back( Point3D(x, y, z));
         };
 
+    debmeshfile << "\n\n";
     std::getline(infile, rec_line);
 
     // TRIANGLE_STRIPS
@@ -184,33 +190,48 @@ MeshTriangleStrip read_vtk_data_ascii( std::string input_vtk_path ) {
         std::vector<unsigned int> triangle_strip;
         std::size_t found;
         bool line_end = false;
+        int line_n = -1;
+        unsigned int num_line_recs;
         while ( ! line_end ){
             found = rec_line.find(blank_space);
             if (found != std::string::npos) {
+                line_n++;
                 std::string number = rec_line.substr(0, found);
-                triangle_strip.push_back( atoi(number.c_str()) );
-                rec_line.erase(0, found+1); }
+                if (line_n == 0) {
+                    num_line_recs = atoi(number.c_str());}
+                else {
+                    triangle_strip.push_back( atoi(number.c_str()) );
+                    debmeshfile << line_n << " - " << number << "\n";
+                };
+                rec_line.erase(0, found+1);
+                ; }
             else {
-                line_end = true;  };   };
-
+                line_end = true;  }; };
+        assert (triangle_strip.size() == num_line_recs);
         triangle_strips.push_back( triangle_strip );
     };
 
     infile.close();
+    debmeshfile.close();
 
     return MeshTriangleStrip(pt3d_vect, triangle_strips);
 
 };
 
 
-std::vector<Triangle3D> extract_triangles_from_mesh(MeshTriangleStrip surf3d_mesh ) {
+std::vector<Triangle3D> extract_triangles_from_mesh(std::string output_debmeshtrianglesfile_path, MeshTriangleStrip surf3d_mesh ) {
 
     std::vector<Point3D> mesh_pts = surf3d_mesh.pts();
     std::vector< std::vector<unsigned int> > triangle_strips = surf3d_mesh.trianglestrips();
 
+    std::ofstream debmeshtrianglesfile{output_debmeshtrianglesfile_path};
+
     // cycle within triangle strips
     std::vector<Triangle3D> mesh_triangles;
+    unsigned int strip_ndx = 0;
     for(std::vector< std::vector<unsigned int> >::iterator ref_trstr = triangle_strips.begin(); ref_trstr != triangle_strips.end(); ++ref_trstr) {
+        strip_ndx++;
+        debmeshtrianglesfile << "\nstrip: " << strip_ndx << "\n";
         std::vector<unsigned int> triangle_strip = *ref_trstr;
         PointTriplet curr_triplet = PointTriplet();
 
@@ -218,24 +239,47 @@ std::vector<Triangle3D> extract_triangles_from_mesh(MeshTriangleStrip surf3d_mes
         for(std::vector<unsigned int>::iterator ref_ptndx = triangle_strip.begin(); ref_ptndx != triangle_strip.end(); ++ref_ptndx) {
 
             unsigned int curr_pt_ndx = *ref_ptndx;
+            debmeshtrianglesfile << "ndx: " << curr_pt_ndx << "\n";
             Point3D curr_pt = mesh_pts[curr_pt_ndx];
             curr_triplet = curr_triplet.update(curr_pt);
             if (curr_triplet.valid_pts() == 3) {
-                Triangle3D geosurf_triangle = Triangle3D(curr_triplet.get(0), curr_triplet.get(1), curr_triplet.get(2));
+                Point3D pt1 = curr_triplet.get(0);
+                Point3D pt2 = curr_triplet.get(1);
+                Point3D pt3 = curr_triplet.get(2);
+                Triangle3D geosurf_triangle = Triangle3D(pt1, pt2, pt3);
+                debmeshtrianglesfile << "pt1: " << pt1.x() << "," << pt1.y() << "," << pt1.z() << "\n";
+                debmeshtrianglesfile << "pt2: " << pt2.x() << "," << pt2.y() << "," << pt2.z() << "\n";
+                debmeshtrianglesfile << "pt3: " << pt3.x() << "," << pt3.y() << "," << pt3.z() << "\n";
                 mesh_triangles.push_back( geosurf_triangle ); }; }; };
+
+
 
     return mesh_triangles;
 
 };
 
 
-std::vector<Triangle3D> extract_intersecting_triangles(Space3DPartition dem_vol, std::vector<Triangle3D> mesh_triangles ) {
+std::vector<Triangle3D> extract_intersecting_triangles( std::string output_debmeshinterstrfile_path, Space3DPartition dem_vol, std::vector<Triangle3D> mesh_triangles ) {
+
+    std::ofstream debmeshintertrfile{output_debmeshinterstrfile_path};
 
     std::vector<Triangle3D> intersecting_mesh_triangles;
+    unsigned int n_orig_triangle = 0;
+    unsigned int n_curr_triangle = 0;
     for(std::vector<Triangle3D>::iterator ref_ptndx = mesh_triangles.begin(); ref_ptndx != mesh_triangles.end(); ++ref_ptndx) {
+        n_orig_triangle++;
         Triangle3D mesh_triangle = *ref_ptndx;
         Space3DPartition mesh_triangle_volume = mesh_triangle.space_volume();
         if (mesh_triangle_volume.intersects( dem_vol )) {
+            n_curr_triangle++;
+            Point3D pt1  = mesh_triangle.pt(0);
+            Point3D pt2  = mesh_triangle.pt(1);
+            Point3D pt3  = mesh_triangle.pt(2);
+            debmeshintertrfile << "ndx triangle orig: " << n_orig_triangle << ", current: " << n_curr_triangle << "\n";
+            debmeshintertrfile << "pt1: " << pt1.x() << "," << pt1.y() << "," << pt1.z() << "\n";
+            debmeshintertrfile << "pt2: " << pt2.x() << "," << pt2.y() << "," << pt2.z() << "\n";
+            debmeshintertrfile << "pt3: " << pt3.x() << "," << pt3.y() << "," << pt3.z() << "\n";
+
             intersecting_mesh_triangles.push_back( mesh_triangle ); }; };
 
     return intersecting_mesh_triangles;  };
@@ -348,24 +392,52 @@ std::vector<Triangle3D> create_dem_triangles(std::vector<Point3D> dem_3dpts, int
 };
 
 
+std::tuple<Point3D, bool> intersect_segments(Line3D inters_line, Segment3D dem_segment)
+{
+    bool is_in_segment = false;
+    Line3D dem_line = dem_segment.as_line();
+    Point3D inters_pt = inters_line.intersect_coplanar(dem_line);
+    if (dem_segment.is_point_projection_in_segment(inters_pt)) {
+        is_in_segment = true;
+    };
+    return  std::make_tuple(inters_pt, is_in_segment);
+
+}
+
+
 std::vector<Point3D> get_inters_pts(Triangle3D mesh_triangle, Triangle3D dem_triangle) {
 
     std::vector<Point3D> inters_pts;
 
+    std::cout << "mesh triangle pt1: " << mesh_triangle.pt(0).x() << "," << mesh_triangle.pt(0).y() << "," << mesh_triangle.pt(0).z() << "\n";
+    std::cout << "mesh triangle pt2: " << mesh_triangle.pt(1).x() << "," << mesh_triangle.pt(1).y() << "," << mesh_triangle.pt(1).z() << "\n";
+    std::cout << "mesh triangle pt3: " << mesh_triangle.pt(2).x() << "," << mesh_triangle.pt(2).y() << "," << mesh_triangle.pt(2).z() << "\n";
+
     CartesianPlane mesh_tr_plane = mesh_triangle.to_cartes_plane();
+
+    //bool correct = mesh_tr_plane.point_in_plane(mesh_triangle.pt(0));
+    //assert (correct);
     CartesianPlane dem_tr_plane = dem_triangle.to_cartes_plane();
 
     Line3D inters_line = mesh_tr_plane.intersect(dem_tr_plane);
 
+    Point3D pt;
+    bool is_in_segment;
+
     Segment3D dem_segment_a = Segment3D(dem_triangle.pt(0), dem_triangle.pt(1));
-    Line3D dem_line_a = dem_segment_a.as_line();
+    std::tie(pt, is_in_segment) = intersect_segments(inters_line, dem_segment_a);
+    if (is_in_segment) {
+        inters_pts.push_back(pt); };
 
-    Point3D inters_pt = inters_line.intersect_coplanar(dem_line_a);
+    Segment3D dem_segment_b = Segment3D(dem_triangle.pt(1), dem_triangle.pt(2));
+    std::tie(pt, is_in_segment) = intersect_segments(inters_line, dem_segment_b);
+    if (is_in_segment) {
+        inters_pts.push_back(pt); };
 
-    if (dem_segment_a.is_point_projection_in_segment(inters_pt)) {
-
-        inters_pts.push_back(inters_pt);
-    };
+    Segment3D dem_segment_c = Segment3D(dem_triangle.pt(2), dem_triangle.pt(0));
+    std::tie(pt, is_in_segment) = intersect_segments(inters_line, dem_segment_c);
+    if (is_in_segment) {
+        inters_pts.push_back(pt); };
 
     return inters_pts;
 
@@ -419,17 +491,35 @@ int main() {
     // input 3D geosurface (VTK format)
     std::string input_vtk_path = "./test_data/geosurf3d_01.vtk";
 
+    // debug output mesh file
+    std::string output_debmeshfile_path = "./test_data/deb_mesh_05.txt";
+    std::string output_debmeshtrianglesfile_path = "./test_data/deb_meshtriangles_05.txt";
+    std::string output_debmeshinterstrfile_path = "./test_data/deb_meshinterstr_05.txt";
+
     // debug output file
-    std::string output_logfile_path = "./test_data/log_03.txt";
+    std::string output_logfile_path = "./test_data/log_05.txt";
 
     // output data file
-    std::string output_datafile_path = "./test_data/outdata_03.xyz";
+    std::string output_datafile_path = "./test_data/outdata_05.xyz";
 
     ///////////////////////////
 
-
-    std::cout << "\n ** geoSurfDEM ** \n";
+    /*
+    std::cout << "\n*** geoSurfDEM *** \n";
     std::cout << "\nApplication for determining intersections between 3D geosurfaces and DEM topography\n\n";
+
+    Point3D p1 = Point3D(1.0,1.0,1.0);
+    Point3D p2 = Point3D(-1.0,1.0,0.0);
+    Point3D p3 = Point3D(2.0,0.0,3.0);
+
+    CartesianPlane test = CartesianPlane(p1,p2,p3);
+    std::cout << test.a() << ", " << test.b() << ", " << test.c() << ", " << test.d() << "\n";
+
+    assert (test.point_in_plane(p1));
+    assert (test.point_in_plane(p2));
+    assert (test.point_in_plane(p3));
+    */
+
 
     // read input DEM data
     DataRRGrid datarrgrid = read_esri_ascii_dem( input_dem_path );
@@ -441,26 +531,28 @@ int main() {
     // read VTK data from input file
     MeshTriangleStrip surf3d_mesh;
     try {
-        surf3d_mesh = read_vtk_data_ascii( input_vtk_path ); }
+        surf3d_mesh = read_vtk_data_ascii( output_debmeshfile_path, input_vtk_path ); }
     catch (int e) {
         std::cout << "\n ***** Program will stop *****\n";
         return -1; }
 
     // get triangles (Triangle3D) from mesh
-    std::vector<Triangle3D> mesh_triangles = extract_triangles_from_mesh( surf3d_mesh );
+    std::vector<Triangle3D> mesh_triangles = extract_triangles_from_mesh(output_debmeshtrianglesfile_path, surf3d_mesh );
     std::cout << "\nnum. total mesh triangles is " << mesh_triangles.size() << "\n";
 
     // get mesh triangles intersecting with DEM boundaries
-    std::vector<Triangle3D> mesh_intersecting_triangles = extract_intersecting_triangles( dem_vol, mesh_triangles );
+    std::vector<Triangle3D> mesh_intersecting_triangles = extract_intersecting_triangles( output_debmeshinterstrfile_path, dem_vol, mesh_triangles );
     std::cout << "\nnum. intersecting mesh triangles is " << mesh_intersecting_triangles.size() << "\n";
 
     // transform DEM data into a vector of 3D points, valid or invalid
     std::vector<Point3D> dem_3dpts = create_pts_vector(datarrgrid.data(), datarrgrid.rect_domain());
     std::cout << "\nnum. dem 3d pts is " << dem_3dpts.size() << "\n";
+    assert (dem_3dpts.size()==rect_dom.nrows()*rect_dom.ncols());
 
     // create vector of valid DEM triangles, for intersecting with the mesh traingles
     std::vector<Triangle3D> dem_triangles = create_dem_triangles( dem_3dpts, datarrgrid.rect_domain().nrows(), datarrgrid.rect_domain().ncols() );
     std::cout << "\nnum. dem 3d triangles is " << dem_triangles.size() << "\n";
+    assert (dem_triangles.size()==2*(rect_dom.nrows()-1)*(rect_dom.ncols()-1));
 
     // get intersection points
     std::vector<Point3D> intersection_pts = intersect_dem_geosurface(output_logfile_path, dem_triangles, mesh_intersecting_triangles);
@@ -478,5 +570,8 @@ int main() {
             outdatafile << inters_pt.x() << "," << inters_pt.y() << "," << inters_pt.z() << "\n"; };  };
 
     return 0;
+    //*/
+
+
 
 };

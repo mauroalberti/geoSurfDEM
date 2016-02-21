@@ -90,6 +90,8 @@ public:
     Line3D(Point3D, Vector3D);
     ~Line3D();
     Point3D intersect_coplanar(Line3D);
+    Point3D orig_pt();
+    Vector3D versor();
 
 };
 
@@ -129,11 +131,18 @@ public:
     CartesianPlane(double, double, double, double);
     ~CartesianPlane();
 
+    double a();
+    double b();
+    double c();
+    double d();
+
     Vector3D normal_versor();
     Vector3D perp_versor_in_plane(Vector3D);
     Vector3D intersect_versor(CartesianPlane);
     Point3D intersect_point3d(CartesianPlane);
     Line3D intersect(CartesianPlane);
+
+    bool point_in_plane(Point3D);
 
 };
 

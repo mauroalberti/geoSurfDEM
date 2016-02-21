@@ -1,4 +1,4 @@
-
+#include "cmath"
 #include "spatial.hpp"
 
 
@@ -401,6 +401,19 @@ Line3D::~Line3D() {
 };
 
 
+Point3D Line3D::orig_pt() {
+
+    return _orig_pt3d;
+
+};
+
+
+Vector3D Line3D::versor() {
+
+    return _vers;
+};
+
+
 Point3D Line3D::intersect_coplanar(Line3D another) {
 
     Point3D line_a_start_pt = _orig_pt3d;
@@ -461,9 +474,9 @@ CartesianPlane::CartesianPlane(Point3D pt_a, Point3D pt_b, Point3D pt_c) {
                              pt_c.x(), pt_c.y(), pt_c.z());
 
     _a = matr_a.determinant();
-    _b = matr_b.determinant();
+    _b = - matr_b.determinant();
     _c = matr_c.determinant();
-    _d = matr_d.determinant();
+    _d = - matr_d.determinant();
 
 };
 
@@ -474,6 +487,23 @@ CartesianPlane::CartesianPlane(double a, double b, double c, double d) :
 
 
 CartesianPlane::~CartesianPlane() {
+};
+
+
+double CartesianPlane::a() {
+    return _a;
+};
+
+double CartesianPlane::b() {
+    return _b;
+};
+
+double CartesianPlane::c() {
+    return _c;
+};
+
+double CartesianPlane::d() {
+    return _d;
 };
 
 
@@ -546,6 +576,19 @@ Line3D CartesianPlane::intersect(CartesianPlane another) {
     Point3D pt3d = intersect_point3d(another);
 
     return Line3D( pt3d, vers);
+
+};
+
+
+bool CartesianPlane::point_in_plane(Point3D pt) {
+
+    double val = std::abs(_a*pt.x() + _b*pt.y() + _c*pt.z() + _d);
+    std::cout << val << "\n";
+    if (val < 1e-12) {
+        return true; }
+    else {
+        return false;
+    };
 
 };
 
