@@ -81,7 +81,7 @@ Point3D Triangle3D::pt( unsigned int i) {
 CartesianPlane Triangle3D::to_cartes_plane() {
 
     CartesianPlane cart_plane = CartesianPlane(pt(0), pt(1), pt(2));
-    std::cout << "Cartesian plane: " << cart_plane.a() << "," << cart_plane.b() << "," << cart_plane.c() << "," << cart_plane.d() << "\n";
+    //std::cout << "Cartesian plane: " << cart_plane.a() << "," << cart_plane.b() << "," << cart_plane.c() << "," << cart_plane.d() << "\n";
     return cart_plane;
 
 };

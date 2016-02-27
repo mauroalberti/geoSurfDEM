@@ -583,7 +583,7 @@ Line3D CartesianPlane::intersect(CartesianPlane another) {
 bool CartesianPlane::point_in_plane(Point3D pt) {
 
     double val = std::abs(_a*pt.x() + _b*pt.y() + _c*pt.z() + _d);
-    std::cout << val << "\n";
+    //std::cout << val << "\n";
     if (val < 1e-12) {
         return true; }
     else {

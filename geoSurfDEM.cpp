@@ -50,7 +50,7 @@ DataRRGrid read_esri_ascii_dem( std::string dem_filepath ) {
     infile.open(dem_filepath.c_str(), std::ios::binary);
 
     if (infile.fail() ) {
-        std::cout << "\nInput file " << dem_filepath << " not available\n";
+        std::cout << "\nError: input file " << dem_filepath << " not available\n";
         throw -1; }
 
     std::string rec_line;
@@ -139,7 +139,7 @@ MeshTriangleStrip read_vtk_data_ascii( std::string output_debmeshfile_path, std:
     std::ofstream debmeshfile{output_debmeshfile_path};
 
     if (infile.fail() ) {
-        std::cout << "\nInput file " << input_vtk_path << " not available\n";
+        std::cout << "\nError: input file " << input_vtk_path << " not available\n";
         throw -1; }
 
     // get number of points
@@ -409,9 +409,11 @@ std::vector<Point3D> get_inters_pts(Triangle3D mesh_triangle, Triangle3D dem_tri
 
     std::vector<Point3D> inters_pts;
 
+    /*
     std::cout << "mesh triangle pt1: " << mesh_triangle.pt(0).x() << "," << mesh_triangle.pt(0).y() << "," << mesh_triangle.pt(0).z() << "\n";
     std::cout << "mesh triangle pt2: " << mesh_triangle.pt(1).x() << "," << mesh_triangle.pt(1).y() << "," << mesh_triangle.pt(1).z() << "\n";
     std::cout << "mesh triangle pt3: " << mesh_triangle.pt(2).x() << "," << mesh_triangle.pt(2).y() << "," << mesh_triangle.pt(2).z() << "\n";
+    */
 
     CartesianPlane mesh_tr_plane = mesh_triangle.to_cartes_plane();
 
@@ -492,22 +494,23 @@ int main() {
     std::string input_vtk_path = "./test_data/geosurf3d_01.vtk";
 
     // debug output mesh file
-    std::string output_debmeshfile_path = "./test_data/deb_mesh_05.txt";
-    std::string output_debmeshtrianglesfile_path = "./test_data/deb_meshtriangles_05.txt";
-    std::string output_debmeshinterstrfile_path = "./test_data/deb_meshinterstr_05.txt";
+    std::string output_debmeshfile_path = "./test_data/deb_mesh_06.txt";
+    std::string output_debmeshtrianglesfile_path = "./test_data/deb_meshtriangles_06.txt";
+    std::string output_debmeshinterstrfile_path = "./test_data/deb_meshinterstr_06.txt";
 
     // debug output file
-    std::string output_logfile_path = "./test_data/log_05.txt";
+    std::string output_logfile_path = "./test_data/log_06.txt";
 
     // output data file
-    std::string output_datafile_path = "./test_data/outdata_05.xyz";
+    std::string output_datafile_path = "./test_data/outdata_06.xyz";
 
     ///////////////////////////
 
-    /*
+
     std::cout << "\n*** geoSurfDEM *** \n";
     std::cout << "\nApplication for determining intersections between 3D geosurfaces and DEM topography\n\n";
 
+    /*
     Point3D p1 = Point3D(1.0,1.0,1.0);
     Point3D p2 = Point3D(-1.0,1.0,0.0);
     Point3D p3 = Point3D(2.0,0.0,3.0);
@@ -525,38 +528,38 @@ int main() {
     DataRRGrid datarrgrid = read_esri_ascii_dem( input_dem_path );
     RectangularDomain rect_dom = datarrgrid.rect_domain();
 
-    // solid volume used to check for mesh triangle volume intersection
-    Space3DPartition dem_vol = datarrgrid.space_partition();
-
     // read VTK data from input file
     MeshTriangleStrip surf3d_mesh;
     try {
         surf3d_mesh = read_vtk_data_ascii( output_debmeshfile_path, input_vtk_path ); }
     catch (int e) {
-        std::cout << "\n ***** Program will stop *****\n";
+        std::cout << "\nError: program will stop\n";
         return -1; }
 
     // get triangles (Triangle3D) from mesh
     std::vector<Triangle3D> mesh_triangles = extract_triangles_from_mesh(output_debmeshtrianglesfile_path, surf3d_mesh );
-    std::cout << "\nnum. total mesh triangles is " << mesh_triangles.size() << "\n";
+    std::cout << "\nNum. total mesh triangles is " << mesh_triangles.size() << "\n";
+
+    // calculate solid volume used to check for mesh triangle volume intersection
+    Space3DPartition dem_vol = datarrgrid.space_partition();
 
     // get mesh triangles intersecting with DEM boundaries
     std::vector<Triangle3D> mesh_intersecting_triangles = extract_intersecting_triangles( output_debmeshinterstrfile_path, dem_vol, mesh_triangles );
-    std::cout << "\nnum. intersecting mesh triangles is " << mesh_intersecting_triangles.size() << "\n";
+    std::cout << "\nNum. intersecting mesh triangles is " << mesh_intersecting_triangles.size() << "\n";
 
     // transform DEM data into a vector of 3D points, valid or invalid
     std::vector<Point3D> dem_3dpts = create_pts_vector(datarrgrid.data(), datarrgrid.rect_domain());
-    std::cout << "\nnum. dem 3d pts is " << dem_3dpts.size() << "\n";
+    std::cout << "\nNum. dem 3d pts is " << dem_3dpts.size() << "\n";
     assert (dem_3dpts.size()==rect_dom.nrows()*rect_dom.ncols());
 
-    // create vector of valid DEM triangles, for intersecting with the mesh traingles
+    // create vector of valid DEM triangles, for intersection with triangles mesh
     std::vector<Triangle3D> dem_triangles = create_dem_triangles( dem_3dpts, datarrgrid.rect_domain().nrows(), datarrgrid.rect_domain().ncols() );
-    std::cout << "\nnum. dem 3d triangles is " << dem_triangles.size() << "\n";
+    std::cout << "\nNum. dem 3d triangles is " << dem_triangles.size() << "\n";
     assert (dem_triangles.size()==2*(rect_dom.nrows()-1)*(rect_dom.ncols()-1));
 
     // get intersection points
     std::vector<Point3D> intersection_pts = intersect_dem_geosurface(output_logfile_path, dem_triangles, mesh_intersecting_triangles);
-    std::cout << "\nnum. intersecting pts is " << intersection_pts.size() << "\n";
+    std::cout << "\nNum. intersecting pts is " << intersection_pts.size() << "\n";
 
     // write intersection points
     if (intersection_pts.size() > 0) {
