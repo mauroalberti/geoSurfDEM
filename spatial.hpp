@@ -48,6 +48,7 @@ public:
     double x();
     double y();
     double z();
+    Point3D moveby(double, double, double);
     double distance(Point3D);
     bool is_coincident(Point3D);
 };
@@ -119,7 +120,7 @@ public:
 
 class CartesianPlane {
     /*
-    Cartesian plane, expressed by equation:
+    Cartesian plane, expressed by normal equation:
     ax + by + cz + d = 0
     */
 

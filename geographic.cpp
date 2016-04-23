@@ -78,6 +78,23 @@ Point3D Triangle3D::pt( unsigned int i) {
 };
 
 
+Triangle3D Triangle3D::shift(double dx, double dy, double dz) {
+
+    Point3D orig_pt1 = pt(0);
+    Point3D orig_pt2 = pt(1);
+    Point3D orig_pt3 = pt(2);
+
+    Point3D shifted_pt1 = orig_pt1.moveby(dx, dy,dz);
+    Point3D shifted_pt2 = orig_pt2.moveby(dx, dy,dz);
+    Point3D shifted_pt3 = orig_pt3.moveby(dx, dy,dz);
+
+    return Triangle3D(shifted_pt1,
+                      shifted_pt2,
+                      shifted_pt3);
+
+};
+
+
 CartesianPlane Triangle3D::to_cartes_plane() {
 
     CartesianPlane cart_plane = CartesianPlane(pt(0), pt(1), pt(2));

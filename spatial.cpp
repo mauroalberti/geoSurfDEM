@@ -177,6 +177,14 @@ double Point3D::z() {
 };
 
 
+Point3D Point3D::moveby(double dx, double dy, double dz) {
+
+    return Point3D(x() + dx,
+                   y() + dy,
+                   z() + dz);
+};
+
+
 double Point3D::distance(Point3D another) {
 
     double dx = x() - another.x();
@@ -481,8 +489,16 @@ CartesianPlane::CartesianPlane(Point3D pt_a, Point3D pt_b, Point3D pt_c) {
 };
 
 
-CartesianPlane::CartesianPlane(double a, double b, double c, double d) :
-    _a(a), _b(b), _c(c), _d(d) {
+CartesianPlane::CartesianPlane(double a, double b, double c, double d) {
+
+    double division_factor = sqrt(a*a + b*b + c*c);
+    _d = d / division_factor;
+    if (d > 0.0) {
+        division_factor = - division_factor;
+    }
+    _a = a / division_factor;
+    _b = b / division_factor;
+    _c = c / division_factor;
 };
 
 
