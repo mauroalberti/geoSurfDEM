@@ -29,6 +29,9 @@ int main() {
     CartesianPlane plane2 = tria2.to_cartes_plane();
     std::cout << "plane parameters - a: " << plane2.a() << " b: " << plane2.b() << " c: " << plane2.c() << " d: " << plane2.d() << "\n";
 
+    # check parallelism/coincidence between the two planes
+    string plane_parallelism = plane1.isparallel(plane2);
+    std::cout << "planes are " << plane_parallelism << "\n";
 
 
     //Triangle3D tria2 = Triangle3D(pt4, pt5, pt6);

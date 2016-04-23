@@ -372,6 +372,20 @@ Vector3D Vector3D::vector_prod(Vector3D another) {
 };
 
 
+double Vector3D::angle(Vector3D another) {
+
+    double cos_angle = scalar_prod(another) / (length()*another.length());
+    if (cos_angle > 1.0) {
+        cos_angle = 1.0;}
+    else if (cos_angle < -1.0) {
+        cos_angle = -1.0;
+    };
+
+    double angle_degr = acos(cos_angle)*45.0/atan(1);
+
+};
+
+
 bool Vector3D::is_colinear(Vector3D another) {
 
     Vector3D vect_prod = vector_prod(another);
@@ -646,6 +660,20 @@ bool CartesianPlane::point_in_plane(Point3D pt) {
     };
 
 };
+
+
+double CartesianPlane::angle(CartesianPlane another) {
+
+Vector3D normal1 = normal_versor();
+Vector3D normal2 = another.normal_versor();
+
+
+
+
+};
+
+
+string isparallel(CartesianPlane);
 
 
 

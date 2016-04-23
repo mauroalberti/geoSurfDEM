@@ -73,6 +73,7 @@ public:
     Vector3D versor();
     double scalar_prod(Vector3D);
     Vector3D vector_prod(Vector3D);
+    double angle(Vector3D);
     bool is_colinear(Vector3D);
     Point3D intersect_coplanar(Vector3D);
     Point3D move_pt(Point3D);
@@ -124,14 +125,16 @@ std::vector<double> normalize(std::vector<double>);
 class CartesianPlane {
     /*
     Cartesian plane, expressed by normal equation:
-    ax + by + cz + d = 0
+    ax + by + cz + d = 0,
+    where a, b and c are the normal vector directional cosines
+    and abs(d) is the distance from reference frame center
     */
 
     double _a, _b, _c, _d;
 
 public:
 
-    CartesianPlane(double, double, double, double);
+    //CartesianPlane(double, double, double, double);
     CartesianPlane(Point3D, Point3D, Point3D);
     ~CartesianPlane();
 
@@ -147,6 +150,8 @@ public:
     Line3D intersect(CartesianPlane);
 
     bool point_in_plane(Point3D);
+    double angle(CartesianPlane);
+    string isparallel(CartesianPlane);
 
 };
 
