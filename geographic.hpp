@@ -31,6 +31,7 @@ public:
     ~Triangle3D();
     Point3D pt( unsigned int);
     Triangle3D shift(double, double, double);
+    double area();
     CartesianPlane to_cartes_plane();
     Space3DPartition space_volume();
 

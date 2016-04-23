@@ -12,10 +12,23 @@ int main() {
     Point3D pt6 = Point3D(-2.0, 0.5, -20.0);
 
     Triangle3D tria1 = Triangle3D(pt1, pt2, pt3);
-
+    std::cout << "area 1 is " << tria1.area() << "\n";
+    if (tria1.area() < 1.0e-10) {
+        std::cout << "Error - degenerate triangle\n";
+        exit(1);
+    }
     CartesianPlane plane1 = tria1.to_cartes_plane();
-
     std::cout << "plane parameters - a: " << plane1.a() << " b: " << plane1.b() << " c: " << plane1.c() << " d: " << plane1.d() << "\n";
+
+    Triangle3D tria2 = Triangle3D(pt4, pt5, pt6);
+    std::cout << "area 2 is " << tria2.area() << "\n";
+    if (tria2.area() < 1.0e-10) {
+        std::cout << "Error - degenerate triangle\n";
+        exit(1);
+    }
+    CartesianPlane plane2 = tria2.to_cartes_plane();
+    std::cout << "plane parameters - a: " << plane2.a() << " b: " << plane2.b() << " c: " << plane2.c() << " d: " << plane2.d() << "\n";
+
 
 
     //Triangle3D tria2 = Triangle3D(pt4, pt5, pt6);

@@ -95,10 +95,22 @@ Triangle3D Triangle3D::shift(double dx, double dy, double dz) {
 };
 
 
+double Triangle3D::area() {
+
+    Vector3D vect1 = Vector3D(pt(0), pt(1));
+    Vector3D vect2 = Vector3D(pt(0), pt(2));   
+
+    Vector3D vect_prod = vect1.vector_prod(vect2);
+
+    return vect_prod.length()/2.0;
+
+};
+
+
 CartesianPlane Triangle3D::to_cartes_plane() {
 
     CartesianPlane cart_plane = CartesianPlane(pt(0), pt(1), pt(2));
-    //std::cout << "Cartesian plane: " << cart_plane.a() << "," << cart_plane.b() << "," << cart_plane.c() << "," << cart_plane.d() << "\n";
+    //std::cout << "to cartesian plane: " << cart_plane.a() << "," << cart_plane.b() << "," << cart_plane.c() << "," << cart_plane.d() << "\n";
     return cart_plane;
 
 };

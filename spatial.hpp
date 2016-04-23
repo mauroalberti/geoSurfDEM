@@ -118,6 +118,9 @@ public:
 };
 
 
+std::vector<double> normalize(std::vector<double>);
+
+
 class CartesianPlane {
     /*
     Cartesian plane, expressed by normal equation:
@@ -128,8 +131,8 @@ class CartesianPlane {
 
 public:
 
-    CartesianPlane(Point3D, Point3D, Point3D);
     CartesianPlane(double, double, double, double);
+    CartesianPlane(Point3D, Point3D, Point3D);
     ~CartesianPlane();
 
     double a();

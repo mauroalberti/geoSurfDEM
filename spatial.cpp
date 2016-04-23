@@ -463,6 +463,48 @@ Point3D Line3D::intersect_coplanar(Line3D another) {
 };
 
 
+/*
+CartesianPlane::CartesianPlane(double a, double b, double c, double d) {
+
+    std::cout << "** " << a << " " << b << " " << c << " " << d << "\n";
+
+    double division_factor = sqrt(a*a + b*b + c*c);
+    std::cout << "*** " << division_factor << "\n";
+    _d = d / division_factor;
+    if (d > 0.0) {
+        division_factor = - division_factor;
+    }
+    std::cout << "**** " << c / division_factor << "\n";
+    _a = a / division_factor;
+    _b = b / division_factor;
+    _c = c / division_factor;
+};
+*/
+
+
+std::vector<double> normalize(std::vector<double> coeff) {
+
+    double a = coeff[0];
+    double b = coeff[1];
+    double c = coeff[2];
+    double d = coeff[3];
+
+    std::vector<double> norm_coeff(4);
+
+    double division_factor = sqrt(a*a + b*b + c*c);
+    if (d > 0.0) {
+        division_factor = - division_factor;
+    }
+
+    norm_coeff[0] = a / division_factor;
+    norm_coeff[1] = b / division_factor;
+    norm_coeff[2] = c / division_factor;
+    norm_coeff[3] = d / division_factor;
+
+    return norm_coeff;
+};
+
+
 CartesianPlane::CartesianPlane(Point3D pt_a, Point3D pt_b, Point3D pt_c) {
 
     Matrix3 matr_a = Matrix3(pt_a.y(), pt_a.z(), 1,
@@ -481,24 +523,21 @@ CartesianPlane::CartesianPlane(Point3D pt_a, Point3D pt_b, Point3D pt_c) {
                              pt_b.x(), pt_b.y(), pt_b.z(),
                              pt_c.x(), pt_c.y(), pt_c.z());
 
-    _a = matr_a.determinant();
-    _b = - matr_b.determinant();
-    _c = matr_c.determinant();
-    _d = - matr_d.determinant();
+    std::vector<double> coeff(4);
+    coeff[0] = matr_a.determinant();
+    coeff[1] = - matr_b.determinant();
+    coeff[2] = matr_c.determinant();
+    coeff[3] = - matr_d.determinant();
 
-};
+    //std::cout << "* " << coeff[0] << " " << coeff[1] << " " << coeff[2] << " " << coeff[3] << "\n";
 
+    std::vector<double> normalized_coeff = normalize(coeff);
 
-CartesianPlane::CartesianPlane(double a, double b, double c, double d) {
+    _a = normalized_coeff[0];
+    _b = normalized_coeff[1];
+    _c = normalized_coeff[2];
+    _d = normalized_coeff[3];
 
-    double division_factor = sqrt(a*a + b*b + c*c);
-    _d = d / division_factor;
-    if (d > 0.0) {
-        division_factor = - division_factor;
-    }
-    _a = a / division_factor;
-    _b = b / division_factor;
-    _c = c / division_factor;
 };
 
 
