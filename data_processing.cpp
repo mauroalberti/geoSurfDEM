@@ -376,11 +376,14 @@ std::vector<Triangle3D> create_dem_triangles(std::vector<Point3D> dem_3dpts, int
 
 
 std::tuple<Point3D, bool> intersect_segments(Line3D inters_line, Segment3D dem_segment) {
+
     bool is_in_segment = false;
     Line3D dem_line = dem_segment.as_line();
     Point3D inters_pt = inters_line.intersect_coplanar(dem_line);
+    std::cout << "intersection pt: " << inters_pt.x() << " " << inters_pt.y() << " " << inters_pt.z() << "\n";
     if (dem_segment.is_point_projection_in_segment(inters_pt)) {
         is_in_segment = true;
+        std::cout << " ** is in segment\n";
     };
     return  std::make_tuple(inters_pt, is_in_segment);
 };

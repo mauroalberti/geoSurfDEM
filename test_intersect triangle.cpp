@@ -7,16 +7,16 @@ int main() {
     Point3D pt2 = Point3D(1.0, 0.0, 0.0);
     Point3D pt3 = Point3D(0.0, 1.0, 0.0);
 
-    Point3D pt4 = Point3D(-2.0, 0.5, 1.0);
-    Point3D pt5 = Point3D(2.0, 0.5, 1.0);
-    Point3D pt6 = Point3D(-2.0, 0.5, -20.0);
+    Point3D pt4 = Point3D(-20.0, 0.5, 1.0);
+    Point3D pt5 = Point3D(20.0, 0.5, 1.0);
+    Point3D pt6 = Point3D(-20.0, 0.5, -20.0);
 
-    Triangle3D dem_tr = Triangle3D(pt1, pt2, pt3);
-    std::cout << "dem triangle area is " << dem_tr.area() << "\n";
-    if (dem_tr.area() < 1.0e-10) {
+    Triangle3D dem_triangle = Triangle3D(pt1, pt2, pt3);
+    std::cout << "dem triangle area is " << dem_triangle.area() << "\n";
+    if (dem_triangle.area() < 1.0e-10) {
         std::cout << "Error - degenerate dem triangle\n";
         exit(1);};
-    CartesianPlane dem_tr_plane = dem_tr.to_cartes_plane();
+    CartesianPlane dem_tr_plane = dem_triangle.to_cartes_plane();
     std::cout << "dem plane parameters - a: " << dem_tr_plane.a() << " b: " << dem_tr_plane.b() << " c: " << dem_tr_plane.c() << " d: " << dem_tr_plane.d() << "\n";
 
     Triangle3D mesh_tr = Triangle3D(pt4, pt5, pt6);
@@ -47,20 +47,32 @@ int main() {
     std::cout << "point: " << iline_pt.x() << " " << iline_pt.y() << " " << iline_pt.z() << "\n";
     std::cout << "versor: " << iline_versor.x() << " " << iline_versor.y() << " " << iline_versor.z() << "\n";
 
+    std::vector<Point3D> inters_pts;
 
-    //Triangle3D tria2 = Triangle3D(pt4, pt5, pt6);
+    Point3D pt;
+    bool is_in_segment;
 
+    Segment3D dem_segment_a = Segment3D(dem_triangle.pt(0), dem_triangle.pt(1));
+    std::tie(pt, is_in_segment) = intersect_segments(inters_line, dem_segment_a);
+    if (is_in_segment) {
+        inters_pts.push_back(pt); };
 
+    Segment3D dem_segment_b = Segment3D(dem_triangle.pt(1), dem_triangle.pt(2));
+    std::tie(pt, is_in_segment) = intersect_segments(inters_line, dem_segment_b);
+    if (is_in_segment) {
+        inters_pts.push_back(pt); };
 
-    //std::vector<Point3D> inter_pts = get_inters_pts(tria2, tria1);
+    Segment3D dem_segment_c = Segment3D(dem_triangle.pt(0), dem_triangle.pt(2));
+    std::tie(pt, is_in_segment) = intersect_segments(inters_line, dem_segment_c);
+    if (is_in_segment) {
+        inters_pts.push_back(pt); };
 
-    /*
-    std::cout << "intersection point number is " << inter_pts.size() << "\n";
-    for (uint i = 0; i < inter_pts.size(); i++) {
-        Point3D pt = inter_pts[i];
+    std::cout << "intersection point number is " << inters_pts.size() << "\n";
+    for (uint i = 0; i < inters_pts.size(); i++) {
+        Point3D pt = inters_pts[i];
         std::cout <<  pt.x() << ',' << pt.y() << ',' << pt.z() << '\n';
     };
-    */
+
 
 
 };

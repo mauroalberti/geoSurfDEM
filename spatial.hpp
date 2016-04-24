@@ -113,6 +113,7 @@ public:
     double dy();
     double dz();
     Vector3D as_vector();
+    Vector3D as_versor();
     double length();
     bool is_point_projection_in_segment(Point3D);
     Line3D as_line();

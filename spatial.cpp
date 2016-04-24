@@ -261,6 +261,12 @@ Vector3D Segment3D::as_vector() {
 };
 
 
+Vector3D Segment3D::as_versor() {
+
+    return as_vector().versor();
+};
+
+
 double Segment3D::length() {
 
     double d_x = dx();
@@ -288,7 +294,7 @@ bool Segment3D::is_point_projection_in_segment(Point3D pt_3d) {
 Line3D Segment3D::as_line() {
 
     Point3D start_pt3d = start_pt();
-    Vector3D line_vect = as_vector();
+    Vector3D line_vect = as_versor();
     return Line3D(start_pt3d, line_vect);
 
 };
@@ -441,11 +447,19 @@ Vector3D Line3D::versor() {
 
 Point3D Line3D::intersect_coplanar(Line3D another) {
 
-    Point3D line_a_start_pt = _orig_pt3d;
-    Point3D line_b_start_pt = another._orig_pt3d;
+    Point3D line_a_start_pt = orig_pt();
+    Vector3D vers_a = versor();
 
-    Vector3D vers_a = _vers;
-    Vector3D vers_b = another._vers;
+    std::cout << "line a\n";
+    std::cout << " - pt: " << line_a_start_pt.x() << " " << line_a_start_pt.y() << " " << line_a_start_pt.z() << "\n";
+    std::cout << " - versor: " << vers_a.x() << " " << vers_a.y() << " " << vers_a.z() << "\n";
+
+    Point3D line_b_start_pt = another.orig_pt();
+    Vector3D vers_b = another.versor();
+
+    std::cout << "line b\n";
+    std::cout << " - pt: " << line_b_start_pt.x() << " " << line_b_start_pt.y() << " " << line_b_start_pt.z() << "\n";
+    std::cout << " - versor: " << vers_b.x() << " " << vers_b.y() << " " << vers_b.z() << "\n";
 
     double delta_distance = 100.0;
     Vector3D displ_vector = vers_b.scale(delta_distance);
@@ -487,7 +501,6 @@ CartesianPlane::CartesianPlane(double a, double b, double c, double d) {
 
     double division_factor = sqrt(a*a + b*b + c*c);
     std::cout << "*** " << division_factor << "\n";
-    _d = d / division_factor;
     if (d > 0.0) {
         division_factor = - division_factor;
     }
@@ -495,6 +508,7 @@ CartesianPlane::CartesianPlane(double a, double b, double c, double d) {
     _a = a / division_factor;
     _b = b / division_factor;
     _c = c / division_factor;
+    _d = d / division_factor;
 };
 */
 
@@ -605,36 +619,34 @@ Vector3D CartesianPlane::intersect_versor(CartesianPlane another) {
 
 Point3D CartesianPlane::intersect_point3d(CartesianPlane another) {
 
-    Matrix2 matrix_1 = Matrix2(_a, _b, another._a, another._b);
-    Matrix2 matrix_2 = Matrix2(_a, _c, another._a, another._c);
-    Matrix2 matrix_3 = Matrix2(_b, _c, another._b, another._c);
+    Matrix2 matrix_ab = Matrix2(_a, _b, another._a, another._b);
+    Matrix2 matrix_ac = Matrix2(_a, _c, another._a, another._c);
+    Matrix2 matrix_bc = Matrix2(_b, _c, another._b, another._c);
 
-    double matrix_1_det = matrix_1.determinant();
-    double matrix_2_det = matrix_2.determinant();
-    double matrix_3_det = matrix_3.determinant();
+    double determinant_ab = matrix_ab.determinant();
+    double determinant_ac = matrix_ac.determinant();
+    double determinant_bc = matrix_bc.determinant();
 
-    // TODO: check formula correctness for case 2 and 3
-    double x = 0.0, y = 0.0, z = 0.0;
-    if ( fabs( matrix_1_det ) > 1e-12 ) {
-        Matrix2 matrix_1b = Matrix2(_d, _b, another._d, another._b);
-        Matrix2 matrix_1c = Matrix2(_a, _d, another._a, another._d);
+    Matrix2 matrix_ad = Matrix2(_a, - _d, another._a, - another._d);
+    Matrix2 matrix_bd = Matrix2(_b, - _d, another._b, - another._d);
+    Matrix2 matrix_dc = Matrix2(- _d, _c, - another._d, another._c);
+    Matrix2 matrix_db = Matrix2(- _d, _b, - another._d, another._b);
+
+    double x, y, z;
+    if ( fabs( determinant_ab ) > 1e-12 ) {
         z = 0.0;
-        x = matrix_1b.determinant() / matrix_1_det;
-        y = matrix_1c.determinant() / matrix_1_det;
+        x = matrix_db.determinant() / determinant_ab;
+        y = matrix_ad.determinant() / determinant_ab;
     }
-    else if ( fabs( matrix_2_det ) > 1e-12 ) {
-        Matrix2 matrix_2b = Matrix2(_d, _c, another._d, another._c);
-        Matrix2 matrix_2c = Matrix2(_a, _d, another._a, another._d);
+    else if ( fabs( determinant_ac ) > 1e-12 ) {
         y = 0.0;
-        x = matrix_2b.determinant() / matrix_2_det;
-        z = matrix_2c.determinant() / matrix_2_det;
+        x = matrix_dc.determinant() / determinant_ac;
+        z = matrix_ad.determinant() / determinant_ac;
     }
-    else if ( fabs( matrix_3_det ) > 1e-12 ) {
-        Matrix2 matrix_3b = Matrix2(_d, _c, another._d, another._c);
-        Matrix2 matrix_3c = Matrix2(_b, _d, another._b, another._d);
+    else if ( fabs( determinant_bc ) > 1e-12 ) {
         x = 0.0;
-        y = matrix_3b.determinant() / matrix_3_det;
-        z = matrix_3c.determinant() / matrix_3_det;
+        y = matrix_dc.determinant() / determinant_bc;
+        z = matrix_bd.determinant() / determinant_bc;
     }
 
     return Point3D(x, y, z);
