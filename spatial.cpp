@@ -382,7 +382,7 @@ double Vector3D::angle(Vector3D another) {
         cos_angle = -1.0;
     };
 
-    double angle_degr = acos(cos_angle)*45.0/atan(1);
+    double angle_degr = degrees(acos(cos_angle));
 
     return angle_degr;
 
@@ -643,7 +643,6 @@ Point3D CartesianPlane::intersect_point3d(CartesianPlane another) {
 
 Line3D CartesianPlane::intersect(CartesianPlane another) {
 
-    // TODO: consider the special case of two parallel planes
     Vector3D vers = intersect_versor(another);
     Point3D pt3d = intersect_point3d(another);
 

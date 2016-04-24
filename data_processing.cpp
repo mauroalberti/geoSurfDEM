@@ -390,16 +390,8 @@ std::vector<Point3D> get_inters_pts(Triangle3D mesh_triangle, Triangle3D dem_tri
 
     std::vector<Point3D> inters_pts;
 
-    /*
-    std::cout << "mesh triangle pt1: " << mesh_triangle.pt(0).x() << "," << mesh_triangle.pt(0).y() << "," << mesh_triangle.pt(0).z() << "\n";
-    std::cout << "mesh triangle pt2: " << mesh_triangle.pt(1).x() << "," << mesh_triangle.pt(1).y() << "," << mesh_triangle.pt(1).z() << "\n";
-    std::cout << "mesh triangle pt3: " << mesh_triangle.pt(2).x() << "," << mesh_triangle.pt(2).y() << "," << mesh_triangle.pt(2).z() << "\n";
-    */
-
     CartesianPlane mesh_tr_plane = mesh_triangle.to_cartes_plane();
 
-    //bool correct = mesh_tr_plane.point_in_plane(mesh_triangle.pt(0));
-    //assert (correct);
     CartesianPlane dem_tr_plane = dem_triangle.to_cartes_plane();
 
     Line3D inters_line = mesh_tr_plane.intersect(dem_tr_plane);

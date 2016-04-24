@@ -11,38 +11,41 @@ int main() {
     Point3D pt5 = Point3D(2.0, 0.5, 1.0);
     Point3D pt6 = Point3D(-2.0, 0.5, -20.0);
 
-    Triangle3D tria1 = Triangle3D(pt1, pt2, pt3);
-    std::cout << "area 1 is " << tria1.area() << "\n";
-    if (tria1.area() < 1.0e-10) {
-        std::cout << "Error - degenerate triangle\n";
+    Triangle3D dem_tr = Triangle3D(pt1, pt2, pt3);
+    std::cout << "dem triangle area is " << dem_tr.area() << "\n";
+    if (dem_tr.area() < 1.0e-10) {
+        std::cout << "Error - degenerate dem triangle\n";
         exit(1);};
+    CartesianPlane dem_tr_plane = dem_tr.to_cartes_plane();
+    std::cout << "dem plane parameters - a: " << dem_tr_plane.a() << " b: " << dem_tr_plane.b() << " c: " << dem_tr_plane.c() << " d: " << dem_tr_plane.d() << "\n";
 
-    CartesianPlane plane1 = tria1.to_cartes_plane();
-    std::cout << "plane parameters - a: " << plane1.a() << " b: " << plane1.b() << " c: " << plane1.c() << " d: " << plane1.d() << "\n";
-
-    Triangle3D tria2 = Triangle3D(pt4, pt5, pt6);
-    std::cout << "area 2 is " << tria2.area() << "\n";
-    if (tria2.area() < 1.0e-10) {
-        std::cout << "Error - degenerate triangle\n";
+    Triangle3D mesh_tr = Triangle3D(pt4, pt5, pt6);
+    std::cout << "mesh triangle area is " << mesh_tr.area() << "\n";
+    if (mesh_tr.area() < 1.0e-10) {
+        std::cout << "Error - degenerate mesh triangle\n";
         exit(1);}
 
-    CartesianPlane plane2 = tria2.to_cartes_plane();
-    std::cout << "plane parameters - a: " << plane2.a() << " b: " << plane2.b() << " c: " << plane2.c() << " d: " << plane2.d() << "\n";
+    CartesianPlane mesh_tr_plane = mesh_tr.to_cartes_plane();
+    std::cout << "mesh plane parameters - a: " << mesh_tr_plane.a() << " b: " << mesh_tr_plane.b() << " c: " << mesh_tr_plane.c() << " d: " << mesh_tr_plane.d() << "\n";
 
-    double plane_angle = plane1.angle(plane2);
-    std::cout << "angle is " << plane_angle << "\n";
+    double plane_angle = dem_tr_plane.angle(mesh_tr_plane);
+    std::cout << "plane angle is " << plane_angle << "\n";
 
     // check parallelism/coincidence between the two planes
-    bool plane_parallelism = plane1.isparallel(plane2);
+    bool plane_parallelism = dem_tr_plane.isparallel(mesh_tr_plane);
     if (plane_parallelism) {
         std::cout << "Warning: parallel planes\n";
-        bool coincident_planes = plane1.isequidistant(plane2);
+        bool coincident_planes = dem_tr_plane.isequidistant(mesh_tr_plane);
         if (coincident_planes) {
             std::cout << "Warning: coincident planes\n";};
         exit(1); };
 
+    Line3D inters_line = mesh_tr_plane.intersect(dem_tr_plane);
+    Point3D iline_pt = inters_line.orig_pt();
+    Vector3D iline_versor = inters_line.versor();
 
-
+    std::cout << "point: " << iline_pt.x() << " " << iline_pt.y() << " " << iline_pt.z() << "\n";
+    std::cout << "versor: " << iline_versor.x() << " " << iline_versor.y() << " " << iline_versor.z() << "\n";
 
 
     //Triangle3D tria2 = Triangle3D(pt4, pt5, pt6);
