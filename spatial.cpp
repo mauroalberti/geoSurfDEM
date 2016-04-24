@@ -1,7 +1,8 @@
 #include "cmath"
 #include "spatial.hpp"
 
-
+double plane_parallel_threshold_degr = 0.1; // in degrees
+double plane_equidistance_threshold = 1.0e-10; // data distance units
 
 Point2D::Point2D() {
 
@@ -383,6 +384,8 @@ double Vector3D::angle(Vector3D another) {
 
     double angle_degr = acos(cos_angle)*45.0/atan(1);
 
+    return angle_degr;
+
 };
 
 
@@ -667,13 +670,34 @@ double CartesianPlane::angle(CartesianPlane another) {
 Vector3D normal1 = normal_versor();
 Vector3D normal2 = another.normal_versor();
 
+double angle_degr = normal1.angle(normal2);
 
-
+return angle_degr;
 
 };
 
 
-string isparallel(CartesianPlane);
+bool CartesianPlane::isparallel(CartesianPlane another) {
+
+    double angle_degr = angle(another);
+
+    if (angle_degr < plane_parallel_threshold_degr) {
+        return true;}
+    else if (angle_degr > 180.0 - plane_parallel_threshold_degr) {
+        return true;}
+    else {
+        return false;};
+
+};
+
+bool CartesianPlane::isequidistant(CartesianPlane another) {
+
+    if (fabs(d() - another.d()) < plane_equidistance_threshold) {
+        return true; }
+    else {
+        return false; };
+
+};
 
 
 

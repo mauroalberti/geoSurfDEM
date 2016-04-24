@@ -1,3 +1,4 @@
+#include <string>
 #include <vector>
 
 
@@ -151,7 +152,8 @@ public:
 
     bool point_in_plane(Point3D);
     double angle(CartesianPlane);
-    string isparallel(CartesianPlane);
+    bool isparallel(CartesianPlane);
+    bool isequidistant(CartesianPlane);
 
 };
 

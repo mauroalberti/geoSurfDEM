@@ -15,8 +15,8 @@ int main() {
     std::cout << "area 1 is " << tria1.area() << "\n";
     if (tria1.area() < 1.0e-10) {
         std::cout << "Error - degenerate triangle\n";
-        exit(1);
-    }
+        exit(1);};
+
     CartesianPlane plane1 = tria1.to_cartes_plane();
     std::cout << "plane parameters - a: " << plane1.a() << " b: " << plane1.b() << " c: " << plane1.c() << " d: " << plane1.d() << "\n";
 
@@ -24,14 +24,25 @@ int main() {
     std::cout << "area 2 is " << tria2.area() << "\n";
     if (tria2.area() < 1.0e-10) {
         std::cout << "Error - degenerate triangle\n";
-        exit(1);
-    }
+        exit(1);}
+
     CartesianPlane plane2 = tria2.to_cartes_plane();
     std::cout << "plane parameters - a: " << plane2.a() << " b: " << plane2.b() << " c: " << plane2.c() << " d: " << plane2.d() << "\n";
 
-    # check parallelism/coincidence between the two planes
-    string plane_parallelism = plane1.isparallel(plane2);
-    std::cout << "planes are " << plane_parallelism << "\n";
+    double plane_angle = plane1.angle(plane2);
+    std::cout << "angle is " << plane_angle << "\n";
+
+    // check parallelism/coincidence between the two planes
+    bool plane_parallelism = plane1.isparallel(plane2);
+    if (plane_parallelism) {
+        std::cout << "Warning: parallel planes\n";
+        bool coincident_planes = plane1.isequidistant(plane2);
+        if (coincident_planes) {
+            std::cout << "Warning: coincident planes\n";};
+        exit(1); };
+
+
+
 
 
     //Triangle3D tria2 = Triangle3D(pt4, pt5, pt6);
