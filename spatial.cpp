@@ -1,5 +1,7 @@
 #include "cmath"
 #include "spatial.hpp"
+#include <cassert>
+
 
 double plane_parallel_threshold_degr = 0.1; // in degrees
 double plane_equidistance_threshold = 1.0e-10; // data distance units
@@ -481,6 +483,7 @@ Point3D Line3D::intersect_coplanar(Line3D another) {
     Point3D line_a_start_pt = orig_pt();
     Vector3D vers_a = versor();
 
+    std::cout << "\nIntersect_coplanar\n";
     std::cout << "line a\n";
     std::cout << " - pt: " << line_a_start_pt.x() << " " << line_a_start_pt.y() << " " << line_a_start_pt.z() << "\n";
     std::cout << " - versor: " << vers_a.x() << " " << vers_a.y() << " " << vers_a.z() << "\n";
@@ -492,22 +495,45 @@ Point3D Line3D::intersect_coplanar(Line3D another) {
     std::cout << " - pt: " << line_b_start_pt.x() << " " << line_b_start_pt.y() << " " << line_b_start_pt.z() << "\n";
     std::cout << " - versor: " << vers_b.x() << " " << vers_b.y() << " " << vers_b.z() << "\n";
 
+    Point3D point_a = Point3D(line_a_start_pt.x(), line_a_start_pt.y(), line_a_start_pt.z());
+    Point3D point_b = Point3D(line_b_start_pt.x(), line_b_start_pt.y(), line_b_start_pt.z());
+
+    std::cout << "\point_a\n";
+    std::cout << "x: " << point_a.x() << " y: " << point_a.y() << " z: " << point_a.z() << "\n";
+    std::cout << "\point_b\n";
+    std::cout << "x: " << point_b.x() << " y: " << point_b.y() << " z: " << point_b.z() << "\n";
+
     double delta_distance = 100.0;
-    Vector3D displ_vector = vers_b.scale(delta_distance);
+    Vector3D displ_vector_a = vers_a.scale(delta_distance);
+    Vector3D displ_vector_b = vers_b.scale(delta_distance);
 
-    Point3D first_pt = Point3D(line_a_start_pt.x(), line_a_start_pt.y(), line_a_start_pt.z());
-    Point3D second_pt = Point3D(line_b_start_pt.x(), line_b_start_pt.y(), line_b_start_pt.z());
-
-    if (second_pt.distance(first_pt) < delta_distance/2.0) {
-        second_pt = displ_vector.move_pt(second_pt);
+    if (point_b.distance(point_a) < delta_distance) {
+        point_b = displ_vector_b.move_pt(point_b);
     };
 
-    Point3D third_pt = displ_vector.move_pt(second_pt);
-    while(third_pt.distance(first_pt) < delta_distance/2.0) {
-       third_pt = displ_vector.move_pt(third_pt);
-    };
+    Point3D point_c = displ_vector_b.move_pt(point_b);
+    point_c = displ_vector_a.move_pt(point_c);
 
-    CartesianPlane colinear_plane = CartesianPlane(first_pt, second_pt, third_pt);
+    assert( not point_a.is_coincident(point_b));
+    assert( not point_c.is_coincident(point_a));
+    assert( not point_c.is_coincident(point_b));
+
+    Vector3D vect1 = Vector3D(point_a, point_b);
+    Vector3D vect2 = Vector3D(point_a, point_c);
+
+    assert( not vect1.isodirection(vect2));
+
+    std::cout << "\point_a\n";
+    std::cout << "x: " << point_a.x() << " y: " << point_a.y() << " z: " << point_a.z() << "\n";
+    std::cout << "\point_b\n";
+    std::cout << "x: " << point_b.x() << " y: " << point_b.y() << " z: " << point_b.z() << "\n";
+    std::cout << "\point_c\n";
+    std::cout << "x: " << point_c.x() << " y: " << point_c.y() << " z: " << point_c.z() << "\n";
+
+    CartesianPlane colinear_plane = CartesianPlane(point_a, point_b, point_c);
+
+    std::cout << "\ncolinear plane\n";
+    std::cout << " a: " << colinear_plane.a() << " b: " << colinear_plane.b() << " c: " << colinear_plane.c() << " d: " << colinear_plane.d() << "\n";
 
     //code inspired to: http://geomalgorithms.com/a05-_intersect-1.html#intersect2D_2Segments()
     Vector3D w_vect = Vector3D( line_a_start_pt, line_b_start_pt );
@@ -516,7 +542,12 @@ Point3D Line3D::intersect_coplanar(Line3D another) {
     double factor_numerator = - vers_a_perp.scalar_prod(w_vect);
     double factor_denominator = vers_a_perp.scalar_prod(vers_b);
 
+    std::cout << "\nfactor_numerator: " << factor_numerator << "\n";
+    std::cout << "\nfactor_denominator: " << factor_denominator << "\n";
+
     double factor_scaling = factor_numerator / factor_denominator;
+
+    std::cout << "\nfactor_scaling: " << factor_scaling << "\n";
 
     Point3D intersection_pt3d = vers_b.scale(factor_scaling).move_pt(line_b_start_pt);
 

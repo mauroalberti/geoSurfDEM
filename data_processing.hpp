@@ -57,3 +57,7 @@ std::vector<Point3D> get_inters_pts(Triangle3D, Triangle3D);
 
 std::vector<Point3D> intersect_dem_geosurface(std::string, std::vector<Triangle3D>, std::vector<Triangle3D>);
 
+
+std::vector<Point3D> find_triangle_inters(Triangle3D, Line3D);
+
+

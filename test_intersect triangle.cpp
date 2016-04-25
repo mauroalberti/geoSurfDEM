@@ -11,25 +11,33 @@ int main() {
     Point3D pt5 = Point3D(20.0, 0.5, 1.0);
     Point3D pt6 = Point3D(-20.0, 0.5, -20.0);
 
+    std::cout << "\nDEM triangle\n";
+
     Triangle3D dem_triangle = Triangle3D(pt1, pt2, pt3);
-    std::cout << "dem triangle area is " << dem_triangle.area() << "\n";
+    std::cout << " - area is " << dem_triangle.area() << "\n";
     if (dem_triangle.area() < 1.0e-10) {
-        std::cout << "Error - degenerate dem triangle\n";
+        std::cout << "Error - degenerate triangle\n";
         exit(1);};
     CartesianPlane dem_tr_plane = dem_triangle.to_cartes_plane();
-    std::cout << "dem plane parameters - a: " << dem_tr_plane.a() << " b: " << dem_tr_plane.b() << " c: " << dem_tr_plane.c() << " d: " << dem_tr_plane.d() << "\n";
+    std::cout << " - plane parameters\n";
+    std::cout << "  a: " << dem_tr_plane.a() << " b: " << dem_tr_plane.b() << " c: " << dem_tr_plane.c() << " d: " << dem_tr_plane.d() << "\n";
 
-    Triangle3D mesh_tr = Triangle3D(pt4, pt5, pt6);
-    std::cout << "mesh triangle area is " << mesh_tr.area() << "\n";
-    if (mesh_tr.area() < 1.0e-10) {
-        std::cout << "Error - degenerate mesh triangle\n";
+    std::cout << "\nMesh triangle\n";
+
+    Triangle3D mesh_triangle = Triangle3D(pt4, pt5, pt6);
+    std::cout << " - area is " << mesh_triangle.area() << "\n";
+    if (mesh_triangle.area() < 1.0e-10) {
+        std::cout << "Error - degenerate triangle\n";
         exit(1);}
 
-    CartesianPlane mesh_tr_plane = mesh_tr.to_cartes_plane();
-    std::cout << "mesh plane parameters - a: " << mesh_tr_plane.a() << " b: " << mesh_tr_plane.b() << " c: " << mesh_tr_plane.c() << " d: " << mesh_tr_plane.d() << "\n";
+    CartesianPlane mesh_tr_plane = mesh_triangle.to_cartes_plane();
+    std::cout << " - plane parameters\n";
+    std::cout << "  a: " << mesh_tr_plane.a() << " b: " << mesh_tr_plane.b() << " c: " << mesh_tr_plane.c() << " d: " << mesh_tr_plane.d() << "\n";
+
+    std::cout << "\nAngle between DEM and mesh planes\n";
 
     double plane_angle = dem_tr_plane.angle(mesh_tr_plane);
-    std::cout << "plane angle is " << plane_angle << "\n";
+    std::cout << " " << plane_angle << "\n";
 
     // check parallelism/coincidence between the two planes
     bool plane_parallelism = dem_tr_plane.isparallel(mesh_tr_plane);
@@ -40,14 +48,18 @@ int main() {
             std::cout << "Warning: coincident planes\n";};
         exit(1); };
 
+    std::cout << "\nIntersecting Line3D instance params\n";
+
     Line3D inters_line = mesh_tr_plane.intersect(dem_tr_plane);
     Point3D iline_pt = inters_line.orig_pt();
     Vector3D iline_versor = inters_line.versor();
 
-    std::cout << "point: " << iline_pt.x() << " " << iline_pt.y() << " " << iline_pt.z() << "\n";
-    std::cout << "versor: " << iline_versor.x() << " " << iline_versor.y() << " " << iline_versor.z() << "\n";
+    std::cout << " - point: " << iline_pt.x() << " " << iline_pt.y() << " " << iline_pt.z() << "\n";
+    std::cout << " - versor: " << iline_versor.x() << " " << iline_versor.y() << " " << iline_versor.z() << "\n";
 
-    std::vector<Point3D> inters_pts;
+    std::vector<Point3D> inters_pts_dem = find_triangle_inters(dem_triangle, inters_line);
+
+    std::cout << "\n";
 
     /*
     Point3D pt;

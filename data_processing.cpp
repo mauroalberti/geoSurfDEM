@@ -389,30 +389,6 @@ std::tuple<Point3D, bool> intersect_segments(Line3D inters_line, Segment3D dem_s
 };
 
 
-std::string evaluate_side_intersection(Segment3D segment, Line3D inters_line) {
-
-    Line3D triangle_line = segment.as_line();
-
-    if (triangle_line.isparallel(inters_line)) {
-        if (triangle_line.iscoincident(inters_line)) {
-            return "coincident"; }
-        else {
-            return "parallel"; } }
-    else {
-        return "non-parallel";};
-
-    /*
-    Segment3D dem_segment_a = Segment3D(dem_triangle_pt_a, dem_triangle_pt_b);
-    Vector3D dem_versor_a = dem_segment_a.as_versor();
-    Line3D dem_line_a = Line3D(dem_triangle.pt(0), dem_versor_a);
-    if (dem_line_a.isparallel(inters_line)) {
-        if (dem_line_a.iscoincident(inters_line)) {
-            std::cout << "Warning: coincident lines\n";} }
-    */
-
-};
-
-
 /*
 Point3D evaluate_intersection(Point3D dem_triangle_pt_a, Point3D dem_triangle_pt_b, Line3D inters_line) {
 
@@ -465,6 +441,72 @@ std::vector<Point3D> get_inters_pts(Triangle3D mesh_triangle, Triangle3D dem_tri
 };
 
 
+std::string evaluate_side_intersection(Segment3D segment, Line3D inters_line) {
+
+    Line3D triangle_line = segment.as_line();
+
+    if (triangle_line.isparallel(inters_line)) {
+        if (triangle_line.iscoincident(inters_line)) {
+            return "coincident"; }
+        else {
+            return "parallel"; } }
+    else {
+        return "non-parallel";};
+
+};
+
+
+std::tuple<std::vector<Point3D>, std::string> get_side_inters_pts(Segment3D segment_a, Line3D coplanar_line) {
+
+    std::vector<Point3D> my_return;
+
+    std::string geom_relat = evaluate_side_intersection(segment_a, coplanar_line);
+
+    std::cout << "\ntriangle side - line rel is: " << geom_relat << "\n";
+
+    if (geom_relat == "coincident") {
+        my_return.push_back(segment_a.start_pt());
+        my_return.push_back(segment_a.end_pt());
+        return  std::make_tuple(my_return, "finished"); }
+    else if (geom_relat == "parallel") {
+        return  std::make_tuple(my_return, "continue"); }
+    else if (geom_relat == "non-parallel") {
+        Point3D inter_pt = coplanar_line.intersect_coplanar(segment_a.as_line());
+        std::cout << "\nintersection point\n";
+        std::cout <<  "x: " << inter_pt.x() << " y: " << inter_pt.y() << " z: " << inter_pt.z() << "\n";
+
+    };
+
+};
+
+
+std::vector<Point3D> find_triangle_inters(Triangle3D triangle, Line3D coplanar_line) {
+
+    std::vector<Point3D> final_pts;
+
+    std::vector<Point3D> return_pts;
+    std::string msg;
+    Segment3D segment_a = Segment3D(triangle.pt(0), triangle.pt(1));
+    std::tie(return_pts, msg) = get_side_inters_pts(segment_a, coplanar_line);
+    std::cout << msg << "\n";
+    if (msg == "finished") {
+        return return_pts; };
+
+    Segment3D segment_b = Segment3D(triangle.pt(0), triangle.pt(2));
+    std::tie(return_pts, msg) = get_side_inters_pts(segment_b, coplanar_line);
+
+    /*
+
+    Vector3D dem_versor_a = dem_segment_a.as_versor();
+    Line3D dem_line_a = Line3D(dem_triangle.pt(0), dem_versor_a);
+    if (dem_line_a.isparallel(inters_line)) {
+        if (dem_line_a.iscoincident(inters_line)) {
+            std::cout << "Warning: coincident lines\n";} }
+    */
+
+};
+
+/*
 std::vector<Point3D> intersect_dem_geosurface(std::string output_logfile_path, std::vector<Triangle3D> dem_triangles, std::vector<Triangle3D> mesh_intersecting_triangles) {
 
     std::ofstream logfile{output_logfile_path, std::ofstream::app};
@@ -500,4 +542,22 @@ std::vector<Point3D> intersect_dem_geosurface(std::string output_logfile_path, s
 
     return intersecting_pts;
 };
+*/
+
+
+/*
+std::tuple<Point3D, bool> intersect_segments(Line3D inters_line, Segment3D dem_segment) {
+
+    bool is_in_segment = false;
+    Line3D dem_line = dem_segment.as_line();
+    Point3D inters_pt = inters_line.intersect_coplanar(dem_line);
+    std::cout << "intersection pt: " << inters_pt.x() << " " << inters_pt.y() << " " << inters_pt.z() << "\n";
+    if (dem_segment.is_point_projection_in_segment(inters_pt)) {
+        is_in_segment = true;
+        std::cout << " ** is in segment\n";
+    };
+    return  std::make_tuple(inters_pt, is_in_segment);
+};
+*/
+
 
