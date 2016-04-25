@@ -389,6 +389,50 @@ std::tuple<Point3D, bool> intersect_segments(Line3D inters_line, Segment3D dem_s
 };
 
 
+std::string evaluate_side_intersection(Segment3D segment, Line3D inters_line) {
+
+    Line3D triangle_line = segment.as_line();
+
+    if (triangle_line.isparallel(inters_line)) {
+        if (triangle_line.iscoincident(inters_line)) {
+            return "coincident"; }
+        else {
+            return "parallel"; } }
+    else {
+        return "non-parallel";};
+
+    /*
+    Segment3D dem_segment_a = Segment3D(dem_triangle_pt_a, dem_triangle_pt_b);
+    Vector3D dem_versor_a = dem_segment_a.as_versor();
+    Line3D dem_line_a = Line3D(dem_triangle.pt(0), dem_versor_a);
+    if (dem_line_a.isparallel(inters_line)) {
+        if (dem_line_a.iscoincident(inters_line)) {
+            std::cout << "Warning: coincident lines\n";} }
+    */
+
+};
+
+
+/*
+Point3D evaluate_intersection(Point3D dem_triangle_pt_a, Point3D dem_triangle_pt_b, Line3D inters_line) {
+
+    Point3D pt;
+    bool is_in_segment;
+
+    Segment3D dem_segment_a = Segment3D(dem_triangle_pt_a, dem_triangle_pt_b);
+    Vector3D dem_versor_a = dem_segment_a.as_versor();
+    Line3D dem_line_a = Line3D(dem_triangle.pt(0), dem_versor_a);
+    if (dem_line_a.isparallel(inters_line)) {
+        if (dem_line_a.iscoincident(inters_line)) {
+            std::cout << "Warning: coincident lines\n";} }
+    else {
+        std::tie(pt, is_in_segment) = intersect_segments(inters_line, dem_segment_a);
+        if (is_in_segment) {
+            return pt; }; };
+};
+*/
+
+
 std::vector<Point3D> get_inters_pts(Triangle3D mesh_triangle, Triangle3D dem_triangle) {
 
     std::vector<Point3D> inters_pts;

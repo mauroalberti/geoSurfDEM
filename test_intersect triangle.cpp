@@ -49,13 +49,19 @@ int main() {
 
     std::vector<Point3D> inters_pts;
 
+    /*
     Point3D pt;
     bool is_in_segment;
-
     Segment3D dem_segment_a = Segment3D(dem_triangle.pt(0), dem_triangle.pt(1));
-    std::tie(pt, is_in_segment) = intersect_segments(inters_line, dem_segment_a);
-    if (is_in_segment) {
-        inters_pts.push_back(pt); };
+    Vector3D dem_versor_a = dem_segment_a.as_versor();
+    Line3D dem_line_a = Line3D(dem_triangle.pt(0), dem_versor_a);
+    if (dem_line_a.isparallel(inters_line)) {
+        if (dem_line_a.iscoincident(inters_line)) {
+            std::cout << "Warning: coincident lines\n";} }
+    else {
+        std::tie(pt, is_in_segment) = intersect_segments(inters_line, dem_segment_a);
+        if (is_in_segment) {
+            inters_pts.push_back(pt); }; };
 
     Segment3D dem_segment_b = Segment3D(dem_triangle.pt(1), dem_triangle.pt(2));
     std::tie(pt, is_in_segment) = intersect_segments(inters_line, dem_segment_b);
@@ -72,6 +78,7 @@ int main() {
         Point3D pt = inters_pts[i];
         std::cout <<  pt.x() << ',' << pt.y() << ',' << pt.z() << '\n';
     };
+    */
 
 
 

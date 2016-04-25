@@ -395,7 +395,7 @@ double Vector3D::angle(Vector3D another) {
 };
 
 
-bool Vector3D::is_colinear(Vector3D another) {
+bool Vector3D::isodirection(Vector3D another) {
 
     Vector3D vect_prod = vector_prod(another);
     double norm = vect_prod.length();
@@ -442,6 +442,37 @@ Point3D Line3D::orig_pt() {
 Vector3D Line3D::versor() {
 
     return _vers;
+};
+
+
+bool Line3D::isparallel(Line3D another) {
+
+    Vector3D vers_a = versor();
+    Vector3D vers_b = another.versor();
+    if (vers_a.isodirection(vers_b)) {
+        return true; }
+    else {
+        return false;};
+    };
+
+
+bool Line3D::iscoincident(Line3D another) {
+
+    if (not isparallel(another)) {
+        return false; };
+
+    Point3D orig_pt_a = orig_pt();
+    Point3D orig_pt_b = another.orig_pt();
+
+    if (orig_pt_a.is_coincident(orig_pt_b)) {
+        return true; }
+    else {
+        Vector3D test_line = Vector3D(orig_pt_a, orig_pt_b);
+        if (test_line.isodirection(versor())) {
+            return true;}
+        else {
+            return false;}
+        }
 };
 
 

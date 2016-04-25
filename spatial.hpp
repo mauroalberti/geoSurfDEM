@@ -75,7 +75,7 @@ public:
     double scalar_prod(Vector3D);
     Vector3D vector_prod(Vector3D);
     double angle(Vector3D);
-    bool is_colinear(Vector3D);
+    bool isodirection(Vector3D);
     Point3D intersect_coplanar(Vector3D);
     Point3D move_pt(Point3D);
 
@@ -92,6 +92,8 @@ public:
 
     Line3D(Point3D, Vector3D);
     ~Line3D();
+    bool isparallel(Line3D);
+    bool iscoincident(Line3D);
     Point3D intersect_coplanar(Line3D);
     Point3D orig_pt();
     Vector3D versor();
