@@ -458,24 +458,30 @@ std::string evaluate_side_intersection(Segment3D segment, Line3D inters_line) {
 
 std::tuple<std::vector<Point3D>, std::string> get_side_inters_pts(Segment3D segment_a, Line3D coplanar_line) {
 
-    std::vector<Point3D> my_return;
+    std::vector<Point3D> inters_points;
+    std::string return_msg = "";
 
     std::string geom_relat = evaluate_side_intersection(segment_a, coplanar_line);
 
     std::cout << "\ntriangle side - line rel is: " << geom_relat << "\n";
 
     if (geom_relat == "coincident") {
-        my_return.push_back(segment_a.start_pt());
-        my_return.push_back(segment_a.end_pt());
-        return  std::make_tuple(my_return, "finished"); }
+        inters_points.push_back(segment_a.start_pt());
+        inters_points.push_back(segment_a.end_pt());
+        return_msg = "finished"; }
     else if (geom_relat == "parallel") {
-        return  std::make_tuple(my_return, "continue"); }
+        return_msg = "continue"; }
     else if (geom_relat == "non-parallel") {
         Point3D inter_pt = coplanar_line.intersect_coplanar(segment_a.as_line());
         std::cout << "\nintersection point\n";
         std::cout <<  "x: " << inter_pt.x() << " y: " << inter_pt.y() << " z: " << inter_pt.z() << "\n";
-
+        inters_points.push_back(inter_pt);
+        return_msg = "msg to be better defined"; }
+    else {
+        return_msg = "undefined case - algorithm bug";
     };
+
+    return  std::make_tuple(inters_points, return_msg);
 
 };
 
@@ -486,14 +492,19 @@ std::vector<Point3D> find_triangle_inters(Triangle3D triangle, Line3D coplanar_l
 
     std::vector<Point3D> return_pts;
     std::string msg;
+
+    std::cout << "\nAnalyzing segment a\n";
     Segment3D segment_a = Segment3D(triangle.pt(0), triangle.pt(1));
     std::tie(return_pts, msg) = get_side_inters_pts(segment_a, coplanar_line);
     std::cout << msg << "\n";
     if (msg == "finished") {
         return return_pts; };
 
+    std::cout << "\nAnalyzing segment b\n";
     Segment3D segment_b = Segment3D(triangle.pt(0), triangle.pt(2));
     std::tie(return_pts, msg) = get_side_inters_pts(segment_b, coplanar_line);
+
+    return final_pts; // just temporary, to try to avoid segmentation fault
 
     /*
 
