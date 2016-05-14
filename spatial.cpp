@@ -480,32 +480,27 @@ bool Line3D::iscoincident(Line3D another) {
 
 Point3D Line3D::intersect_coplanar(Line3D another) {
 
-    Point3D line_a_start_pt = orig_pt();
-    Vector3D vers_a = versor();
+    Point3D line_a_origpt = orig_pt();
+    Vector3D line_a_versor = versor();
 
     std::cout << "\nIntersect_coplanar\n";
     std::cout << "line a\n";
-    std::cout << " - pt: " << line_a_start_pt.x() << " " << line_a_start_pt.y() << " " << line_a_start_pt.z() << "\n";
-    std::cout << " - versor: " << vers_a.x() << " " << vers_a.y() << " " << vers_a.z() << "\n";
+    std::cout << " - pt: " << line_a_origpt.x() << " " << line_a_origpt.y() << " " << line_a_origpt.z() << "\n";
+    std::cout << " - versor: " << line_a_versor.x() << " " << line_a_versor.y() << " " << line_a_versor.z() << "\n";
 
-    Point3D line_b_start_pt = another.orig_pt();
-    Vector3D vers_b = another.versor();
+    Point3D line_b_origpt = another.orig_pt();
+    Vector3D line_b_versor = another.versor();
 
     std::cout << "line b\n";
-    std::cout << " - pt: " << line_b_start_pt.x() << " " << line_b_start_pt.y() << " " << line_b_start_pt.z() << "\n";
-    std::cout << " - versor: " << vers_b.x() << " " << vers_b.y() << " " << vers_b.z() << "\n";
+    std::cout << " - pt: " << line_b_origpt.x() << " " << line_b_origpt.y() << " " << line_b_origpt.z() << "\n";
+    std::cout << " - versor: " << line_b_versor.x() << " " << line_b_versor.y() << " " << line_b_versor.z() << "\n";
 
-    Point3D point_a = Point3D(line_a_start_pt.x(), line_a_start_pt.y(), line_a_start_pt.z());
-    Point3D point_b = Point3D(line_b_start_pt.x(), line_b_start_pt.y(), line_b_start_pt.z());
-
-    std::cout << "\point_a\n";
-    std::cout << "x: " << point_a.x() << " y: " << point_a.y() << " z: " << point_a.z() << "\n";
-    std::cout << "\point_b\n";
-    std::cout << "x: " << point_b.x() << " y: " << point_b.y() << " z: " << point_b.z() << "\n";
+    Point3D point_a = Point3D(line_a_origpt.x(), line_a_start_pt.y(), line_a_start_pt.z());
+    Point3D point_b = Point3D(line_b_origpt.x(), line_b_origpt.y(), line_b_origpt.z());
 
     double delta_distance = 100.0;
-    Vector3D displ_vector_a = vers_a.scale(delta_distance);
-    Vector3D displ_vector_b = vers_b.scale(delta_distance);
+    Vector3D displ_vector_a = line_a_versor.scale(delta_distance);
+    Vector3D displ_vector_b = line_b_versor.scale(delta_distance);
 
     if (point_b.distance(point_a) < delta_distance) {
         point_b = displ_vector_b.move_pt(point_b);
@@ -536,11 +531,11 @@ Point3D Line3D::intersect_coplanar(Line3D another) {
     std::cout << " a: " << colinear_plane.a() << " b: " << colinear_plane.b() << " c: " << colinear_plane.c() << " d: " << colinear_plane.d() << "\n";
 
     //code inspired to: http://geomalgorithms.com/a05-_intersect-1.html#intersect2D_2Segments()
-    Vector3D w_vect = Vector3D( line_a_start_pt, line_b_start_pt );
+    Vector3D w_vect = Vector3D( line_a_start_pt, line_b_origpt );
     Vector3D vers_a_perp = colinear_plane.perp_versor_in_plane(vers_a);
 
     double factor_numerator = - vers_a_perp.scalar_prod(w_vect);
-    double factor_denominator = vers_a_perp.scalar_prod(vers_b);
+    double factor_denominator = vers_a_perp.scalar_prod(line_b_versor);
 
     std::cout << "\nfactor_numerator: " << factor_numerator << "\n";
     std::cout << "\nfactor_denominator: " << factor_denominator << "\n";
@@ -549,7 +544,7 @@ Point3D Line3D::intersect_coplanar(Line3D another) {
 
     std::cout << "\nfactor_scaling: " << factor_scaling << "\n";
 
-    Point3D intersection_pt3d = vers_b.scale(factor_scaling).move_pt(line_b_start_pt);
+    Point3D intersection_pt3d = line_b_versor.scale(factor_scaling).move_pt(line_b_origpt);
 
     return intersection_pt3d;
 

@@ -59,6 +59,7 @@ int main() {
 
     std::vector<Point3D> inters_pts_dem = find_triangle_inters(dem_triangle, inters_line);
 
+
     std::cout << "\n";
 
     /*
