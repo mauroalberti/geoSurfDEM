@@ -456,14 +456,14 @@ std::string evaluate_side_intersection(Segment3D segment, Line3D inters_line) {
 };
 
 
-std::tuple<std::vector<Point3D>, std::string> get_side_inters_pts(Segment3D segment_a, Line3D coplanar_line) {
+std::tuple<std::string, std::vector<Point3D> > get_side_inters_pts(Segment3D segment_a, Line3D coplanar_line) {
 
     std::vector<Point3D> inters_points;
     std::string return_msg = "";
 
     std::string geom_relat = evaluate_side_intersection(segment_a, coplanar_line);
 
-    std::cout << "\ntriangle side - line rel is: " << geom_relat << "\n";
+    //std::cout << "\ntriangle side - line rel is: " << geom_relat << "\n";
 
     if (geom_relat == "coincident") {
         inters_points.push_back(segment_a.start_pt());
@@ -473,15 +473,13 @@ std::tuple<std::vector<Point3D>, std::string> get_side_inters_pts(Segment3D segm
         return_msg = "continue"; }
     else if (geom_relat == "non-parallel") {
         Point3D inter_pt = coplanar_line.intersect_coplanar(segment_a.as_line());
-        std::cout << "\nintersection point\n";
-        std::cout <<  "x: " << inter_pt.x() << " y: " << inter_pt.y() << " z: " << inter_pt.z() << "\n";
-        inters_points.push_back(inter_pt);
-        return_msg = "msg to be better defined"; }
-    else {
-        return_msg = "undefined case - algorithm bug";
-    };
+        if (segment_a.is_point_projection_in_segment(inter_pt)) {
+            inters_points.push_back(inter_pt);
+            return_msg = "within-segment intersection"; }
+        else {
+            return_msg = "outside-segment intersection"; } };
 
-    return  std::make_tuple(inters_points, return_msg);
+    return  std::make_tuple(return_msg, inters_points);
 
 };
 
@@ -493,31 +491,30 @@ std::vector<Point3D> find_triangle_inters(Triangle3D triangle, Line3D coplanar_l
     std::vector<Point3D> found_pts;
     std::string msg;
 
-    std::cout << "\nAnalyzing segment a\n";
+    //std::cout << "\nAnalyzing segment a\n";
     Segment3D segment_a = Segment3D(triangle.pt(0), triangle.pt(1));
-    std::tie(found_pts, msg) = get_side_inters_pts(segment_a, coplanar_line);
+    std::tie(msg, found_pts) = get_side_inters_pts(segment_a, coplanar_line);
     if (found_pts.size() > 0) {
-        final_pts.insert(final_pts.end(), found_pts.begin(), found_pts.end()); }; };
-    std::cout << msg << "\n";
+        final_pts.insert(final_pts.end(), found_pts.begin(), found_pts.end()); };
+    //std::cout << msg << "\n";
     if (msg == "finished") {
         return final_pts; };
 
-    std::cout << "\nAnalyzing segment b\n";
+    //std::cout << "\nAnalyzing segment b\n";
     Segment3D segment_b = Segment3D(triangle.pt(0), triangle.pt(2));
-    std::tie(found_pts, msg) = get_side_inters_pts(segment_b, coplanar_line);
+    std::tie(msg, found_pts) = get_side_inters_pts(segment_b, coplanar_line);
     if (found_pts.size() > 0) {
-        final_pts.insert(final_pts.end(), found_pts.begin(), found_pts.end()); }; };
+        final_pts.insert(final_pts.end(), found_pts.begin(), found_pts.end()); };
+    if (msg == "finished") {
+        return final_pts; };
 
-    return final_pts; // just temporary, to try to avoid segmentation fault
+    //std::cout << "\nAnalyzing segment c\n";
+    Segment3D segment_c = Segment3D(triangle.pt(2), triangle.pt(1));
+    std::tie(msg, found_pts) = get_side_inters_pts(segment_c, coplanar_line);
+    if (found_pts.size() > 0) {
+        final_pts.insert(final_pts.end(), found_pts.begin(), found_pts.end()); };
 
-    /*
-
-    Vector3D dem_versor_a = dem_segment_a.as_versor();
-    Line3D dem_line_a = Line3D(dem_triangle.pt(0), dem_versor_a);
-    if (dem_line_a.isparallel(inters_line)) {
-        if (dem_line_a.iscoincident(inters_line)) {
-            std::cout << "Warning: coincident lines\n";} }
-    */
+    return final_pts;
 
 };
 
