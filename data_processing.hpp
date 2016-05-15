@@ -22,13 +22,13 @@ double get_dem_param_double(const std::string&, const std::string&);
 DataRRGrid read_esri_ascii_dem(std::string);
 
 
-MeshTriangleStrip read_vtk_data_ascii( std::string, std::string);
+MeshTriangleStrip read_vtk_data_ascii( std::string);
 
 
-std::vector<Triangle3D> extract_triangles_from_mesh(std::string, MeshTriangleStrip);
+std::vector<Triangle3D> extract_triangles_from_mesh(MeshTriangleStrip);
 
 
-std::vector<Triangle3D> extract_intersecting_triangles(std::string, Space3DPartition, std::vector<Triangle3D>);
+std::vector<Triangle3D> extract_intersecting_triangles(Space3DPartition, std::vector<Triangle3D>);
 
 
 int vect_ndx(int, int, int);

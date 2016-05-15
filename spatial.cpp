@@ -483,23 +483,11 @@ Point3D Line3D::intersect_coplanar(Line3D another) {
     Point3D line_a_origpt = orig_pt();
     Vector3D line_a_versor = versor();
 
-    /*
-    std::cout << "\nIntersect_coplanar\n";
-    std::cout << "line a\n";
-    std::cout << " - pt: " << line_a_origpt.x() << " " << line_a_origpt.y() << " " << line_a_origpt.z() << "\n";
-    std::cout << " - versor: " << line_a_versor.x() << " " << line_a_versor.y() << " " << line_a_versor.z() << "\n";
-    */
-
     Point3D line_b_origpt = another.orig_pt();
     Vector3D line_b_versor = another.versor();
 
-    /*
-    std::cout << "line b\n";
-    std::cout << " - pt: " << line_b_origpt.x() << " " << line_b_origpt.y() << " " << line_b_origpt.z() << "\n";
-    std::cout << " - versor: " << line_b_versor.x() << " " << line_b_versor.y() << " " << line_b_versor.z() << "\n";
-    */
-
     // creates a triplet of coplanar, non-coincident points
+
     double delta_distance = 100.0;
     Vector3D displ_vector_a = line_a_versor.scale(delta_distance);
     Vector3D displ_vector_b = line_b_versor.scale(delta_distance);
@@ -510,31 +498,15 @@ Point3D Line3D::intersect_coplanar(Line3D another) {
 
     CartesianPlane colinear_plane = CartesianPlane(point_a, point_b, point_c);
 
-    // print results for debug
-    /*
-    std::cout << "\npoint_a\n";
-    std::cout << "x: " << point_a.x() << " y: " << point_a.y() << " z: " << point_a.z() << "\n";
-    std::cout << "\npoint_b\n";
-    std::cout << "x: " << point_b.x() << " y: " << point_b.y() << " z: " << point_b.z() << "\n";
-    std::cout << "\npoint_c\n";
-    std::cout << "x: " << point_c.x() << " y: " << point_c.y() << " z: " << point_c.z() << "\n";
-    std::cout << "\ncolinear plane\n";
-    std::cout << " a: " << colinear_plane.a() << " b: " << colinear_plane.b() << " c: " << colinear_plane.c() << " d: " << colinear_plane.d() << "\n";
-    */
-
     //code inspired to: http://geomalgorithms.com/a05-_intersect-1.html#intersect2D_2Segments()
+
     Vector3D w_vect = Vector3D( line_a_origpt, line_b_origpt );
     Vector3D vers_a_perp = colinear_plane.perp_versor_in_plane(line_a_versor);
 
     double factor_numerator = - vers_a_perp.scalar_prod(w_vect);
     double factor_denominator = vers_a_perp.scalar_prod(line_b_versor);
 
-    //std::cout << "\nfactor_numerator: " << factor_numerator << "\n";
-    //std::cout << "\nfactor_denominator: " << factor_denominator << "\n";
-
     double factor_scaling = factor_numerator / factor_denominator;
-
-    //std::cout << "\nfactor_scaling: " << factor_scaling << "\n";
 
     Point3D intersection_pt3d = line_b_versor.scale(factor_scaling).move_pt(line_b_origpt);
 
@@ -542,24 +514,6 @@ Point3D Line3D::intersect_coplanar(Line3D another) {
 
 };
 
-
-/*
-CartesianPlane::CartesianPlane(double a, double b, double c, double d) {
-
-    std::cout << "** " << a << " " << b << " " << c << " " << d << "\n";
-
-    double division_factor = sqrt(a*a + b*b + c*c);
-    std::cout << "*** " << division_factor << "\n";
-    if (d > 0.0) {
-        division_factor = - division_factor;
-    }
-    std::cout << "**** " << c / division_factor << "\n";
-    _a = a / division_factor;
-    _b = b / division_factor;
-    _c = c / division_factor;
-    _d = d / division_factor;
-};
-*/
 
 
 std::vector<double> normalize(std::vector<double> coeff) {
@@ -609,8 +563,6 @@ CartesianPlane::CartesianPlane(Point3D pt_a, Point3D pt_b, Point3D pt_c) {
     coeff[2] = matr_c.determinant();
     coeff[3] = - matr_d.determinant();
 
-    //std::cout << "* " << coeff[0] << " " << coeff[1] << " " << coeff[2] << " " << coeff[3] << "\n";
-
     std::vector<double> normalized_coeff = normalize(coeff);
 
     _a = normalized_coeff[0];
@@ -657,7 +609,6 @@ Vector3D CartesianPlane::perp_versor_in_plane(Vector3D inplane_vect3d) {
 
 Vector3D CartesianPlane::intersect_versor(CartesianPlane another) {
 
-    // TODO: consider the special case of two parallel planes
     Vector3D vers_a = normal_versor();
     Vector3D vers_b = another.normal_versor();
 
@@ -715,7 +666,7 @@ Line3D CartesianPlane::intersect(CartesianPlane another) {
 bool CartesianPlane::point_in_plane(Point3D pt) {
 
     double val = std::abs(_a*pt.x() + _b*pt.y() + _c*pt.z() + _d);
-    //std::cout << val << "\n";
+
     if (val < 1e-12) {
         return true; }
     else {
@@ -747,7 +698,6 @@ bool CartesianPlane::isparallel(CartesianPlane another) {
         return true;}
     else {
         return false;};
-
 };
 
 bool CartesianPlane::isequidistant(CartesianPlane another) {
@@ -756,7 +706,6 @@ bool CartesianPlane::isequidistant(CartesianPlane another) {
         return true; }
     else {
         return false; };
-
 };
 
 

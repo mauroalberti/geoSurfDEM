@@ -31,6 +31,7 @@
 bin/
 test_data/
 
+geoSurfDEM
 geoSurfDEM.cbp
 geoSurfDEM.depend
 geoSurfDEM.layout
