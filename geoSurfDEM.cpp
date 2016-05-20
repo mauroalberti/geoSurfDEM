@@ -1,7 +1,7 @@
 #include "data_processing.hpp"
 
 
-std::tuple<std::string, std::vector<Point3D> > triangle_pair_inters_pts(Triangle3D dem_triangle, Triangle3D mesh_triangle) {
+std::tuple<std::string, std::vector<Point3D> > triangle_pair_inters_pts(std::ofstream outdebugfile, Triangle3D dem_triangle, Triangle3D mesh_triangle) {
 
     // declares return variables
 
@@ -11,45 +11,52 @@ std::tuple<std::string, std::vector<Point3D> > triangle_pair_inters_pts(Triangle
     // check input validity
 
     if (dem_triangle.area() < 1.0e-10) {
-        msg = "degenerate DEM triangle";
-        return std::make_tuple(msg, inters_pts_dem); };
+        msg = "degenerate DEM triangle"; }
+    else if (mesh_triangle.area() < 1.0e-10) {
+        msg = "degenerate mesh triangle"; }
+    else {
+         // get cartesian plane from DEM triangle
+        CartesianPlane dem_tr_plane = dem_triangle.to_cartes_plane();
+        // get cartesian plane from geological surface mesh triangle
+        CartesianPlane mesh_tr_plane = mesh_triangle.to_cartes_plane();
+        // check parallelism/coincidence between the two planes
+        bool plane_parallelism = dem_tr_plane.isparallel(mesh_tr_plane);
+        if (plane_parallelism) {
+            bool coincident_planes = dem_tr_plane.isequidistant(mesh_tr_plane);
+            if (coincident_planes) {
+                msg = "paralllel coincident planes"; }
+            else {
+                msg = "parallel non-coincident planes";}; }
+        else {
+            Line3D inters_line = mesh_tr_plane.intersect(dem_tr_plane);
+            Point3D iline_pt = inters_line.orig_pt();
+            Vector3D iline_versor = inters_line.versor();
+            inters_pts_dem = find_triangle_inters(dem_triangle, inters_line);
+            msg = "intersecting planes"; };};
 
-    if (mesh_triangle.area() < 1.0e-10) {
-        msg = "degenerate mesh triangle";
-        return std::make_tuple(msg, inters_pts_dem); };
-
-    // get cartesian plane from DEM triangle
-
-    CartesianPlane dem_tr_plane = dem_triangle.to_cartes_plane();
-
-    // get cartesian plane from geological surface mesh triangle
-
-    CartesianPlane mesh_tr_plane = mesh_triangle.to_cartes_plane();
-
-    // check parallelism/coincidence between the two planes
-
-    bool plane_parallelism = dem_tr_plane.isparallel(mesh_tr_plane);
-    if (plane_parallelism) {
-        bool coincident_planes = dem_tr_plane.isequidistant(mesh_tr_plane);
-        if (coincident_planes) {
-            msg = "coincident planes";
-            return std::make_tuple(msg, inters_pts_dem); }; };
-
-
-    Line3D inters_line = mesh_tr_plane.intersect(dem_tr_plane);
-    Point3D iline_pt = inters_line.orig_pt();
-    Vector3D iline_versor = inters_line.versor();
-
-    inters_pts_dem = find_triangle_inters(dem_triangle, inters_line);
-
-    msg = "intersecting planes";
+    if (inters_pts_dem.size() > 0) {
+        Point3D dem_pt1, dem_pt2, dem_pt3, mesh_pt1, mesh_pt2, mesh_pt3;
+        dem_pt1 = dem_triangle.pt(0); dem_pt2 = dem_triangle.pt(1); dem_pt3 = dem_triangle.pt(2);
+        mesh_pt1 = mesh_triangle.pt(0); mesh_pt2 = mesh_triangle.pt(1); mesh_pt3 = mesh_triangle.pt(2);
+        outdebugfile << "dem triangle\n";
+        outdebugfile << dem_pt1.x() << ", " << dem_pt1.y() << ", " << dem_pt1.z() << "\n";
+        outdebugfile << dem_pt2.x() << ", " << dem_pt2.y() << ", " << dem_pt2.z() << "\n";
+        outdebugfile << dem_pt3.x() << ", " << dem_pt3.y() << ", " << dem_pt3.z() << "\n";
+        outdebugfile << "mesh triangle\n";
+        outdebugfile << mesh_pt1.x() << ", " << mesh_pt1.y() << ", " << mesh_pt1.z() << "\n";
+        outdebugfile << mesh_pt2.x() << ", " << mesh_pt2.y() << ", " << mesh_pt2.z() << "\n";
+        outdebugfile << mesh_pt3.x() << ", " << mesh_pt3.y() << ", " << mesh_pt3.z() << "\n";
+        for (uint i = 0; i < inters_pts_dem.size(); i++) {
+            Point3D curr_pt = inters_pts_dem[i];
+            outdebugfile << curr_pt.x() << ", " << curr_pt.y() << ", " << curr_pt.z() << "\n"; };
+    };
 
     return  std::make_tuple(msg, inters_pts_dem);
 
 };
 
 
-std::vector<Point3D> intersect_dem_geosurface(std::vector<Triangle3D> dem_triangles, std::vector<Triangle3D> mesh_intersecting_triangles) {
+std::vector<Point3D> intersect_dem_geosurface(std::ofstream outdebugfile, std::vector<Triangle3D> dem_triangles, std::vector<Triangle3D> mesh_intersecting_triangles) {
 
     std::vector<Point3D> intersecting_pts;
 
@@ -69,7 +76,7 @@ std::vector<Point3D> intersect_dem_geosurface(std::vector<Triangle3D> dem_triang
 
             std::string msg;
             std::vector<Point3D> inters_pts;
-            std::tie(msg, inters_pts) = triangle_pair_inters_pts(dem_triangle, mesh_triangle);
+            std::tie(msg, inters_pts) = triangle_pair_inters_pts(outdebugfile, dem_triangle, mesh_triangle);
 
             if (msg != "intersecting planes") {
                 std::cout << "DEM triangle ndx: " << ndx_curr_dem_triangle << ", mesh triangle ndx: " << ndx_curr_mesh << "; error: " << msg << "\n";
@@ -103,7 +110,11 @@ int main() {
 
     // output data file
 
-    std::string output_datafile_path = "./test_data/outdata_07.xyz";
+    std::string output_datafile_path = "./test_data/outdata_08.xyz";
+
+    // output debug file
+
+    std::string output_debugfile_path = "./test_data/outdebug_08.csv";
 
     ///////////////////////////
 
@@ -150,7 +161,8 @@ int main() {
 
     // get intersection points
 
-    std::vector<Point3D> intersection_pts = intersect_dem_geosurface(dem_triangles, mesh_intersecting_triangles);
+    std::ofstream outdebugfile{output_debugfile_path};
+    std::vector<Point3D> intersection_pts = intersect_dem_geosurface(outdebugfile, dem_triangles, mesh_intersecting_triangles);
     std::cout << "\nNum. intersecting pts is " << intersection_pts.size() << "\n";
 
     // write intersection points
