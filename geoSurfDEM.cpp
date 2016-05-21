@@ -1,7 +1,12 @@
 #include "data_processing.hpp"
 
+struct inters_result {
+  Point3D inter_pt;
+  uint dem_tr_ndx, geosurf_tr_ndx;
+};
 
-std::tuple<std::string, std::vector<Point3D> > triangle_pair_inters_pts(std::ofstream outdebugfile, Triangle3D dem_triangle, Triangle3D mesh_triangle) {
+
+std::tuple<std::string, std::vector<Point3D> > triangle_pair_inters_pts(Triangle3D dem_triangle, Triangle3D mesh_triangle) {
 
     // declares return variables
 
@@ -24,17 +29,28 @@ std::tuple<std::string, std::vector<Point3D> > triangle_pair_inters_pts(std::ofs
         if (plane_parallelism) {
             bool coincident_planes = dem_tr_plane.isequidistant(mesh_tr_plane);
             if (coincident_planes) {
-                msg = "paralllel coincident planes"; }
+                msg = "paralllel coincident planes";
+            }
             else {
-                msg = "parallel non-coincident planes";}; }
+                msg = "parallel non-coincident planes";
+            };
+        }
         else {
             Line3D inters_line = mesh_tr_plane.intersect(dem_tr_plane);
             Point3D iline_pt = inters_line.orig_pt();
             Vector3D iline_versor = inters_line.versor();
             inters_pts_dem = find_triangle_inters(dem_triangle, inters_line);
-            msg = "intersecting planes"; };};
+            msg = "intersecting planes";
+        };
+    };
 
-    if (inters_pts_dem.size() > 0) {
+    return  std::make_tuple(msg, inters_pts_dem);
+
+};
+
+/*
+std::string string_intersections()
+
         Point3D dem_pt1, dem_pt2, dem_pt3, mesh_pt1, mesh_pt2, mesh_pt3;
         dem_pt1 = dem_triangle.pt(0); dem_pt2 = dem_triangle.pt(1); dem_pt3 = dem_triangle.pt(2);
         mesh_pt1 = mesh_triangle.pt(0); mesh_pt2 = mesh_triangle.pt(1); mesh_pt3 = mesh_triangle.pt(2);
@@ -49,16 +65,20 @@ std::tuple<std::string, std::vector<Point3D> > triangle_pair_inters_pts(std::ofs
         for (uint i = 0; i < inters_pts_dem.size(); i++) {
             Point3D curr_pt = inters_pts_dem[i];
             outdebugfile << curr_pt.x() << ", " << curr_pt.y() << ", " << curr_pt.z() << "\n"; };
-    };
+*/
 
-    return  std::make_tuple(msg, inters_pts_dem);
 
+/*
+struct inters_result {
+  Point3d inter_pt;
+  uint dem_tr_ndx, geosurf_tr_ndx;
 };
+*/
 
 
-std::vector<Point3D> intersect_dem_geosurface(std::ofstream outdebugfile, std::vector<Triangle3D> dem_triangles, std::vector<Triangle3D> mesh_intersecting_triangles) {
+std::vector<inters_result> intersect_dem_geosurface(std::vector<Triangle3D> dem_triangles, std::vector<Triangle3D> mesh_intersecting_triangles) {
 
-    std::vector<Point3D> intersecting_pts;
+    std::vector<inters_result> intersections;
 
     int ndx_curr_dem_triangle = 0;
 
@@ -76,7 +96,7 @@ std::vector<Point3D> intersect_dem_geosurface(std::ofstream outdebugfile, std::v
 
             std::string msg;
             std::vector<Point3D> inters_pts;
-            std::tie(msg, inters_pts) = triangle_pair_inters_pts(outdebugfile, dem_triangle, mesh_triangle);
+            std::tie(msg, inters_pts) = triangle_pair_inters_pts(dem_triangle, mesh_triangle);
 
             if (msg != "intersecting planes") {
                 std::cout << "DEM triangle ndx: " << ndx_curr_dem_triangle << ", mesh triangle ndx: " << ndx_curr_mesh << "; error: " << msg << "\n";
@@ -86,15 +106,19 @@ std::vector<Point3D> intersect_dem_geosurface(std::ofstream outdebugfile, std::v
 
                 int ndx_curr_inters_pt = 0;
                 for(std::vector<Point3D>::iterator pt_ref_ptndx = inters_pts.begin(); pt_ref_ptndx != inters_pts.end(); ++pt_ref_ptndx) {
-
                     ++ndx_curr_inters_pt;
-
                     Point3D inters_pt = *pt_ref_ptndx;
-                    intersecting_pts.push_back(inters_pt); };  };  };
-
+                    inters_result result;
+                    result.inter_pt = inters_pt;
+                    result.dem_tr_ndx = ndx_curr_dem_triangle;
+                    result.geosurf_tr_ndx = ndx_curr_mesh;
+                    intersections.push_back(result);
+                };
+            };
         };
+    };
 
-    return intersecting_pts;
+    return intersections;
 };
 
 
@@ -112,9 +136,13 @@ int main() {
 
     std::string output_datafile_path = "./test_data/outdata_08.xyz";
 
-    // output debug file
+    // output source dem data file
 
-    std::string output_debugfile_path = "./test_data/outdebug_08.csv";
+    std::string output_srcdem_file_path = "./test_data/src_dem_data.csv";
+
+    // output source geosurface data file
+
+    std::string output_srcgeosurf_file_path = "./test_data/src_geosurface_data.csv";
 
     ///////////////////////////
 
@@ -161,21 +189,17 @@ int main() {
 
     // get intersection points
 
-    std::ofstream outdebugfile{output_debugfile_path};
-    std::vector<Point3D> intersection_pts = intersect_dem_geosurface(outdebugfile, dem_triangles, mesh_intersecting_triangles);
-    std::cout << "\nNum. intersecting pts is " << intersection_pts.size() << "\n";
+    std::vector<inters_result> intersections = intersect_dem_geosurface(dem_triangles, mesh_intersecting_triangles);
+    std::cout << "\nNum. intersecting pts is " << intersections.size() << "\n";
 
     // write intersection points
 
-    if (intersection_pts.size() > 0) {
-
+    if (intersections.size() > 0) {
         std::ofstream outdatafile{output_datafile_path};
-
-        for(std::vector<Point3D>::iterator pt_ref_ptndx = intersection_pts.begin(); pt_ref_ptndx != intersection_pts.end(); ++pt_ref_ptndx) {
-
-            Point3D inters_pt = *pt_ref_ptndx;
-
-            outdatafile << inters_pt.x() << "," << inters_pt.y() << "," << inters_pt.z() << "\n"; };  };
+        for(std::vector<inters_result>::iterator intersection_ref = intersections.begin(); intersection_ref != intersections.end(); ++intersection_ref) {
+            inters_result intersection = *intersection_ref;
+            Point3D inters_pt = intersection.inter_pt;
+            outdatafile << inters_pt.x() << "," << inters_pt.y() << "," << inters_pt.z() << "," << intersection.dem_tr_ndx << "," << intersection.geosurf_tr_ndx << "\n"; };  };
 
     return 0;
 
