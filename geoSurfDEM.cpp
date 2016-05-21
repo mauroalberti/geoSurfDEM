@@ -122,6 +122,21 @@ std::vector<inters_result> intersect_dem_geosurface(std::vector<Triangle3D> dem_
 };
 
 
+void print_src_data(std::string outfile_path, std::vector<Triangle3D> src_triangles) {
+
+    std::ofstream outdatafile{outfile_path};
+    for (uint i = 0; i < src_triangles.size(); i++) {
+        Triangle3D curr_triangle = src_triangles[i];
+        Point3D p1, p2, p3;
+        p1 = curr_triangle.pt(0);
+        p2 = curr_triangle.pt(1);
+        p3 = curr_triangle.pt(2);
+        outdatafile << i << "," <<  p1.x() << "," << p1.y() << "," << p1.z() << "," <<
+                                    p2.x() << "," << p2.y() << "," << p2.z() << "," <<
+                                    p3.x() << "," << p3.y() << "," << p3.z() << "\n";
+    };
+};
+
 int main() {
 
     // read DEM data from input file
@@ -139,9 +154,6 @@ int main() {
     // output source dem data file
 
     std::string output_srcdem_file_path = "./test_data/src_dem_data.csv";
-
-    // output source geosurface data file
-
     std::string output_srcgeosurf_file_path = "./test_data/src_geosurface_data.csv";
 
     ///////////////////////////
@@ -176,6 +188,7 @@ int main() {
 
     std::vector<Triangle3D> mesh_intersecting_triangles = extract_intersecting_triangles(dem_vol, mesh_triangles );
     std::cout << "\nNum. intersecting mesh triangles is " << mesh_intersecting_triangles.size() << "\n";
+    print_src_data(output_srcgeosurf_file_path, mesh_intersecting_triangles);
 
     // transform DEM data into a vector of 3D points, valid or invalid
 
@@ -186,6 +199,7 @@ int main() {
 
     std::vector<Triangle3D> dem_triangles = create_dem_triangles( dem_3dpts, datarrgrid.rect_domain().nrows(), datarrgrid.rect_domain().ncols() );
     std::cout << "\nNum. dem 3d triangles is " << dem_triangles.size() << "\n";
+    print_src_data(output_srcdem_file_path, dem_triangles);
 
     // get intersection points
 
