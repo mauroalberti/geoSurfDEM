@@ -98,7 +98,7 @@ Triangle3D Triangle3D::shift(double dx, double dy, double dz) {
 double Triangle3D::area() {
 
     Vector3D vect1 = Vector3D(pt(0), pt(1));
-    Vector3D vect2 = Vector3D(pt(0), pt(2));   
+    Vector3D vect2 = Vector3D(pt(0), pt(2));
 
     Vector3D vect_prod = vect1.vector_prod(vect2);
 
@@ -137,6 +137,13 @@ Space3DPartition Triangle3D::space_volume() {
 
     return Space3DPartition(range_x, range_y, range_z);
 
+};
+
+
+double Triangle3D::point_distance(Point3D pt) {
+
+    CartesianPlane cartes_plane = to_cartes_plane();
+    return cartes_plane.point_distance(pt);
 };
 
 

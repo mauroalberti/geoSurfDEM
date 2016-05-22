@@ -153,6 +153,7 @@ public:
     Point3D intersect_point3d(CartesianPlane);
     Line3D intersect(CartesianPlane);
 
+    double point_distance(Point3D);
     bool point_in_plane(Point3D);
     double angle(CartesianPlane);
     bool isparallel(CartesianPlane);

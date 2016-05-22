@@ -3,77 +3,67 @@
 struct inters_result {
   Point3D inter_pt;
   uint dem_tr_ndx, geosurf_tr_ndx;
+  double dist_dem_triangle, dist_geosurf_triangle;
 };
 
 
-std::tuple<std::string, std::vector<Point3D> > triangle_pair_inters_pts(Triangle3D dem_triangle, Triangle3D mesh_triangle) {
+struct pt_result {
+    Point3D inter_pt;
+    double dist_dem_triangle, dist_geosurf_triangle;
+};
+
+
+std::tuple<std::string, std::vector<pt_result> > triangle_pair_inters_pts(Triangle3D dem_triangle, Triangle3D geosurf_triangle) {
 
     // declares return variables
 
     std::string msg;
-    std::vector<Point3D> inters_pts_dem;
+    std::vector<Point3D> inters_pts;
+    std::vector<pt_result> inters_pts_dist;
 
     // check input validity
 
     if (dem_triangle.area() < 1.0e-10) {
         msg = "degenerate DEM triangle"; }
-    else if (mesh_triangle.area() < 1.0e-10) {
+    else if (geosurf_triangle.area() < 1.0e-10) {
         msg = "degenerate mesh triangle"; }
     else {
          // get cartesian plane from DEM triangle
         CartesianPlane dem_tr_plane = dem_triangle.to_cartes_plane();
         // get cartesian plane from geological surface mesh triangle
-        CartesianPlane mesh_tr_plane = mesh_triangle.to_cartes_plane();
+        CartesianPlane geosurf_tr_plane = geosurf_triangle.to_cartes_plane();
         // check parallelism/coincidence between the two planes
-        bool plane_parallelism = dem_tr_plane.isparallel(mesh_tr_plane);
+        bool plane_parallelism = dem_tr_plane.isparallel(geosurf_tr_plane);
         if (plane_parallelism) {
-            bool coincident_planes = dem_tr_plane.isequidistant(mesh_tr_plane);
+            bool coincident_planes = dem_tr_plane.isequidistant(geosurf_tr_plane);
             if (coincident_planes) {
-                msg = "paralllel coincident planes";
+                msg = "parallel coincident planes";
             }
             else {
                 msg = "parallel non-coincident planes";
             };
         }
         else {
-            Line3D inters_line = mesh_tr_plane.intersect(dem_tr_plane);
+            Line3D inters_line = geosurf_tr_plane.intersect(dem_tr_plane);
             Point3D iline_pt = inters_line.orig_pt();
             Vector3D iline_versor = inters_line.versor();
-            inters_pts_dem = find_triangle_inters(dem_triangle, inters_line);
+            inters_pts = find_triangle_inters(dem_triangle, inters_line);
+            for (uint i = 0; i < inters_pts.size(); i++) {
+                Point3D curr_pt = inters_pts[i];
+                pt_result curr_result;
+                curr_result.inter_pt = curr_pt;
+                curr_result.dist_dem_triangle = dem_tr_plane.point_distance(curr_pt);
+                curr_result.dist_geosurf_triangle = geosurf_tr_plane.point_distance(curr_pt);
+                inters_pts_dist.push_back(curr_result);
+            };
+
             msg = "intersecting planes";
         };
     };
 
-    return  std::make_tuple(msg, inters_pts_dem);
+    return  std::make_tuple(msg, inters_pts_dist);
 
 };
-
-/*
-std::string string_intersections()
-
-        Point3D dem_pt1, dem_pt2, dem_pt3, mesh_pt1, mesh_pt2, mesh_pt3;
-        dem_pt1 = dem_triangle.pt(0); dem_pt2 = dem_triangle.pt(1); dem_pt3 = dem_triangle.pt(2);
-        mesh_pt1 = mesh_triangle.pt(0); mesh_pt2 = mesh_triangle.pt(1); mesh_pt3 = mesh_triangle.pt(2);
-        outdebugfile << "dem triangle\n";
-        outdebugfile << dem_pt1.x() << ", " << dem_pt1.y() << ", " << dem_pt1.z() << "\n";
-        outdebugfile << dem_pt2.x() << ", " << dem_pt2.y() << ", " << dem_pt2.z() << "\n";
-        outdebugfile << dem_pt3.x() << ", " << dem_pt3.y() << ", " << dem_pt3.z() << "\n";
-        outdebugfile << "mesh triangle\n";
-        outdebugfile << mesh_pt1.x() << ", " << mesh_pt1.y() << ", " << mesh_pt1.z() << "\n";
-        outdebugfile << mesh_pt2.x() << ", " << mesh_pt2.y() << ", " << mesh_pt2.z() << "\n";
-        outdebugfile << mesh_pt3.x() << ", " << mesh_pt3.y() << ", " << mesh_pt3.z() << "\n";
-        for (uint i = 0; i < inters_pts_dem.size(); i++) {
-            Point3D curr_pt = inters_pts_dem[i];
-            outdebugfile << curr_pt.x() << ", " << curr_pt.y() << ", " << curr_pt.z() << "\n"; };
-*/
-
-
-/*
-struct inters_result {
-  Point3d inter_pt;
-  uint dem_tr_ndx, geosurf_tr_ndx;
-};
-*/
 
 
 std::vector<inters_result> intersect_dem_geosurface(std::vector<Triangle3D> dem_triangles, std::vector<Triangle3D> mesh_intersecting_triangles) {
@@ -95,7 +85,7 @@ std::vector<inters_result> intersect_dem_geosurface(std::vector<Triangle3D> dem_
             Triangle3D mesh_triangle = *mesh_ref_ptndx;
 
             std::string msg;
-            std::vector<Point3D> inters_pts;
+            std::vector<pt_result> inters_pts;
             std::tie(msg, inters_pts) = triangle_pair_inters_pts(dem_triangle, mesh_triangle);
 
             if (msg != "intersecting planes") {
@@ -105,11 +95,13 @@ std::vector<inters_result> intersect_dem_geosurface(std::vector<Triangle3D> dem_
             if (inters_pts.size() > 0) {
 
                 int ndx_curr_inters_pt = 0;
-                for(std::vector<Point3D>::iterator pt_ref_ptndx = inters_pts.begin(); pt_ref_ptndx != inters_pts.end(); ++pt_ref_ptndx) {
+                for(std::vector<pt_result>::iterator result_ref_ptndx = inters_pts.begin(); result_ref_ptndx != inters_pts.end(); ++result_ref_ptndx) {
                     ++ndx_curr_inters_pt;
-                    Point3D inters_pt = *pt_ref_ptndx;
+                    pt_result inters = *result_ref_ptndx;
                     inters_result result;
-                    result.inter_pt = inters_pt;
+                    result.inter_pt = inters.inter_pt;
+                    result.dist_dem_triangle = inters.dist_dem_triangle;
+                    result.dist_geosurf_triangle = inters.dist_geosurf_triangle;
                     result.dem_tr_ndx = ndx_curr_dem_triangle;
                     result.geosurf_tr_ndx = ndx_curr_mesh;
                     intersections.push_back(result);
@@ -125,6 +117,7 @@ std::vector<inters_result> intersect_dem_geosurface(std::vector<Triangle3D> dem_
 void print_src_data(std::string outfile_path, std::vector<Triangle3D> src_triangles) {
 
     std::ofstream outdatafile{outfile_path};
+    outdatafile << "nxd,p1_x,p1_y,p1_z,p2_x,p2_y,p2_z,p3_x,p3_y,p3_z\n";
     for (uint i = 0; i < src_triangles.size(); i++) {
         Triangle3D curr_triangle = src_triangles[i];
         Point3D p1, p2, p3;
@@ -213,7 +206,9 @@ int main() {
         for(std::vector<inters_result>::iterator intersection_ref = intersections.begin(); intersection_ref != intersections.end(); ++intersection_ref) {
             inters_result intersection = *intersection_ref;
             Point3D inters_pt = intersection.inter_pt;
-            outdatafile << inters_pt.x() << "," << inters_pt.y() << "," << inters_pt.z() << "," << intersection.dem_tr_ndx << "," << intersection.geosurf_tr_ndx << "\n"; };  };
+            outdatafile << inters_pt.x() << "," << inters_pt.y() << "," << inters_pt.z() << "," << intersection.dem_tr_ndx << "," << intersection.dist_dem_triangle << "," << intersection.geosurf_tr_ndx << "," << intersection.dist_geosurf_triangle << "\n";
+        };
+    };
 
     return 0;
 

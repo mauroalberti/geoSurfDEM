@@ -34,6 +34,7 @@ public:
     double area();
     CartesianPlane to_cartes_plane();
     Space3DPartition space_volume();
+    double point_distance(Point3D);
 
 };
 
