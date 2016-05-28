@@ -13,6 +13,35 @@ struct pt_result {
 };
 
 
+// modified from: http://www.blackpawn.com/texts/pointinpoly/
+bool point_on_same_side(Point3D p1, Point3D p2, Point3D a, Point3D b) {
+
+    Vector3D b_a = Vector3D(a, b);
+    Vector3D p1_a = Vector3D(a, p1);
+    Vector3D p2_a = Vector3D(a, p2);
+
+    Vector3D cp1 = b_a.vector_prod(p1_a);
+    Vector3D cp2 = b_a.vector_prod(p2_a);
+
+    if (cp1.scalar_prod(cp2) >= 0.0) {
+        return true; }
+    else {
+        return false; };
+};
+
+
+// from http://www.blackpawn.com/texts/pointinpoly/
+bool point_in_triangle(Point3D p, Point3D a, Point3D b, Point3D c) {
+
+    if (point_on_same_side(p, a, b, c) and
+        point_on_same_side(p, b, a, c) and
+        point_on_same_side(p, c, a, b) ) {
+       return true; }
+    else {
+       return false; };
+};
+
+
 std::tuple<std::string, std::vector<pt_result> > triangle_pair_inters_pts(Triangle3D dem_triangle, Triangle3D geosurf_triangle) {
 
     // declares return variables
@@ -48,8 +77,18 @@ std::tuple<std::string, std::vector<pt_result> > triangle_pair_inters_pts(Triang
             Point3D iline_pt = inters_line.orig_pt();
             Vector3D iline_versor = inters_line.versor();
             inters_pts = find_triangle_inters(dem_triangle, inters_line);
+
+            Point3D geosurf_pt_0 = geosurf_triangle.pt(0);
+            Point3D geosurf_pt_1 = geosurf_triangle.pt(1);
+            Point3D geosurf_pt_2 = geosurf_triangle.pt(2);
+
             for (uint i = 0; i < inters_pts.size(); i++) {
                 Point3D curr_pt = inters_pts[i];
+
+                if (not point_in_triangle(curr_pt, geosurf_pt_0, geosurf_pt_1, geosurf_pt_2)) {
+                    continue;
+                };
+
                 pt_result curr_result;
                 curr_result.inter_pt = curr_pt;
                 curr_result.dist_dem_triangle = dem_tr_plane.point_distance(curr_pt);
@@ -142,14 +181,14 @@ int main() {
 
     // output data file
 
-    std::string output_datafile_path = "./test_data/outdata_08.xyz";
+    std::string output_datafile_path = "./test_data/outdata_10.csv";
 
     // output source dem data file
 
-    std::string output_srcdem_file_path = "./test_data/src_dem_data.csv";
-    std::string output_srcgeosurf_file_path = "./test_data/src_geosurface_data.csv";
+    std::string output_srcdem_file_path = "./test_data/src_dem_data_10.csv";
+    std::string output_srcgeosurf_file_path = "./test_data/src_geosurface_data_10.csv";
 
-    ///////////////////////////
+    // program header
 
     std::cout << "\n*** geoSurfDEM *** \n";
     std::cout << "\nApplication for determining intersections between 3D geosurfaces and DEM topography\n\n";
@@ -203,6 +242,7 @@ int main() {
 
     if (intersections.size() > 0) {
         std::ofstream outdatafile{output_datafile_path};
+        outdatafile << "x,y,z,dem_tr_ndx,dist_dem_triangle,geosurf_tr_ndx,dist_geosurf_triangle\n";
         for(std::vector<inters_result>::iterator intersection_ref = intersections.begin(); intersection_ref != intersections.end(); ++intersection_ref) {
             inters_result intersection = *intersection_ref;
             Point3D inters_pt = intersection.inter_pt;

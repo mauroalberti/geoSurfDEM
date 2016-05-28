@@ -61,8 +61,8 @@ class Vector3D {
 
 public:
 
-    Vector3D( double, double, double);
-    Vector3D( Point3D, Point3D);
+    Vector3D(double, double, double);
+    Vector3D(Point3D, Point3D);
     ~Vector3D();
 
     double x();
