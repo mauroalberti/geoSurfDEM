@@ -6,6 +6,30 @@
 double plane_parallel_threshold_degr = 0.1; // in degrees
 double plane_equidistance_threshold = 1.0e-10; // data distance units
 
+
+std::vector<double> normalize(std::vector<double> coeff) {
+
+    double a = coeff[0];
+    double b = coeff[1];
+    double c = coeff[2];
+    double d = coeff[3];
+
+    std::vector<double> norm_coeff(4);
+
+    double division_factor = sqrt(a*a + b*b + c*c);
+    if (d > 0.0) {
+        division_factor = - division_factor;
+    }
+
+    norm_coeff[0] = a / division_factor;
+    norm_coeff[1] = b / division_factor;
+    norm_coeff[2] = c / division_factor;
+    norm_coeff[3] = d / division_factor;
+
+    return norm_coeff;
+};
+
+
 Point2D::Point2D() {
 
 }
@@ -94,18 +118,14 @@ Point2D Point2D::rotateby(Matrix2 rm) {
 
 Point3D::Point3D() {
 
-    valid = false;
-
-    _x = 0.0;
-    _y = 0.0;
-    _z = 0.0;
+    _valid = false;
 
 };
 
 
-Point3D::Point3D(double x, double y, double z, bool valid_) {
+Point3D::Point3D(double x, double y, double z, bool valid = true) {
 
-    valid =  valid_;
+    _valid =  valid;
 
     _x = x;
     _y = y;
@@ -114,32 +134,9 @@ Point3D::Point3D(double x, double y, double z, bool valid_) {
 };
 
 
-Point3D::Point3D(double x, double y, double z) {
+Point3D::Point3D(Point2D pt2d, double z, bool valid = true) {
 
-    valid =  true;
-
-    _x = x;
-    _y = y;
-    _z = z;
-
-};
-
-
-
-Point3D::Point3D(Point2D pt2d, double z, bool valid_) {
-
-    valid = valid_;
-
-    _x = pt2d.x();
-    _y = pt2d.y();
-    _z = z;
-
-};
-
-
-Point3D::Point3D(Point2D pt2d, double z) {
-
-    valid = true;
+    _valid = valid;
 
     _x = pt2d.x();
     _y = pt2d.y();
@@ -155,8 +152,7 @@ Point3D::~Point3D() {
 
 bool Point3D::is_valid() {
 
-    return valid;
-
+    return _valid;
 };
 
 
@@ -184,7 +180,8 @@ Point3D Point3D::moveby(double dx, double dy, double dz) {
 
     return Point3D(x() + dx,
                    y() + dy,
-                   z() + dz);
+                   z() + dz,
+                   is_valid());
 };
 
 
@@ -206,98 +203,6 @@ bool Point3D::is_coincident(Point3D another) {
     else {
         return true;
     }
-
-};
-
-
-Segment3D::Segment3D(Point3D start_pt, Point3D end_pt) :
-    _start_pt(start_pt), _end_pt(end_pt) {
-
-};
-
-
-Segment3D::~Segment3D() {
-
-};
-
-
-Point3D Segment3D::start_pt(){
-
-    return _start_pt;
-
-};
-
-
-Point3D Segment3D::end_pt(){
-
-    return _end_pt;
-
-};
-
-
-double Segment3D::dx() {
-
-    return _end_pt.x() - _start_pt.x();
-
-};
-
-
-double Segment3D::dy() {
-
-    return _end_pt.y() - _start_pt.y();
-
-};
-
-
-double Segment3D::dz() {
-
-    return _end_pt.z() - _start_pt.z();
-
-};
-
-
-Vector3D Segment3D::as_vector() {
-
-    return Vector3D(dx(), dy(), dz() );
-
-};
-
-
-Vector3D Segment3D::as_versor() {
-
-    return as_vector().versor();
-};
-
-
-double Segment3D::length() {
-
-    double d_x = dx();
-    double d_y = dy();
-    double d_z = dz();
-
-    return sqrt( d_x*d_x + d_y*d_y + d_z*d_z );
-
-};
-
-
-bool Segment3D::is_point_projection_in_segment(Point3D pt_3d) {
-
-    Vector3D pt_vector = Segment3D( start_pt(), pt_3d ).as_vector();
-    double scal_prod = as_vector().scalar_prod( pt_vector );
-    double segm_length = length();
-    if (0 <= scal_prod and scal_prod <= segm_length*segm_length) {
-        return true; }
-    else {
-        return false; };
-
-};
-
-
-Line3D Segment3D::as_line() {
-
-    Point3D start_pt3d = start_pt();
-    Vector3D line_vect = as_versor();
-    return Line3D(start_pt3d, line_vect);
 
 };
 
@@ -434,19 +339,6 @@ Line3D::~Line3D() {
 };
 
 
-Point3D Line3D::orig_pt() {
-
-    return _orig_pt3d;
-
-};
-
-
-Vector3D Line3D::versor() {
-
-    return _vers;
-};
-
-
 bool Line3D::isparallel(Line3D another) {
 
     Vector3D vers_a = versor();
@@ -515,31 +407,118 @@ Point3D Line3D::intersect_coplanar(Line3D another) {
 };
 
 
+Point3D Line3D::orig_pt() {
 
-std::vector<double> normalize(std::vector<double> coeff) {
+    return _orig_pt3d;
 
-    double a = coeff[0];
-    double b = coeff[1];
-    double c = coeff[2];
-    double d = coeff[3];
-
-    std::vector<double> norm_coeff(4);
-
-    double division_factor = sqrt(a*a + b*b + c*c);
-    if (d > 0.0) {
-        division_factor = - division_factor;
-    }
-
-    norm_coeff[0] = a / division_factor;
-    norm_coeff[1] = b / division_factor;
-    norm_coeff[2] = c / division_factor;
-    norm_coeff[3] = d / division_factor;
-
-    return norm_coeff;
 };
 
 
-CartesianPlane::CartesianPlane(Point3D pt_a, Point3D pt_b, Point3D pt_c) {
+Vector3D Line3D::versor() {
+
+    return _vers;
+};
+
+
+Segment3D::Segment3D(Point3D start_pt, Point3D end_pt) :
+    _start_pt(start_pt), _end_pt(end_pt) {
+
+};
+
+
+Segment3D::~Segment3D() {
+
+};
+
+
+Point3D Segment3D::start_pt(){
+
+    return _start_pt;
+
+};
+
+
+Point3D Segment3D::end_pt(){
+
+    return _end_pt;
+
+};
+
+
+double Segment3D::dx() {
+
+    return _end_pt.x() - _start_pt.x();
+
+};
+
+
+double Segment3D::dy() {
+
+    return _end_pt.y() - _start_pt.y();
+
+};
+
+
+double Segment3D::dz() {
+
+    return _end_pt.z() - _start_pt.z();
+
+};
+
+
+Vector3D Segment3D::as_vector() {
+
+    return Vector3D(dx(), dy(), dz() );
+
+};
+
+
+Vector3D Segment3D::as_versor() {
+
+    return as_vector().versor();
+};
+
+
+double Segment3D::length() {
+
+    double d_x = dx();
+    double d_y = dy();
+    double d_z = dz();
+
+    return sqrt( d_x*d_x + d_y*d_y + d_z*d_z );
+
+};
+
+
+bool Segment3D::is_point_projection_in_segment(Point3D pt_3d) {
+
+    Vector3D pt_vector = Segment3D( start_pt(), pt_3d ).as_vector();
+    double scal_prod = as_vector().scalar_prod( pt_vector );
+    double segm_length = length();
+    if (0 <= scal_prod and scal_prod <= segm_length*segm_length) {
+        return true; }
+    else {
+        return false; };
+
+};
+
+
+Line3D Segment3D::as_line() {
+
+    Point3D start_pt3d = start_pt();
+    Vector3D line_vect = as_versor();
+    return Line3D(start_pt3d, line_vect);
+
+};
+
+
+CartesianPlane::CartesianPlane() {
+
+};
+
+
+std::vector<double> CartesianPlane::define_params(Point3D pt_a, Point3D pt_b, Point3D pt_c) {
+
 
     Matrix3 matr_a = Matrix3(pt_a.y(), pt_a.z(), 1,
                              pt_b.y(), pt_b.z(), 1,
@@ -563,7 +542,14 @@ CartesianPlane::CartesianPlane(Point3D pt_a, Point3D pt_b, Point3D pt_c) {
     coeff[2] = matr_c.determinant();
     coeff[3] = - matr_d.determinant();
 
-    std::vector<double> normalized_coeff = normalize(coeff);
+    return normalize(coeff);
+
+};
+
+
+CartesianPlane::CartesianPlane(Point3D pt_a, Point3D pt_b, Point3D pt_c) {
+
+    std::vector<double> normalized_coeff = define_params(pt_a, pt_b, pt_c);
 
     _a = normalized_coeff[0];
     _b = normalized_coeff[1];
@@ -577,17 +563,32 @@ CartesianPlane::~CartesianPlane() {
 };
 
 
+void CartesianPlane::set_params(Point3D pt_a, Point3D pt_b, Point3D pt_c) {
+
+    std::vector<double> normalized_coeff = define_params(pt_a, pt_b, pt_c);
+
+    _a = normalized_coeff[0];
+    _b = normalized_coeff[1];
+    _c = normalized_coeff[2];
+    _d = normalized_coeff[3];
+
+};
+
+
 double CartesianPlane::a() {
     return _a;
 };
+
 
 double CartesianPlane::b() {
     return _b;
 };
 
+
 double CartesianPlane::c() {
     return _c;
 };
+
 
 double CartesianPlane::d() {
     return _d;
@@ -705,6 +706,7 @@ bool CartesianPlane::isparallel(CartesianPlane another) {
         return false;};
 };
 
+
 bool CartesianPlane::isequidistant(CartesianPlane another) {
 
     if (fabs(d() - another.d()) < plane_equidistance_threshold) {
@@ -714,7 +716,120 @@ bool CartesianPlane::isequidistant(CartesianPlane another) {
 };
 
 
+GeologicalPlane::GeologicalPlane() {
+
+};
 
 
+GeologicalPlane::GeologicalPlane(double dipdir, double dipangle) {
 
+    _dipdir = dipdir;
+    _dipangle = dipangle;
+
+};
+
+
+GeologicalPlane::~GeologicalPlane() {
+};
+
+
+double GeologicalPlane::dipdir() {
+
+    return _dipdir;
+};
+
+
+double GeologicalPlane::dipangle() {
+
+    return _dipangle;
+};
+
+
+GeolAxis::GeolAxis(double trend, double plunge) {
+
+    _trend = trend;
+    _plunge = plunge;
+
+};
+
+
+GeolAxis::~GeolAxis() {
+};
+
+
+double GeolAxis::trend() {
+
+    return _trend;
+};
+
+
+double GeolAxis::plunge() {
+
+    return _plunge;
+};
+
+
+GeolAxis GeolAxis::to_down_axis() {
+
+    double trend, plunge;
+    trend = _trend;
+    plunge = _plunge;
+
+    if (plunge < 0.0) {
+        trend += 180.0;
+        if (trend > 360.0) {
+            trend -= 360.0;
+        };
+        plunge = -plunge;
+
+    };
+
+    return GeolAxis(trend, plunge);
+
+};
+
+
+GeologicalPlane GeolAxis::normal_geolplane() {
+
+    GeolAxis down_axis = to_down_axis();
+
+    double dipdir = down_axis.trend() + 180.0;
+    if (dipdir >= 360.0) {
+        dipdir -= 360.0;
+    };
+    double dipangle = 90.0 - down_axis.plunge();
+
+    return GeologicalPlane(dipdir, dipangle);
+
+};
+
+
+GeologicalPlane to_geolplane(CartesianPlane cart_plane) {
+
+/* converts a cartesian plane into a geological plane */
+
+    Vector3D vect = cart_plane.normal_versor();
+    GeolAxis geol_axis = to_geol_axis(vect);
+    return geol_axis.normal_geolplane();
+
+};
+
+
+GeolAxis to_geol_axis(Vector3D vect) {
+
+    Vector3D unit_vect = vect.versor();
+
+    double plunge = - degrees(asin(unit_vect.z())); // upward negative, downward positive
+
+    double trend = 90.0 - degrees(atan2(unit_vect.y(), unit_vect.x()));
+    if (trend < 0.0) {
+        trend += 360.0;
+    }
+    else if (trend > 360.0) {
+        trend -= 360.0;
+    };
+
+    return GeolAxis(trend, plunge);
+
+};
 

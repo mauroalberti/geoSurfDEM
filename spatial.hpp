@@ -1,16 +1,15 @@
 #include <string>
 #include <vector>
 
-
 #include <array>
 
-
 #include "algebr.hpp"
-
 
 #ifndef SPATIAL_HPP
 #define SPATIAL_HPP
 
+
+std::vector<double> normalize(std::vector<double>);
 
 
 class Point2D {
@@ -36,14 +35,12 @@ public:
 
 
 class Point3D {
-    bool valid;
+    bool _valid;
     double _x, _y, _z;
 public:
     Point3D();
     Point3D(double, double, double, bool);
-    Point3D(double, double, double);
     Point3D(Point2D, double, bool);
-    Point3D(Point2D, double);
     ~Point3D();
     bool is_valid();
     double x();
@@ -76,9 +73,8 @@ public:
     Vector3D vector_prod(Vector3D);
     double angle(Vector3D);
     bool isodirection(Vector3D);
-    Point3D intersect_coplanar(Vector3D);
+    //Point3D intersect_coplanar(Vector3D);
     Point3D move_pt(Point3D);
-
 
 };
 
@@ -123,9 +119,6 @@ public:
 };
 
 
-std::vector<double> normalize(std::vector<double>);
-
-
 class CartesianPlane {
     /*
     Cartesian plane, expressed by normal equation:
@@ -139,8 +132,13 @@ class CartesianPlane {
 public:
 
     //CartesianPlane(double, double, double, double);
+    CartesianPlane();
+
+    std::vector<double> define_params(Point3D, Point3D, Point3D);
+
     CartesianPlane(Point3D, Point3D, Point3D);
     ~CartesianPlane();
+    void set_params(Point3D, Point3D, Point3D);
 
     double a();
     double b();
@@ -162,6 +160,51 @@ public:
 };
 
 
+class GeologicalPlane {
+
+    double _dipdir, _dipangle;
+
+public:
+
+    GeologicalPlane();
+    GeologicalPlane(double, double);
+    ~GeologicalPlane();
+
+    double dipdir();
+    double dipangle();
+
+};
+
+
+class GeolAxis {
+
+    /*
+    Structural axis,
+    defined by trend and plunge (both in degrees)
+    Trend range: [0.0, 360.0[ clockwise, from 0 (North)
+    Plunge: [-90.0, 90.0], negative value: upward axis, positive values: downward axis
+    */
+
+    double _trend, _plunge;
+
+public:
+
+    GeolAxis(double, double);
+    ~GeolAxis();
+
+    double trend();
+    double plunge();
+
+    GeolAxis to_down_axis();
+    GeologicalPlane normal_geolplane();
+
+};
+
+
+GeologicalPlane to_geolplane(CartesianPlane);
+
+
+GeolAxis to_geol_axis(Vector3D);
 
 
 #endif

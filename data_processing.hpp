@@ -12,6 +12,11 @@
 #include "geographic.hpp"
 
 
+struct geosurf_triangle {
+    Triangle3D triangle;
+    GeologicalPlane geoplane;
+};
+
 
 int get_dem_param_int(const std::string&, const std::string&);
 
@@ -25,10 +30,10 @@ DataRRGrid read_esri_ascii_dem(std::string);
 MeshTriangleStrip read_vtk_data_ascii( std::string);
 
 
-std::vector<Triangle3D> extract_triangles_from_mesh(MeshTriangleStrip);
+std::vector<geosurf_triangle> extract_triangles_from_mesh(MeshTriangleStrip);
 
 
-std::vector<Triangle3D> extract_intersecting_triangles(Space3DPartition, std::vector<Triangle3D>);
+std::vector<geosurf_triangle> extract_intersecting_triangles(Space3DPartition, std::vector<geosurf_triangle>);
 
 
 int vect_ndx(int, int, int);

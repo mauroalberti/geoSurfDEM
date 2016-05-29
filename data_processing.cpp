@@ -1,6 +1,7 @@
 #include "data_processing.hpp"
 
 
+
 int get_dem_param_int(const std::string& rec_line, const std::string& par_name) {
     // read single key-uint value from row - ESRI ASCII DEM format
 
@@ -150,7 +151,7 @@ MeshTriangleStrip read_vtk_data_ascii( std::string input_vtk_path ) {
         std::istringstream instr(rec_line);
         double x, y, z;
         instr >> x >> y >> z;
-        pt3d_vect.push_back( Point3D(x, y, z));
+        pt3d_vect.push_back( Point3D(x, y, z, true));
         };
 
     std::getline(infile, rec_line);
@@ -202,13 +203,13 @@ MeshTriangleStrip read_vtk_data_ascii( std::string input_vtk_path ) {
 };
 
 
-std::vector<Triangle3D> extract_triangles_from_mesh(MeshTriangleStrip surf3d_mesh ) {
+std::vector<geosurf_triangle> extract_triangles_from_mesh(MeshTriangleStrip surf3d_mesh ) {
 
     std::vector<Point3D> mesh_pts = surf3d_mesh.pts();
     std::vector< std::vector<unsigned int> > triangle_strips = surf3d_mesh.trianglestrips();
 
     // cycle within triangle strips
-    std::vector<Triangle3D> mesh_triangles;
+    std::vector<geosurf_triangle> mesh_triangles;
     unsigned int strip_ndx = 0;
     for(std::vector< std::vector<unsigned int> >::iterator ref_trstr = triangle_strips.begin(); ref_trstr != triangle_strips.end(); ++ref_trstr) {
         strip_ndx++;
@@ -225,29 +226,33 @@ std::vector<Triangle3D> extract_triangles_from_mesh(MeshTriangleStrip surf3d_mes
                 Point3D pt1 = curr_triplet.get(0);
                 Point3D pt2 = curr_triplet.get(1);
                 Point3D pt3 = curr_triplet.get(2);
-                Triangle3D geosurf_triangle = Triangle3D(pt1, pt2, pt3);
-                mesh_triangles.push_back( geosurf_triangle ); }; }; };
+                Triangle3D mesh_tr = Triangle3D(pt1, pt2, pt3);
+                CartesianPlane mesh_cp = mesh_tr.to_cartes_plane();
+                GeologicalPlane geopl = to_geolplane(mesh_cp);
+                geosurf_triangle geos_tr;
+                geos_tr.triangle = mesh_tr;
+                geos_tr.geoplane = geopl;
+                mesh_triangles.push_back( geos_tr );
+            };
+        };
+    };
 
     return mesh_triangles;
 };
 
 
-std::vector<Triangle3D> extract_intersecting_triangles(Space3DPartition dem_vol, std::vector<Triangle3D> mesh_triangles ) {
+std::vector<geosurf_triangle> extract_intersecting_triangles(Space3DPartition dem_vol, std::vector<geosurf_triangle> mesh_triangles ) {
 
-    std::vector<Triangle3D> intersecting_mesh_triangles;
-    unsigned int n_orig_triangle = 0;
-    unsigned int n_curr_triangle = 0;
-    for(std::vector<Triangle3D>::iterator ref_ptndx = mesh_triangles.begin(); ref_ptndx != mesh_triangles.end(); ++ref_ptndx) {
-        n_orig_triangle++;
-        Triangle3D mesh_triangle = *ref_ptndx;
+    std::vector<geosurf_triangle> intersecting_mesh_triangles;
+
+    for(std::vector<geosurf_triangle>::iterator ref_ptndx = mesh_triangles.begin(); ref_ptndx != mesh_triangles.end(); ++ref_ptndx) {
+        geosurf_triangle geos_tr = *ref_ptndx;
+        Triangle3D mesh_triangle = geos_tr.triangle;
         Space3DPartition mesh_triangle_volume = mesh_triangle.space_volume();
         if (mesh_triangle_volume.intersects( dem_vol )) {
-            n_curr_triangle++;
-            Point3D pt1  = mesh_triangle.pt(0);
-            Point3D pt2  = mesh_triangle.pt(1);
-            Point3D pt3  = mesh_triangle.pt(2);
-
-            intersecting_mesh_triangles.push_back( mesh_triangle ); }; };
+            intersecting_mesh_triangles.push_back( geos_tr );
+        };
+    };
 
     return intersecting_mesh_triangles;
 };
@@ -297,7 +302,6 @@ std::vector<Point3D> create_pts_vector(NumericData grid_data, RectangularDomain 
     for(std::vector<double>::iterator ref_ptndx = data.begin(); ref_ptndx != data.end(); ++ref_ptndx) {
 
         vector_pts_ndx++;
-
 
         double z = *ref_ptndx;
         bool valid_pt = fabs(z - null_data_val) > 1.0e-12;
