@@ -159,22 +159,25 @@ void print_src_data(std::string outfile_path, std::vector<Triangle3D> src_triang
 
 int main() {
 
-    // read DEM data from input file
-
-    std::string input_dem_path = "./test_data/malpi_aster_w4u3_rit.asc";
-
-    // input 3D geosurface (VTK format)
-
-    std::string input_vtk_path = "./test_data/geosurf3d_01.vtk";
-
-    // output data file
-
-    std::string output_datafile_path = "./test_data/outdata_10.csv";
-
     // program header
 
     std::cout << "\n*** geoSurfDEM *** \n";
     std::cout << "\nApplication for determining intersections between 3D geosurfaces and DEM topography\n\n";
+
+    // read input file names from config file
+    std::string input_files; // "./test_data/input_files.txt";
+    std::cout << "Please enter file path storing inputs: ";
+    getline( std::cin, input_files );
+
+    //f.open( filename.c_str() );
+
+
+    std::ifstream indatafile{input_files};
+    std::string input_dem_path, input_vtk_path, output_datafile_path;
+
+    indatafile >> input_dem_path;  // "./test_data/malpi_aster_w4u3_rit.asc"
+    indatafile >> input_vtk_path;  // "./test_data/geosurf3d_01.vtk"
+    indatafile >> output_datafile_path;  // "./test_data/outdata_11.csv"
 
     // read input DEM data
 
