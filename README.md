@@ -17,20 +17,7 @@ a) the theoretical intersections between a 3D surface and a topography
 b) the local 3D attitude of that surface at each intersection point.
 
 
-This can be considered a forward problem, for the solution of which I am currently unaware of any existing open source implementations. 
-
-The inverse problem, i.e., given local intersections determine the probable geological attitudes, has been already investigated by other researchers and  I do not discuss it here.
-
-Here I present a C++ implementation, that can be considered a working, beta pre-production release, solving the forward problem.
-
-C++ allows to create fast applications, much faster than others created with more-developer friendly tools such as Python, for instance. 
-Considering that topography is generally represented by grids and geological surfaces by meshes, the product of these two types of data sources produces a data set to investigate that can be quite large, thus requiring a fast language in order to have acceptable run times.
-
-The drawback is that C++ is complex and code production slower than with using Python.
-
-
 How does it work?
-
 Below you see the screenshot of a single run of the tool.
 
 ![alt tag](http://www.malg.eu/geosurfdem/images/appl_run.png)
@@ -39,11 +26,11 @@ What is important to note?
 
 First of all, you have to input the name of a file, in the run example named "input_files.txt" (located in the same directory as the compiled application), that provides to the application the paths of three files:
 
-1) DEM, in ESRI ASCII grid format
+*1) DEM, in ESRI ASCII grid format
 
 2) geological surface, in (old) VTK text format
 
-3) output csv file storing for each row: x-y-z-dip direction-dip angle
+3) output csv file storing for each row: x-y-z-dip direction-dip angle*
 
 
 An example of input text file is the following:
@@ -64,21 +51,16 @@ If you work with GIS, DEMs should have no secret for you. You can export a DEM i
 
 And for the other input data source, i.e., the VTK text file storing the geological surface data?
 
-One possibility is to use [simSurf](https://github.com/mauroalberti/simSurf)
-
-
-With this Python tool (beware: 2.7, not 3.x), you can simulate analytical geological surfaces.
-
-We will see a working example here, that will be used also as a validation example for geoSurfDEM output.
+One possibility is to use [simSurf](https://github.com/mauroalberti/simSurf). With this Python tool (beware: 2.7, not 3.x), you can simulate analytical geological surfaces. We will see a working example here, that will be used also as a validation example for geoSurfDEM output.
 
 
 We create with simSurf an inclined plane with known attitude and location fitting the extent of a classical (for me..) Mt. Alpi DEM, derived from ASTER data.
 
 simSurf is subdivide in two modules:
 
-a) geosurface_simulation.py
+*a) geosurface_simulation.py
 
-b) geosurface_deformation.py
+b) geosurface_deformation.py*
 
 The module names are sufficiently clear to expose their purpose, I hope.
 
