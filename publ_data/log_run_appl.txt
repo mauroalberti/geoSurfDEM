@@ -1,0 +1,19 @@
+mauro@mauro-mint ~ $ cd /home/mauro/Documents/Ricerca/Codice/Geostrutturale/geoSurfDEM
+mauro@mauro-mint ~/Documents/Ricerca/Codice/Geostrutturale/geoSurfDEM $ ./geoSurfDEM
+
+*** geoSurfDEM *** 
+
+Application for determining intersections between 3D geosurfaces and DEM topography
+
+Please enter file path storing inputs: input_files.txt
+
+Num. total mesh triangles is 1152
+
+Num. intersecting mesh triangles is 507
+
+Num. dem 3d pts is 49400
+
+Num. dem 3d triangles is 97908
+
+Num. intersecting pts is 1228
+

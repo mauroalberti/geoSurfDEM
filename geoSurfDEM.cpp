@@ -115,7 +115,7 @@ std::vector<inters_result> intersect_dem_geosurface(std::vector<Triangle3D> dem_
             std::tie(msg, inters_pts) = triangle_pair_inters_pts(dem_triangle, mesh_triangle);
 
             if (msg != "intersecting planes") {
-                std::cout << "DEM triangle ndx: " << ndx_curr_dem_triangle << ", mesh triangle ndx: " << ndx_curr_mesh_triangle << "; error: " << msg << "\n";
+                std::cout << "DEM triangle ndx: " << ndx_curr_dem_triangle << ", mesh triangle ndx: " << ndx_curr_mesh_triangle << "; warning: " << msg << "\n";
                 continue; };
 
             if (inters_pts.size() > 0) {

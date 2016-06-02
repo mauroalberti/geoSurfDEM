@@ -30,6 +30,8 @@
 .directory
 bin/
 test_data/
+images/
+publ_utils/
 
 geoSurfDEM
 geoSurfDEM.cbp
