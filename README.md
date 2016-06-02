@@ -97,7 +97,9 @@ Done, after applying.
 
 Save the geosurface as a VTK file and then you can use it in the geoSurfDEM application.
 
-Before that we see how are the DEM and the VTK plane data in Paraview.
+##Results
+
+We see how are the DEM and the VTK plane data in Paraview.
 
 You can import the DEM when in x-y-z format (could create with Saga), then applying a Table to Point filter, while the VTK format is directly read.
 Here a nadiral view.
@@ -118,6 +120,8 @@ The results are symbolized by blue dots. You see them following the visual inter
 Always in Paraview we see, for a few records, that the corresponding point attitudes calculated by geoSurfDEM are correct: 135°/35° for each point.
 
 ![alt tag](http://www.malg.eu/geosurfdem/images/paraview_result_table.png)
+
+##Sources
 
 The code repository of geoSurfDEM is at:
 
