@@ -1,5 +1,8 @@
 # geoSurfDEM
-C++ command-line application to determine intersection between 3D geosurfaces and DEMs.  
+
+geoSurfDEM is a C++ command-line application for calculating intersection points between 3D geosurfaces and DEMs.  
+
+###Rationale
 
 The determination of the theoretical intersections between digital 3D geological surfaces and topography could be of potential help for studying the field attitudes of natural geological surfaces, as mapped from outcrops or from aerial and satellite images. 
 
@@ -12,7 +15,7 @@ geoSurfDEM aims at determining:
 *b) the local 3D attitude of that surface at each intersection point*
 
 
-##How does it work?
+###How does it work?
 
 Below you see the screenshot of an application run.
 
@@ -44,13 +47,11 @@ while examples of input data files (DEM ASCII grid, VTK geosurface file, CSV int
 
 The application outputs a few informative messages about the number of found features and hopefully at the last it prints out a number of found intersecting points greater than zero.. 
 
-##Input data creation
+###Creation of test geological plane 
 
-If you work with GIS, DEMs should have no secret for you. You can export a DEM in ESRI ASCII grid format with Saga GIS (in addition to ArcGIS). And for the other input data source, i.e., the VTK text file storing the geological surface data?
+To present the application and check the validity of its results we use a theoretical test case, i.e. a geological plane with a desired attitude 135°/35°, and with a spatial extent fitting that of the test DEM, covering the Mt. Alpi zone (Basilicata, Southern Italy), derived from global ASTER data. You can export a DEM in ESRI ASCII grid format with Saga GIS (in addition to ArcGIS). 
 
-One possibility is to use [simSurf](https://github.com/mauroalberti/simSurf). With this Python tool (beware: 2.7, not 3.x), you can simulate analytical geological surfaces. We will see a working example here, that will be used also as a validation example for geoSurfDEM output.
-
-We create with *simSurf* an inclined plane with known attitude and location fitting the extent of a classical (for me..) Mt. Alpi DEM, derived from ASTER data.
+The geological plane is created and saved as a VTK text file with [simSurf](https://github.com/mauroalberti/simSurf). With this Python 2.7 tool, it is possible to simulate geological surfaces by using analytical formulas. 
 
 simSurf is subdivide in two modules:
 
@@ -92,13 +93,13 @@ I copied and pasted these values in the simSurf displacement tab, so that the pl
 
 Done, after applying.
 
-Save the geosurface as a VTK file and then you can use it in the geoSurfDEM application.
+Save the geosurface as a VTK file and then you can see it in Paraview and use in the geoSurfDEM application.
 
-##Results
+###Input data preview
 
 We see how are the DEM and the VTK plane data in Paraview.
 
-You can import the DEM when in x-y-z format (could create with Saga), then applying a Table to Point filter, while the VTK format is directly read.
+You can import the DEM when in x-y-z format (could create with Saga), then applying a *Table to Point* filter, while the VTK format is directly read from Paraview.
 Here a nadiral view.
 
 ![alt tag](http://www.malg.eu/geosurfdem/images/paraview_src_up.png)
@@ -107,18 +108,18 @@ And a lateral one.
 
 ![alt tag](http://www.malg.eu/geosurfdem/images/paraview_src_lateral.png)
 
+###Results
+
 At the end, what is the result of the geoSurfDEM application?
-We see it displayed in Paraview, importing the resulting csv file.
+We see it displayed in Paraview, importing the resulting csv file. The results are symbolized by blue dots. You see them following the visual intersection between the plane with dip direction 135° and dip angle 35° and the DEM.
 
 ![alt tag](http://www.malg.eu/geosurfdem/images/paraview_result_lateral.png)
-
-The results are symbolized by blue dots. You see them following the visual intersection between the plane with dip direction 135° and dip angle 35° and the DEM.
 
 Always in Paraview we see, for a few records, that the corresponding point attitudes calculated by geoSurfDEM are correct: 135°/35° for each point.
 
 ![alt tag](http://www.malg.eu/geosurfdem/images/paraview_result_table.png)
 
-##Sources
+###Sources
 
 The code repository of geoSurfDEM is at:
 
