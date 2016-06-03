@@ -31,11 +31,13 @@ First of all, you have to input the name of a text file ("input_files.txt" in th
 
 An example of input text file is the following:
 
-*./publ_data/dem_malpi_aster_wgs84utm33.asc*
+```
+./publ_data/dem_malpi_aster_wgs84utm33.asc
 
-*./publ_data/geological_plane.vtk*
+./publ_data/geological_plane.vtk
 
-*./publ_data/intersections.csv*
+./publ_data/intersections.csv
+```
 
 
 while examples of input data files (DEM ASCII grid, VTK geosurface file, CSV intersection result) can be found in the *publ_data* subdirectory. 
