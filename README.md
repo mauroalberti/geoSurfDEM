@@ -1,14 +1,9 @@
 # geoSurfDEM
 C++ command-line application to determine intersection between 3D geosurfaces and DEMs.  
 
-Input 3D geosurfaces are produced by the Python application as in the simSurf project:  
-https://github.com/mauroalberti/simSurf  
+The determination of the theoretical intersections between digital 3D geological surfaces and topography could be of potential help for studying the field attitudes of natural geological surfaces, as mapped from outcrops or from aerial and satellite images. 
 
-Currrently in beta state.
-
-------
-
-The determination of the theoretical intersections between digital 3D geological surfaces and topography could be of potential help for studying the field attitudes of natural geological surfaces as seen in outcrops and from aerial and satellite images. Since geological structures have geometries much more complex than planes, the analysis of the relationships between 3D surfaces and topography requires evolved tools that can read and process 3D geological surfaces.
+Since geological structures have complex geometries, the analysis of the relationships between 3D surfaces and topography requires tools that can process 3D geological surfaces.
 
 geoSurfDEM aims at determining:
 
@@ -19,13 +14,13 @@ geoSurfDEM aims at determining:
 
 ##How does it work?
 
-Below you see the screenshot of a single run of the tool.
+Below you see the screenshot of an application run.
 
 ![alt tag](http://www.malg.eu/geosurfdem/images/appl_run.png)
 
-What is important to note?
+What is to note?
 
-First of all, you have to input the name of a file, in the run example named "input_files.txt" (located in the same directory as the compiled application), that provides to the application the paths of three files:
+First of all, you have to input the name of a text file ("input_files.txt" in this example, located in the same directory as the compiled application), that provides the paths of three files to the application:
 
 *1) DEM, in ESRI ASCII grid format*
 
