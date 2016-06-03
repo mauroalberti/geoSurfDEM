@@ -55,11 +55,9 @@ The geological plane is created and saved as a VTK text file with [simSurf](http
 
 simSurf is subdivide in two modules:
 
-*a) geosurface_simulation.py*
+a) *geosurface_simulation.py*: creates, geolocates and saves/exports an analytical surface
 
-*b) geosurface_deformation.py*
-
-The module names are sufficiently clear to expose their purpose, I hope.
+b) *geosurface_deformation.py*: reads an analytical surface created by the previous module, deforms it and saves/exports
 
 So we start creating a horizontal plane with the Geosurface simulation tool, "Analytical formula" part. See figure below.
 
@@ -93,7 +91,7 @@ I copied and pasted these values in the simSurf displacement tab, so that the pl
 
 Done, after applying.
 
-Save the geosurface as a VTK file and then you can see it in Paraview and use in the geoSurfDEM application.
+Save the geosurface as a VTK file and then you can see it in Paraview and use in the geoSurfDEM application. Note that the VTK file stores the plane as triangle mesh, without explicit attitude (i.e., dip direction and angle) information. So the local results calculated by the geoSurfDEM application are derived by the local geosurface triangle attitude stored in the VTK file. Using a simple plane obviously we expect the same results for all intersection points.
 
 ###Input data preview
 
@@ -108,14 +106,16 @@ And a lateral one.
 
 ![alt tag](http://www.malg.eu/geosurfdem/images/paraview_src_lateral.png)
 
-###Results
+###geoSurfDEM result
 
 At the end, what is the result of the geoSurfDEM application?
-We see it displayed in Paraview, importing the resulting csv file. The results are symbolized by blue dots. You see them following the visual intersection between the plane with dip direction 135° and dip angle 35° and the DEM.
+
+
+We see it displayed in Paraview, by importing the resulting csv file and superposing on the DEM points and the plane surface. The results are symbolized by blue dots. You see them following the visual intersection between the plane with dip direction 135° and dip angle 35° and the DEM.
 
 ![alt tag](http://www.malg.eu/geosurfdem/images/paraview_result_lateral.png)
 
-Always in Paraview we see, for a few records, that the corresponding point attitudes calculated by geoSurfDEM are correct: 135°/35° for each point.
+Always in Paraview we see, for a few records, that the corresponding point attitudes calculated by geoSurfDEM are as expected: 135°/35° for each point, since in this test case we were dealing with a geological plane.
 
 ![alt tag](http://www.malg.eu/geosurfdem/images/paraview_result_table.png)
 
