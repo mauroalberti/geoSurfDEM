@@ -119,16 +119,5 @@ Always in Paraview we see, for a few records, that the corresponding point attit
 
 ![alt tag](http://www.malg.eu/geosurfdem/images/paraview_result_table.png)
 
-###Sources
-
-The code repository of geoSurfDEM is at:
-
-[GitHub code repository](https://github.com/mauroalberti/geoSurfDEM)
-
-Executables for both Linux and Windows will be soon available from:
-
-[executables repository](http://malg.eu/geosurfdem.php) (note: page still to be created..)
-
-
 
 
