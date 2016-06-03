@@ -98,11 +98,11 @@ Save the geosurface as a VTK file and then you can see it in Paraview and use in
 We see how are the DEM and the VTK plane data in Paraview.
 
 You can import the DEM when in x-y-z format (could create with Saga), then applying a *Table to Point* filter, while the VTK format is directly read from Paraview.
-Here a nadiral view.
+Here a nadiral view. Y axis represents the North.
 
 ![alt tag](http://www.malg.eu/geosurfdem/images/paraview_src_up.png)
 
-And a lateral one.
+And a lateral one, as seen from the South.
 
 ![alt tag](http://www.malg.eu/geosurfdem/images/paraview_src_lateral.png)
 
