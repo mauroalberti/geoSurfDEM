@@ -15,7 +15,7 @@ geoSurfDEM aims at determining:
 
 ###How does it work?
 
-Below you see the screenshot of an application run in a Linux shell. When compiled for Windows, the procedure is identical.
+Below you see the screenshot of an application run in a Linux shell. When compiled for Windows, the procedure is identical. The total run time can be quite long, many minutes or more.
 
 ![alt tag](http://www.malg.eu/geosurfdem/images/appl_run.png)
 
@@ -61,17 +61,21 @@ a) *geosurface_simulation.py*: creates, geolocates and saves/exports an analytic
 
 b) *geosurface_deformation.py*: reads an analytical surface created by the previous module, deforms it and saves/exports
 
-So we start creating a horizontal plane with the Geosurface simulation tool, "Analytical formula" part. See figure below.
+#####Horizontal plane creation
+
+So we start creating a horizontal plane with the Geosurface simulation tool, *Analytical formula* part. See figure below.
 
 ![alt tag](http://www.malg.eu/geosurfdem/images/simSurf_analitical_surface.png)
 
 The zero in the formula section is for the horizontal plane creation. You calculate the matrix and you can see the plane in three dimensions.
 
-Then to the geographical parameters, that have to fit the DEM extent without creating a too large geological plane.
+Then to the geographical parameters, that have to fit the DEM extent without creating an excessively large geological plane.
 
 ![alt tag](http://www.malg.eu/geosurfdem/images/simSurf_geog_params.png)
 
-We create the simulated geosurface, optionally view it in three dimensions and then have to export it in the Geo Analytical Surface (GAS) format, i.e. a jason format..
+We create the simulated geosurface, optionally view it in three dimensions and then have to export it in the *Geo Analytical Surface* (GAS) format, i.e. a jason format.
+
+#####Plane rotation
 
 We then pass to the Geosurface deformation tool, import the previously exported jason file and then apply a rotation to the plane around a N-S horizontal axis, by 35°.
 
@@ -81,7 +85,11 @@ Apply and then rotate by 45° around a vertical axis (plunge equal to 90°).
 
 ![alt tag](http://www.malg.eu/geosurfdem/images/simSurf_rot_vert_axis_45d.png)
 
-Now we locate the rotated plane to a geographical position that broadly fits with the DEM. I choose to use my qgSurf plugin for QGIS for quickly locating a point at the center of the used DEM, while knowing also the z value.
+In this way we obtain a plane dipping 35° towards N135°.
+
+#####Plane displacement to DEM extent
+
+Now we locate the rotated plane to a geographical position that broadly fits with the DEM. I choose to use my [qgSurf](https://plugins.qgis.org/plugins/qgSurf/) plugin for QGIS for quickly locating a point at the center of the used DEM, while knowing also the z value.
 
 ![alt tag](http://www.malg.eu/geosurfdem/images/qgis_qgsurf_snap_point_dem.png)
 
