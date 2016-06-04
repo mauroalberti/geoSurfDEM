@@ -4,9 +4,7 @@ geoSurfDEM is a C++ command-line application for calculating intersection points
 
 ###Rationale
 
-The determination of the theoretical intersections between digital 3D geological surfaces and topography could be of potential help for studying the field attitudes of natural geological surfaces, as mapped from outcrops or from aerial and satellite images. 
-
-Since geological structures have complex geometries, the analysis of the relationships between 3D surfaces and topography requires tools that can process 3D geological surfaces.
+The determination of the theoretical intersections between digital 3D geological surfaces and topography could be of potential help for studying the field attitudes of natural geological surfaces, as mapped from outcrops or from aerial and satellite images. Since geological structures have complex geometries, the analysis of the relationships between 3D surfaces and topography requires tools that can process 3D geological surfaces.
 
 geoSurfDEM aims at determining:
 
@@ -17,13 +15,14 @@ geoSurfDEM aims at determining:
 
 ###How does it work?
 
-Below you see the screenshot of an application run.
+Below you see the screenshot of an application run in a Linux shell. When compiled for Windows, the procedure is identical.
 
 ![alt tag](http://www.malg.eu/geosurfdem/images/appl_run.png)
 
 What is to note?
 
-First of all, you have to input the name of a text file ("input_files.txt" in this example, located in the same directory as the compiled application), that provides the paths of three files to the application:
+After the application header display, the user is asked for the name of a text file. In this example, "input_files.txt" is provided, the name of a file located in the same directory as the running application.
+This file provides the paths of three files:
 
 *1) DEM, in ESRI ASCII grid format*
 
