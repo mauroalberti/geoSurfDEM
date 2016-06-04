@@ -42,13 +42,16 @@ An example of input text file is the following:
 ```
 
 
-while examples of input data files (DEM ASCII grid, VTK geosurface file, CSV intersection result) can be found in the *publ_data* subdirectory. 
+Examples of input data files (i.e., DEM ASCII grid, VTK geosurface file, CSV intersection result) are present in the *publ_data* subdirectory. 
 
-The application outputs a few informative messages about the number of found features and hopefully at the last it prints out a number of found intersecting points greater than zero.. 
+Afterwards, the application outputs a few informative messages about the number of found features and at the last prints out the number of found intersecting points, hopefully greater than zero. 
+The results are stored in the text file referenced by the third path in the input text file. 
 
-###Creation of test geological plane 
+###Example of use
 
 To present the application and check the validity of its results we use a theoretical test case, i.e. a geological plane with a desired attitude 135°/35°, and with a spatial extent fitting that of the test DEM, covering the Mt. Alpi zone (Basilicata, Southern Italy), derived from global ASTER data. You can export a DEM in ESRI ASCII grid format with Saga GIS (in addition to ArcGIS). 
+
+####Creation of test geological plane 
 
 The geological plane is created and saved as a VTK text file with [simSurf](https://github.com/mauroalberti/simSurf). With this Python 2.7 tool, it is possible to simulate geological surfaces by using analytical formulas. 
 
@@ -92,7 +95,7 @@ Done, after applying.
 
 Save the geosurface as a VTK file and then you can see it in Paraview and use in the geoSurfDEM application. Note that the VTK file stores the plane as triangle mesh, without explicit attitude (i.e., dip direction and angle) information. So the local results calculated by the geoSurfDEM application are derived by the local geosurface triangle attitude stored in the VTK file. Using a simple plane obviously we expect the same results for all intersection points.
 
-###Input data preview
+####Input data preview
 
 We see how are the DEM and the VTK plane data in Paraview.
 
@@ -105,12 +108,11 @@ And a lateral one, as seen from the South.
 
 ![alt tag](http://www.malg.eu/geosurfdem/images/paraview_src_lateral.png)
 
-###geoSurfDEM result
+####geoSurfDEM result
 
-At the end, what is the result of the geoSurfDEM application?
+At the end, what are the results of the geoSurfDEM application?
 
-
-We see it displayed in Paraview, by importing the resulting csv file and superposing on the DEM points and the plane surface. The results are symbolized by blue dots. You see them following the visual intersection between the plane with dip direction 135° and dip angle 35° and the DEM.
+We see them displayed in Paraview, by importing the resulting csv file and superposing on the DEM points and the plane surface. The results are symbolized by blue dots. You see them following the visual intersection between the plane with dip direction 135° and dip angle 35° and the DEM.
 
 ![alt tag](http://www.malg.eu/geosurfdem/images/paraview_result_lateral.png)
 
