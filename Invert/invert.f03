@@ -233,7 +233,7 @@ subroutine r8vec_print ( n, a, title )
 end
 
 
-subroutine svd(m, n, a, s, u, v)
+subroutine svd(m, n, a, s, sigma, u, v)
 
     use kinds
 
@@ -244,6 +244,7 @@ subroutine svd(m, n, a, s, u, v)
     real ( kind = r8b ), intent(in) :: a(m, n)
 
     real ( kind = r8b ), intent(out) :: s(min(m, n))
+    real ( kind = r8b ), intent(out) :: sigma(m, n)
     real ( kind = r8b ), intent(out) :: u(m, m)
     real ( kind = r8b ), intent(out) :: v(n, n)
 
@@ -258,8 +259,7 @@ subroutine svd(m, n, a, s, u, v)
     integer ( kind = i4b ) :: ldu
     integer ( kind = i4b ) :: ldvt
     real ( kind = r8b ) :: vt(n,n)
-    real ( kind = r8b ) :: sigma(m, n)
-    real ( kind = r8b ) :: b(m, n) ! debug variable
+    real ( kind = r8b ) :: b(m, n)
     real ( kind = r8b ), allocatable :: work(:)
 
     ! debug printouts
@@ -394,20 +394,19 @@ program invert_attitudes
 
     implicit none
 
-    !type(point) :: pt1, pt2, pt3
-    !pt1 = point(0.0, 0.0, 0.0)
-    !pt2 = point(1.0, 0.0, 0.0)
-    !pt3 = point(0.0, 1.0, 0.0)
-
     integer ( kind = i4b ) :: m
     integer ( kind = i4b ), parameter :: n = 3
     real ( kind = r8b ) :: x, y, z
     real ( kind = r8b ), dimension(:, :), allocatable :: a
     real ( kind = r8b ), dimension(:), allocatable :: s
+    real ( kind = r8b ), dimension(:, :), allocatable :: sigma
     real ( kind = r8b ), dimension(:, :), allocatable :: u
     real ( kind = r8b ), dimension(n, n) :: v
     integer ( kind = i2b ) :: num_points, i
     integer ( kind = i2b ) :: ios
+
+    real ( kind = r8b ), dimension(:, :), allocatable :: b ! debug variable
+
 
     call WelcomeScreen()
 
@@ -426,7 +425,7 @@ program invert_attitudes
         end if
     end do
     m = num_points
-    allocate(a(m, n), s(min(m, n)), u(m, m))
+    allocate(a(m, n), s(min(m, n)), sigma(m, n), u(m, m), b(m, n))
 
     rewind 15
 
@@ -434,11 +433,41 @@ program invert_attitudes
         read (15, *, iostat=ios) a(i, 1), a(i, 2), a(i, 3)
     end do
 
-    !a = reshape([0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0], shape(a)) ! column-major
+    write (16, *) 'source data'
+    do i = 1, m
+        write (16, *) a(i, 1), a(i, 2), a(i, 3)
+    end do
+    write (16, *) ''
 
-    call svd(m, n, a, s, u, v)
+    call svd(m, n, a, s, sigma, u, v)
 
     call r8mat_print ( n, n, v, '  The matrix V:' )
+
+    write (16, *) 'Singular values'
+    do i = 1, m
+        write (16, *) s(i)
+    end do
+    write (16, *) ''
+
+    write (16, *) 'Left singular vectors U'
+    do i = 1, m
+        write (16, *) u(i,1), u(i,2), u(i,3)
+    end do
+    write (16, *) ''
+
+    b = matmul ( u, matmul ( sigma, transpose(v) ) )
+
+    write (16, *) 'The product U * S * Vt'
+    do i = 1, m
+        write (16, *) b(i,1), b(i,2), b(i,3)
+    end do
+    write (16, *) ''
+
+    write (16, *) 'V array solution'
+    do i = 1, 3
+        write (16, *) v(i, 1), v(i, 2), v(i, 3)
+    end do
+    write (16, *) ''
 
     write ( *, '(a)' ) 'Program completed'
 
