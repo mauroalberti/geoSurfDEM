@@ -2,7 +2,7 @@
 
 geoSurfDEM is a C++ command-line application for calculating intersection points between 3D geosurfaces and DEMs. 
 
-*As of November 2016, an alpha-state Fortran 95-03 application for estimating the local attitude of geological surfaces given intersection point on a topographic surface is being developed. It is available in the 'invert' branch.*
+*As of November 2016, an alpha-state Fortran 95-03 application for estimating the local attitude of geological surfaces given intersection point on a topographic surface is being developed. It is available in the 'invert' branch, and is stored in the 'Invert' folder.*
 
 ###Rationale
 
