@@ -16,6 +16,11 @@
 # Fortran module files
 *.mod
 
+# Code::Blocks IDE files
+*.cbp
+*.layout
+*.depend
+
 # Compiled Static libraries
 *.lai
 *.la
@@ -27,13 +32,20 @@
 *.out
 *.app
 
-.directory
+# Directories
 bin/
-test_data/
 images/
+Invert/tests
+Invert/obj
+Invert/bin
+obj
 publ_utils/
+test_data/
 
+# Individual files
 geoSurfDEM
-geoSurfDEM.cbp
-geoSurfDEM.depend
-geoSurfDEM.layout
+
+
+
+
+

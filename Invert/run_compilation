@@ -1,0 +1,1 @@
+f95 -o invert invert.f03 -L/usr/lib/lapack -llapack  -L/usr/lib/libblas -lblas
