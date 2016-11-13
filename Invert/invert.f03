@@ -1,5 +1,5 @@
 ! Invert intersection points
-! to derive a best-fit-plane
+! to derive a best-fit-geol_plane
 
 ! By Mauro Alberti - alberti.m65@gmail.com
 ! October-November 2016
@@ -31,92 +31,56 @@ module data_types
 
     implicit none
 
-    type :: range_1D
-        real (kind=r8b) :: min, max
-    end type range_1D
-
-    type :: range_3D
-        type (range_1D) :: r1D(3)
-    end type range_3D
-
-    type :: vector
+    type :: cartes_vect
         sequence
         real (kind=r8b)	:: x, y, z
-    end type vector
+    end type cartes_vect
 
-    type :: axis
+    type :: geol_axis
         real (kind=r8b)	:: trend, plunge
-    end type axis
+    end type geol_axis
 
-    type :: orthonormal_triad
-        type(vector) :: X, Y, Z
-    end type orthonormal_triad
+    type :: orthonorm_triad
+        type(cartes_vect) :: X, Y, Z
+    end type orthonorm_triad
 
-    type :: plane
-        real (kind=r8b)	:: strike_rhr, dipdirection, dipangle
-    end type plane
+    type :: geol_plane
+        real (kind=r8b)	:: strike_rhr, dip_dir, dip_angle
+    end type geol_plane
 
     type :: fault_datum
-        integer (kind=i4b) :: id
-        type (plane) :: fltplane
-        type (axis) :: slickenline
-        real (kind=r8b)	:: rake_aki
-        type(vector) :: faultnorm_vect, slickenl_vect
-        real(kind=r8b) :: x, y, z, t
+        type (geol_plane) :: flt_pln
+        type (geol_axis) :: slickln_ax
+        real (kind=r8b)	:: slickln_rake_aki
+        type(cartes_vect) :: flt_norm_vctr, slickenl_vctr
+        real(kind=r8b) :: x, y, z
     end type fault_datum
 
-    type :: stress_princcompon
-        type (axis) :: S1_pole, S2_pole, S3_pole
-        type (vector) :: S1_vector, S2_vector, S3_vector
-        real (kind=r8b) :: sigma1, sigma2, sigma3, phi
-        real (kind=r8b) :: fluid_pressure, cohesive_strength, intern_friction_resist
-    end type stress_princcompon
+    type :: stress_prcomp
+        type (geol_axis) :: S1_ax, S2_ax, S3_ax
+        type (cartes_vect) :: S1_vctr, S2_vctr, S3_vctr
+        real (kind=r8b) :: sigma_1, sigma_2, sigma_3, phi
+        real (kind=r8b) :: fluid_press, cohes_streng, int_frict_res
+    end type stress_prcomp
 
     type :: stress_solution
-        logical :: valid_solution
-        type(vector) :: traction_vect, normalstress_vect, shearstress_vect
-        real (kind=r8b)	:: theor_rake, tractionvect_magn, normalstress_magn, shearstress_magn
-        real (kind=r8b)	:: modif_sliptendency, deformation_index
-        real (kind=r8b) :: dilation_tendency, fracture_stability, leakage_factor
-        type (axis) :: theor_slickenline
+        type(cartes_vect) :: tract_vctr, norm_stress_vctr, shear_stress_vctr
+        real (kind=r8b)	:: theor_rake, tract_stress_magn, norm_stress_magn, shear_stress_magn
+        real (kind=r8b)	:: mod_slip_tend, deform_index
+        real (kind=r8b) :: dilat_tend, fract_stab, leakage_factor
+        type (geol_axis) :: theor_slicknln
     end type stress_solution
-
-    type :: stressanalysis_param
-        type(stress_princcompon) :: stressprinccomp1
-        real (kind=r8b) :: tens(3,3)
-        real (kind=r8b) :: rot_matrix(3,3)
-    end type stressanalysis_param
-
-    type :: record_variables
-        logical :: spatial_var,time_var
-        integer (kind=i1b) :: spat_coord_system, readcase
-    end type record_variables
-
-    type :: faultsimulation_param
-        integer (kind=i4b) :: faults_totnumb
-        type (range_3D) :: spat_bound
-        type (range_1D) :: temp_bound
-    end type faultsimulation_param
-
-    type :: analysis_parameters
-        integer (kind=i4b) :: time_initial(8)
-        type (record_variables) :: fault_loctimevar
-        integer (kind=i1b) :: input_case
-        character (len=50) :: inputfile_name
-        integer (kind=i2b) :: inputfile_headerrownumb
-        type (faultsimulation_param) :: faultsimulpar
-        integer (kind=i4b) :: faults_totnumb
-    end type analysis_parameters
-
 
     integer :: ios !status of input/output connection
     real (kind=r8b) :: pi  	! pi radians
-    real (kind=r8b) :: r2d, d2r	! for conversion from radians to degrees
+    real (kind=r8b) :: rad2degr, degr2rad	! for conversion from radians to degrees
 
-    type(orthonormal_triad), parameter :: frame0 = orthonormal_triad(vector(1.0,0.0,0.0),vector(0.0,1.0,0.0),vector(0.0,0.0,1.0))
-    real (kind=r8b),parameter :: unitary_vect_tolerance = 1.0e-6 !maximum accepted value for unitary vector magnitude difference with unit
-    real (kind=r8b),parameter :: vect_normaliz_tolerance = 1.0e-5 !minimum accepted value for vector magnitude to apply normalization
-    real (kind=r8b), parameter :: shearmagnitude_minthresh = 1.0e-5 !minimum accepted value for shear stress to be considered meaningful
+    type(orthonorm_triad), parameter :: frame0 = orthonorm_triad(cartes_vect(1.0,0.0,0.0), &
+                                                                 cartes_vect(0.0,1.0,0.0), &
+                                                                 cartes_vect(0.0,0.0,1.0))
+    real (kind=r8b),parameter :: unit_vect_tol = 1.0e-6 !maximum accepted value for unitary cartes_vect magnitude difference with unit
+    real (kind=r8b),parameter :: vect_norm_tol = 1.0e-5 !minimum accepted value for cartes_vect magnitude to apply normalization
+    real (kind=r8b), parameter :: shear_magn_thresh = 1.0e-5 !minimum accepted value for shear stress to be considered meaningful
 
 end module data_types
 
@@ -129,188 +93,188 @@ module vector_processing
 
     ! calculates the sum of two vectors
 
-    type(vector) function vector_sum(vector1, vector2)
+    type(cartes_vect) function vect_sum(vect1, vect2)
 
-        type(vector), intent(in) :: vector1, vector2
+        type(cartes_vect), intent(in) :: vect1, vect2
 
-        vector_sum%x = vector1%x + vector2%x
-        vector_sum%y = vector1%y + vector2%y
-        vector_sum%z = vector1%z + vector2%z
+        vect_sum%x = vect1%x + vect2%x
+        vect_sum%y = vect1%y + vect2%y
+        vect_sum%z = vect1%z + vect2%z
 
-    end function vector_sum
+    end function vect_sum
 
     ! calculates the difference between two vectors
 
-    type(vector) function vector_diff(vector1,vector2)
+    type(cartes_vect) function vect_diff(vect1,vect2)
 
-        type(vector), intent(in) :: vector1, vector2
+        type(cartes_vect), intent(in) :: vect1, vect2
 
-        vector_diff%x = vector1%x - vector2%x
-        vector_diff%y = vector1%y - vector2%y
-        vector_diff%z = vector1%z - vector2%z
+        vect_diff%x = vect1%x - vect2%x
+        vect_diff%y = vect1%y - vect2%y
+        vect_diff%z = vect1%z - vect2%z
 
-    end function vector_diff
+    end function vect_diff
 
     ! angle (in radians) between two vectors (radiants, 0-pi)
 
-    real (kind=r8b) function vector_angle_rad(vector1,vector2)
+    real (kind=r8b) function vect_angl_rad(vect1,vect2)
 
-        type(vector), intent(in) :: vector1, vector2
+        type(cartes_vect), intent(in) :: vect1, vect2
 
-        vector1_magn = vector_magn(vector1)
-        vector2_magn = vector_magn(vector2)
-        if ((vector1_magn < vect_normaliz_tolerance).or.(vector2_magn < vect_normaliz_tolerance)) then
-            write(*,*) 'Error in vector magnitude (function vector_angle_rad). Hit any key to stop'
+        vector1_magn = vect_magn(vect1)
+        vector2_magn = vect_magn(vect2)
+        if ((vector1_magn < vect_norm_tol).or.(vector2_magn < vect_norm_tol)) then
+            write(*,*) 'Error in cartes_vect magnitude (function vect_angl_rad). Hit any key to stop'
             read(*,*)
             stop	! STOP PROGRAM FOR ERROR IN DATA INPUT
         end if
 
         ! scalar product between two vectors
-        scaledscalarproduct = vector_scalprod(vector1, vector2)/(vector1_magn*vector2_magn)
+        scaled_scal_prod = scal_prod(vect1, vect2)/(vector1_magn*vector2_magn)
 
         ! angle between vectors (in radians)
-        if (scaledscalarproduct < -1.) then
-            vector_angle_rad = pi
-        else if (scaledscalarproduct > 1.) then
-            vector_angle_rad = 0.0
+        if (scaled_scal_prod < -1.) then
+            vect_angl_rad = pi
+        else if (scaled_scal_prod > 1.) then
+            vect_angl_rad = 0.0
         else
-            vector_angle_rad = acos(scaledscalarproduct)
+            vect_angl_rad = acos(scaled_scal_prod)
         end if
 
-    end  function vector_angle_rad
+    end  function vect_angl_rad
 
     ! angle (in radians) between two axes (radiants, 0-pi/2)
 
-    real (kind=r8b) function axes_angle_rad(vector1,vector2)
+    real (kind=r8b) function axes_angle_rad(vect1, vect2)
 
-        type(vector), intent(in) :: vector1, vector2
+        type(cartes_vect), intent(in) :: vect1, vect2
 
         ! angle between vectors (in radians)
-        axes_angle_rad = vector_angle_rad(vector1,vector2)
+        axes_angle_rad = vect_angl_rad(vect1,vect2)
         axes_angle_rad = min(axes_angle_rad, pi-axes_angle_rad)
 
     end function axes_angle_rad
 
-    ! vector normalization
+    ! cartes_vect normalization
 
-    type(vector) function vector_normalization(vector1) result(vector2)
+    type(cartes_vect) function vect_normaliz(vect1) result(vect2)
 
-        type(vector), intent(in) :: vector1
+        type(cartes_vect), intent(in) :: vect1
 
-        vector1_magn = vector_magn(vector1)
+        vector1_magn = vect_magn(vect1)
 
-        if (vector1_magn < vect_normaliz_tolerance) then
-          write(*,*) 'Error in vector magnitude processing. Hit any key to stop'
+        if (vector1_magn < vect_norm_tol) then
+          write(*,*) 'Error in cartes_vect magnitude processing. Hit any key to stop'
           read (*,*)
           stop ! STOP PROGRAM FOR ERROR IN DATA INPUT
         end if
 
-        vector2%x = vector1%x/vector1_magn
-        vector2%y = vector1%y/vector1_magn
-        vector2%z = vector1%z/vector1_magn
+        vect2%x = vect1%x / vector1_magn
+        vect2%y = vect1%y / vector1_magn
+        vect2%z = vect1%z / vector1_magn
 
 
-    end function vector_normalization
+    end function vect_normaliz
 
-    ! vector magnitude
+    ! cartes_vect magnitude
 
-    real (kind=r8b) function vector_magn(vector1)
+    real (kind=r8b) function vect_magn(vect1)
 
-        type(vector), intent(in) :: vector1
+        type(cartes_vect), intent(in) :: vect1
 
-        vector_magn = sqrt((vector1%x)**2 + (vector1%y)**2 + (vector1%z)**2)
+        vect_magn = sqrt((vect1%x)**2 + (vect1%y)**2 + (vect1%z)**2)
 
-    end function vector_magn
+    end function vect_magn
 
-    ! calculates the product of a vector by a scalar
+    ! calculates the product of a cartes_vect by a scalar
 
-    type (vector) function vectorbyscalar(vector1, scalar1)
+    type (cartes_vect) function vect_by_scal(vect1, scalar1)
 
-        type(vector), intent(in) :: vector1
+        type(cartes_vect), intent(in) :: vect1
         real (kind=r8b), intent(in) :: scalar1
 
-        vectorbyscalar%x = scalar1 * vector1%x
-        vectorbyscalar%y = scalar1 * vector1%y
-        vectorbyscalar%z = scalar1 * vector1%z
+        vect_by_scal%x = scalar1 * vect1%x
+        vect_by_scal%y = scalar1 * vect1%y
+        vect_by_scal%z = scalar1 * vect1%z
 
-    end function vectorbyscalar
+    end function vect_by_scal
 
     ! scalar product of two vectors (given as their cartesian coordinates)
 
-    real (kind=r8b) function vector_scalprod(vector1, vector2)
+    real (kind=r8b) function scal_prod(vect1, vect2)
 
-        type(vector), intent(in) :: vector1, vector2
+        type(cartes_vect), intent(in) :: vect1, vect2
 
-        vector_scalprod = vector1%x * vector2%x + vector1%y * vector2%y + vector1%z * vector2%z
+        scal_prod = vect1%x * vect2%x + vect1%y * vect2%y + vect1%z * vect2%z
 
-    end function vector_scalprod
+    end function scal_prod
 
     ! vectorial product of two vectors (given as their cartesian coordinates)
 
-    type(vector) function vector_vectprod(vector1,vector2)
+    type(cartes_vect) function vect_prod(vect1,vect2)
 
-        type(vector), intent(in) :: vector1, vector2
+        type(cartes_vect), intent(in) :: vect1, vect2
 
-        vector_vectprod%x=(vector1%y*vector2%z)-(vector1%z*vector2%y)
-        vector_vectprod%y=(vector1%z*vector2%x)-(vector1%x*vector2%z)
-        vector_vectprod%z=(vector1%x*vector2%y)-(vector1%y*vector2%x)
+        vect_prod%x = (vect1%y * vect2%z)-(vect1%z * vect2%y)
+        vect_prod%y = (vect1%z * vect2%x)-(vect1%x * vect2%z)
+        vect_prod%z = (vect1%x * vect2%y)-(vect1%y * vect2%x)
 
-    end function vector_vectprod
+    end function vect_prod
 
-    ! vector1 projection on vector2
+    ! vect1 projection on vect2
 
-    type (vector) function vector_projection(vector1,vector2)
+    type (cartes_vect) function vect_project(vect1,vect2)
 
-        type(vector), intent(in) :: vector1, vector2
+        type(cartes_vect), intent(in) :: vect1, vect2
         real (kind=r8b) :: scalprod
 
-        scalprod = vector_scalprod(vector1, vector_normalization(vector2))
-        vector_projection = vectorbyscalar(vector2, scalprod)
+        scalprod = scal_prod(vect1, vect_normaliz(vect2))
+        vect_project = vect_by_scal(vect2, scalprod)
 
-    end function vector_projection
+    end function vect_project
 
-    ! test if a vector has magnitude = 1
+    ! test if a cartes_vect has magnitude = 1
 
-    logical function vect_normaliztest(vector1) result(vect_is_normalized)
+    logical function is_unit_vect(vect1) result(vect_is_normalized)
 
-        type(vector), intent(in) :: vector1
+        type(cartes_vect), intent(in) :: vect1
         real (kind=r8b) :: vector1_magn
 
-        vector1_magn = vector_magn(vector1)
+        vector1_magn = vect_magn(vect1)
 
         abs_diff = dabs(1-vector1_magn)
 
-        if (abs_diff > unitary_vect_tolerance) then
+        if (abs_diff > unit_vect_tol) then
             vect_is_normalized = .false.
         else
             vect_is_normalized = .true.
         endif
 
-    end function vect_normaliztest
+    end function is_unit_vect
 
-    ! converts a 3D vector to a 3x1 array
+    ! converts a 3D cartes_vect to a 3x1 array
 
-    function vector2array(vector1) result(array1)
+    function vect2arr(vect1) result(array1)
 
-        type(vector), intent(in) :: vector1
+        type(cartes_vect), intent(in) :: vect1
         real(kind=r8b) :: array1(3)
 
-        array1 = (/vector1%x, vector1%y, vector1%z/)
+        array1 = (/vect1%x, vect1%y, vect1%z/)
 
-    end function vector2array
+    end function vect2arr
 
-    ! converts a 3x1 array to a 3D vector
+    ! converts a 3x1 array to a 3D cartes_vect
 
-    function array2vector(array1) result(vector1)
+    function arr2vect(array1) result(vect1)
 
         real(kind=r8b), intent(in) :: array1(3)
-        type(vector):: vector1
+        type(cartes_vect):: vect1
 
-        vector1%x = array1(1)
-        vector1%y = array1(2)
-        vector1%z = array1(3)
+        vect1%x = array1(1)
+        vect1%y = array1(2)
+        vect1%z = array1(3)
 
-    end function array2vector
+    end function arr2vect
 
 
 end module vector_processing
@@ -324,57 +288,57 @@ module geometric_processing
 
     ! calculates the polar components from the cartesian ones
 
-    type(vector) function pole2cartesian(axis1) result(vector1)
+    type(cartes_vect) function pole2cartes(axis1) result(vect1)
 
-        type(axis), intent(in) :: axis1
-
-
-        vector1%x = cos(d2r*axis1%plunge) * cos(d2r*axis1%trend)
-        vector1%y  = cos(d2r*axis1%plunge) * sin(d2r*axis1%trend)
-        vector1%z  =  sin(d2r*axis1%plunge)
+        type(geol_axis), intent(in) :: axis1
 
 
-    end function pole2cartesian
+        vect1%x = cos(degr2rad*axis1%plunge) * cos(degr2rad*axis1%trend)
+        vect1%y  = cos(degr2rad*axis1%plunge) * sin(degr2rad*axis1%trend)
+        vect1%z  =  sin(degr2rad*axis1%plunge)
+
+
+    end function pole2cartes
 
     ! calculates polar components from cartesian ones
 
-    type(axis) function cartesian2pole(vector1) result(axis1)
+    type(geol_axis) function cartes2pole(vect1) result(axis1)
 
-        type(vector):: vector1
+        type(cartes_vect):: vect1
         logical :: vect_is_normalized
 
-        vect_is_normalized = vect_normaliztest(vector1)
+        vect_is_normalized = is_unit_vect(vect1)
 
         if (.not.vect_is_normalized) then
-          vector1 = vector_normalization(vector1)
+          vect1 = vect_normaliz(vect1)
         endif
 
         ! polar coordinates calculation
 
-        if (vector1%z > 1.0_r8b) then
-            vector1%z = 1.0_r8b
-        elseif (vector1%z < -1.0_r8b) then
-            vector1%z = -1.0_r8b
+        if (vect1%z > 1.0_r8b) then
+            vect1%z = 1.0_r8b
+        elseif (vect1%z < -1.0_r8b) then
+            vect1%z = -1.0_r8b
         endif
 
-        axis1%plunge = r2d*dasin(vector1%z)
+        axis1%plunge = rad2degr*dasin(vect1%z)
 
         if (dabs(axis1%plunge)> 89.5) then
                 axis1%trend = 0.0
         else
-            axis1%trend = r2d*atan2(vector1%y,vector1%x)
+            axis1%trend = rad2degr*atan2(vect1%y,vect1%x)
             if (axis1%trend < 0.0) then
                 axis1%trend = 360.0 + axis1%trend
             endif
         endif
 
-    end function cartesian2pole
+    end function cartes2pole
 
-    ! calculates the down axis from the axis
+    ! calculates the down geol_axis from the geol_axis
 
-    type(axis) function axis2downaxis(axis1) result(axis2)
+    type(geol_axis) function axis2downaxis(axis1) result(axis2)
 
-        type(axis), intent(in) :: axis1
+        type(geol_axis), intent(in) :: axis1
 
         if (axis1%plunge < 0.0) then
           axis2%plunge = -axis1%plunge
@@ -405,73 +369,73 @@ module fault_processing
 
     subroutine dipdir_calc(faultplane1)
 
-        type(plane), intent(inout) :: faultplane1
+        type(geol_plane), intent(inout) :: faultplane1
 
-        faultplane1%dipdirection = faultplane1%strike_rhr + 90.0
-        if (faultplane1%dipdirection >= 360.0) then
-          faultplane1%dipdirection = faultplane1%dipdirection - 360.0
+        faultplane1%dip_dir = faultplane1%strike_rhr + 90.0
+        if (faultplane1%dip_dir >= 360.0) then
+          faultplane1%dip_dir = faultplane1%dip_dir - 360.0
         endif
 
     end subroutine dipdir_calc
 
     ! calculates fault normal
 
-    type(vector) function faultplanenormal_calc(faultplane1) result(faultnorm)
+    type(cartes_vect) function faultplanenorm_calc(faultplane1) result(faultnorm)
 
-        type(plane), intent(in) :: faultplane1
+        type(geol_plane), intent(in) :: faultplane1
 
         ! Fault Normal cartesian coordinates
         ! formulas from Aki and Richards, 1980
-        faultnorm%x = -sin(d2r*faultplane1%dipangle) * sin(d2r*faultplane1%strike_rhr)
-        faultnorm%y = sin(d2r*faultplane1%dipangle) * cos(d2r*faultplane1%strike_rhr)
-        faultnorm%z = -cos(d2r*faultplane1%dipangle)
+        faultnorm%x = -sin(degr2rad*faultplane1%dip_angle) * sin(degr2rad*faultplane1%strike_rhr)
+        faultnorm%y = sin(degr2rad*faultplane1%dip_angle) * cos(degr2rad*faultplane1%strike_rhr)
+        faultnorm%z = -cos(degr2rad*faultplane1%dip_angle)
 
-    end function faultplanenormal_calc
+    end function faultplanenorm_calc
 
-    ! calculates vector (cartesian) components of fault record
+    ! calculates cartes_vect (cartesian) components of fault record
 
-    subroutine fault_cartcmp(faultplane1, rake1, faultnorm_vect, slickenl_vect)
+    subroutine fault_cartcmp(faultplane1, rake1, flt_norm_vctr, slickenl_vctr)
 
         ! QUATf_faultpole2faultvector
 
-        type(plane), intent(in) :: faultplane1
+        type(geol_plane), intent(in) :: faultplane1
         real (kind=r8b)	:: rake1
-        type (vector) , intent(out) :: faultnorm_vect, slickenl_vect
+        type (cartes_vect) , intent(out) :: flt_norm_vctr, slickenl_vctr
 
-        ! Fault Normal and Slickenline cartesian coordinates
+        ! Fault Normal and slickln_ax cartesian coordinates
         ! formulas from Aki and Richards, 1980
-        faultnorm_vect%x = -sin(d2r*faultplane1%dipangle)*sin(d2r*faultplane1%strike_rhr)
-        faultnorm_vect%y = sin(d2r*faultplane1%dipangle)*cos(d2r*faultplane1%strike_rhr)
-        faultnorm_vect%z = -cos(d2r*faultplane1%dipangle)
+        flt_norm_vctr%x = -sin(degr2rad*faultplane1%dip_angle)*sin(degr2rad*faultplane1%strike_rhr)
+        flt_norm_vctr%y = sin(degr2rad*faultplane1%dip_angle)*cos(degr2rad*faultplane1%strike_rhr)
+        flt_norm_vctr%z = -cos(degr2rad*faultplane1%dip_angle)
 
-        slickenl_vect%x = cos(d2r*rake1) * cos(d2r*faultplane1%strike_rhr)   &
-         + sin(d2r*rake1) * cos(d2r*faultplane1%dipangle) * sin(d2r*faultplane1%strike_rhr)
-        slickenl_vect%y = cos(d2r*rake1) * sin(d2r*faultplane1%strike_rhr)  &
-         - sin(d2r*rake1) * cos(d2r*faultplane1%dipangle) * cos(d2r*faultplane1%strike_rhr)
-        slickenl_vect%z = -sin(d2r*rake1) * sin(d2r*faultplane1%dipangle)
+        slickenl_vctr%x = cos(degr2rad*rake1) * cos(degr2rad*faultplane1%strike_rhr)   &
+         + sin(degr2rad*rake1) * cos(degr2rad*faultplane1%dip_angle) * sin(degr2rad*faultplane1%strike_rhr)
+        slickenl_vctr%y = cos(degr2rad*rake1) * sin(degr2rad*faultplane1%strike_rhr)  &
+         - sin(degr2rad*rake1) * cos(degr2rad*faultplane1%dip_angle) * cos(degr2rad*faultplane1%strike_rhr)
+        slickenl_vctr%z = -sin(degr2rad*rake1) * sin(degr2rad*faultplane1%dip_angle)
 
     end subroutine fault_cartcmp
 
-    ! calculate the slickenline (trend and plunge) from the rake angle
+    ! calculate the slickln_ax (trend and plunge) from the rake angle
 
-    type(axis) function rake2slickenline(strike, dip, rake) result(slicken_pole)
+    type(geol_axis) function rake2slickenline(strike, dip, rake) result(slicken_pole)
 
         implicit none
 
         real (kind=r8b), intent(in) :: strike, dip, rake
         real (kind=r8b) :: strike_rd, dip_rd, rake_rd
-        type (vector) :: slick_vect
+        type (cartes_vect) :: slick_vect
 
-        strike_rd = d2r*strike
-        dip_rd = d2r*dip
-        rake_rd = d2r*rake
+        strike_rd = degr2rad*strike
+        dip_rd = degr2rad*dip
+        rake_rd = degr2rad*rake
 
         slick_vect%x = cos(rake_rd) * cos(strike_rd) + sin(rake_rd) * sin(strike_rd) * cos(dip_rd)
         slick_vect%y = cos(rake_rd) * sin(strike_rd) - sin(rake_rd) * cos(strike_rd) * cos(dip_rd)
         slick_vect%z = -sin(rake_rd) * sin(dip_rd)
 
-        ! determination of trend and plunge of Slickenline
-        slicken_pole = cartesian2pole(slick_vect)
+        ! determination of trend and plunge of slickln_ax
+        slicken_pole = cartes2pole(slick_vect)
 
     end function rake2slickenline
 
@@ -487,78 +451,78 @@ module stress_processing
 
     contains
 
-    ! calculation of S2_pole as vector product of S3_pole and S1_pole
+    ! calculation of S2_ax as cartes_vect product of S3_ax and S1_ax
 
-    subroutine S2_calc(stressprinccomp1)
+    subroutine S2_calc(stress_pc_1)
 
-        type(stress_princcompon), intent(inout) :: stressprinccomp1
+        type(stress_prcomp), intent(inout) :: stress_pc_1
 
-        stressprinccomp1%S2_vector = vector_vectprod(stressprinccomp1%S3_vector,stressprinccomp1%S1_vector)
-        stressprinccomp1%S2_pole = cartesian2pole(stressprinccomp1%S2_vector)
-        stressprinccomp1%S2_pole = axis2downaxis(stressprinccomp1%S2_pole)
+        stress_pc_1%S2_vctr = vect_prod(stress_pc_1%S3_vctr,stress_pc_1%S1_vctr)
+        stress_pc_1%S2_ax = cartes2pole(stress_pc_1%S2_vctr)
+        stress_pc_1%S2_ax = axis2downaxis(stress_pc_1%S2_ax)
 
     end subroutine S2_calc
 
-    ! calculation of sigma2 from S1_pole, S3_pole and PHI values
+    ! calculation of sigma_2 from S1_ax, S3_ax and PHI values
 
-    subroutine sigma2_calc(stressprinccomp1)
+    subroutine sigma2_calc(stress_pc_1)
 
-        type(stress_princcompon), intent(inout) :: stressprinccomp1
+        type(stress_prcomp), intent(inout) :: stress_pc_1
 
-        stressprinccomp1%sigma2 = stressprinccomp1%phi*stressprinccomp1%sigma1 				&
-                                    + (1-stressprinccomp1%phi)*stressprinccomp1%sigma3
+        stress_pc_1%sigma_2 = stress_pc_1%phi*stress_pc_1%sigma_1 				&
+                                    + (1-stress_pc_1%phi)*stress_pc_1%sigma_3
 
 
     end subroutine sigma2_calc
 
     ! define rotation matrix based on stress principal axes
 
-    function rotmatr(stressprinccomp1) result(rot_matrix)
+    function rotmatr(stress_pc_1) result(rot_matrix)
 
         ! based on Kuipers, 2002, p.161, eqs. 7.8
 
-        type(stress_princcompon), intent(in) :: stressprinccomp1
+        type(stress_prcomp), intent(in) :: stress_pc_1
         real (kind=r8b) :: rot_matrix(3,3)
 
-        rot_matrix(1,1) = vector_scalprod(stressprinccomp1%S1_vector, frame0%X)
-        rot_matrix(1,2) = vector_scalprod(stressprinccomp1%S2_vector, frame0%X)
-        rot_matrix(1,3) = vector_scalprod(stressprinccomp1%S3_vector, frame0%X)
+        rot_matrix(1,1) = scal_prod(stress_pc_1%S1_vctr, frame0%X)
+        rot_matrix(1,2) = scal_prod(stress_pc_1%S2_vctr, frame0%X)
+        rot_matrix(1,3) = scal_prod(stress_pc_1%S3_vctr, frame0%X)
 
-        rot_matrix(2,1) = vector_scalprod(stressprinccomp1%S1_vector, frame0%Y)
-        rot_matrix(2,2) = vector_scalprod(stressprinccomp1%S2_vector, frame0%Y)
-        rot_matrix(2,3) = vector_scalprod(stressprinccomp1%S3_vector, frame0%Y)
+        rot_matrix(2,1) = scal_prod(stress_pc_1%S1_vctr, frame0%Y)
+        rot_matrix(2,2) = scal_prod(stress_pc_1%S2_vctr, frame0%Y)
+        rot_matrix(2,3) = scal_prod(stress_pc_1%S3_vctr, frame0%Y)
 
-        rot_matrix(3,1) = vector_scalprod(stressprinccomp1%S1_vector, frame0%Z)
-        rot_matrix(3,2) = vector_scalprod(stressprinccomp1%S2_vector, frame0%Z)
-        rot_matrix(3,3) = vector_scalprod(stressprinccomp1%S3_vector, frame0%Z)
+        rot_matrix(3,1) = scal_prod(stress_pc_1%S1_vctr, frame0%Z)
+        rot_matrix(3,2) = scal_prod(stress_pc_1%S2_vctr, frame0%Z)
+        rot_matrix(3,3) = scal_prod(stress_pc_1%S3_vctr, frame0%Z)
 
 
     end function rotmatr
 
     ! calculate stress tensor expressed in frame components
 
-    function stresstensorcalc(stressprinccomp1,rot_matrix) result(tens)
+    function stresstensorcalc(stress_pc_1,rot_matrix) result(tens)
 
         ! from Kagan and Knopoff, 1985a, p. 433
 
-        type(stress_princcompon), intent(in) :: stressprinccomp1
+        type(stress_prcomp), intent(in) :: stress_pc_1
         real (kind=r8b), intent(in)  :: rot_matrix(3,3)
 
         real (kind=r8b) :: stresstens0(3,3), tens(3,3)
 
         ! stress eigentensor
         stresstens0 = reshape((/0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0/),shape=(/3,3/),order=(/2,1/))
-        stresstens0(1,1) = stressprinccomp1%sigma1
-        stresstens0(2,2) = stressprinccomp1%sigma2
-        stresstens0(3,3) = stressprinccomp1%sigma3
+        stresstens0(1,1) = stress_pc_1%sigma_1
+        stresstens0(2,2) = stress_pc_1%sigma_2
+        stresstens0(3,3) = stress_pc_1%sigma_3
 
         tens = matmul(rot_matrix,matmul(stresstens0,transpose(rot_matrix)))
 
     end function stresstensorcalc
 
-    ! calculation of stress solution for the given plane and stress tensor
+    ! calculation of stress solution for the given geol_plane and stress tensor
 
-    type(stress_solution) function stresssolution_calc(tens1,stressprinccomp1,faultrec1) result(stresssolution1)
+    type(stress_solution) function stresssol_calc(tens1,stress_pc_1,faultrec1) result(stress_sol_1)
 
         ! based on Xu, 2004 (Geoph. J. Int., 157,1316-1330) and references within.
 
@@ -567,7 +531,7 @@ module stress_processing
 
         ! INPUT
         !    SELF with 2 objects:
-        !      (0): fault plane orientation: strike rhr, dip direction, dip angle
+        !      (0): fault geol_plane orientation: strike rhr, dip direction, dip angle
         !      (1): stress field tensor components: x,y,z (sigma 1,2,3)
 
         !  OUTPUT
@@ -577,9 +541,9 @@ module stress_processing
 
         !  STEPS
         !    input of data:
-        !      fault plane orientation: strike rhr, dip direction, dip angle     stress field tensor components: x,y,z (sigma 1,2,3)
+        !      fault geol_plane orientation: strike rhr, dip direction, dip angle     stress field tensor components: x,y,z (sigma 1,2,3)
         !    fault normal calculation: n (1,2,3)
-        !    traction vector c.: sigma (1,2,3)
+        !    traction cartes_vect c.: sigma (1,2,3)
         !    normal stress c.: sigma n (1,2,3)
         !    shear stress c: tau s (1,2,3)
         !    slip tendency c.: Ts
@@ -590,64 +554,58 @@ module stress_processing
         !      theoretical rake angle
 
         !    input of data:
-        !      fault plane orientation: strike rhr, dip direction, dip angle
+        !      fault geol_plane orientation: strike rhr, dip direction, dip angle
         !      stress field tensor components: x,y,z (sigma 1,2,3)
 
         implicit none
 
         real (kind=r8b), intent(in)  :: tens1(3,3)
-        type(stress_princcompon), intent(in) :: stressprinccomp1
+        type(stress_prcomp), intent(in) :: stress_pc_1
         type(fault_datum), intent(in)  :: faultrec1
 
-        type(vector) :: shearstress_unitvect
-        type(axis) :: strike_pole, dipdir_pole
-        type(vector) :: strike_vect, dipdir_vect, faultnorm_vect
+        type(cartes_vect) :: shearstress_unitvect
+        type(geol_axis) :: strike_pole, dipdir_pole
+        type(cartes_vect) :: strike_vect, dipdir_vect, flt_norm_vctr
         real (kind=r8b) :: faultnormal_array(3), scalprod_shearstress_strike, scalprod_shearstress_dipdir
         real (kind=r8b) :: tau
 
         ! calculation of fault normal calculation: n (1,2,3)
-        faultnorm_vect = faultplanenormal_calc(faultrec1%fltplane)
-        faultnormal_array = vector2array(faultnorm_vect)
+        flt_norm_vctr = faultplanenorm_calc(faultrec1%flt_pln)
+        faultnormal_array = vect2arr(flt_norm_vctr)
 
-        !    traction vector c.: sigma (1,2,3)
-        stresssolution1%traction_vect = array2vector(- matmul(tens1,faultnormal_array))
-        stresssolution1%tractionvect_magn = vector_magn(stresssolution1%traction_vect)
-        if (vector_scalprod(stresssolution1%traction_vect, faultnorm_vect)<0.0_r8b) then
-            stresssolution1%tractionvect_magn = -stresssolution1%tractionvect_magn
+        !    traction cartes_vect c.: sigma (1,2,3)
+        stress_sol_1%tract_vctr = arr2vect(- matmul(tens1,faultnormal_array))
+        stress_sol_1%tract_stress_magn = vect_magn(stress_sol_1%tract_vctr)
+        if (scal_prod(stress_sol_1%tract_vctr, flt_norm_vctr)<0.0_r8b) then
+            stress_sol_1%tract_stress_magn = -stress_sol_1%tract_stress_magn
         endif
 
         !    normal stress c.: SigmaN
-        stresssolution1%normalstress_vect = vector_projection(stresssolution1%traction_vect, faultnorm_vect)
-        stresssolution1%normalstress_magn = vector_magn(stresssolution1%normalstress_vect)
-        if (vector_scalprod(stresssolution1%normalstress_vect, faultnorm_vect)<0.0_r8b) then
-            stresssolution1%normalstress_magn = -stresssolution1%normalstress_magn
+        stress_sol_1%norm_stress_vctr = vect_project(stress_sol_1%tract_vctr, flt_norm_vctr)
+        stress_sol_1%norm_stress_magn = vect_magn(stress_sol_1%norm_stress_vctr)
+        if (scal_prod(stress_sol_1%norm_stress_vctr, flt_norm_vctr)<0.0_r8b) then
+            stress_sol_1%norm_stress_magn = -stress_sol_1%norm_stress_magn
         endif
 
         !    shear stress c: tau s (1,2,3)
-        stresssolution1%shearstress_vect = vector_diff(stresssolution1%traction_vect,stresssolution1%normalstress_vect)
-        stresssolution1%shearstress_magn = vector_magn(stresssolution1%shearstress_vect)
+        stress_sol_1%shear_stress_vctr = vect_diff(stress_sol_1%tract_vctr,stress_sol_1%norm_stress_vctr)
+        stress_sol_1%shear_stress_magn = vect_magn(stress_sol_1%shear_stress_vctr)
 
 
-        if (stresssolution1%shearstress_magn <= shearmagnitude_minthresh) then
-          stresssolution1%valid_solution = .false.
-        else
-          stresssolution1%valid_solution = .true.
-        end if
+        if (stress_sol_1%shear_stress_magn > shear_magn_thresh) then
 
-        if (stresssolution1%valid_solution) then
-
-            shearstress_unitvect = vector_normalization(stresssolution1%shearstress_vect)
+            shearstress_unitvect = vect_normaliz(stress_sol_1%shear_stress_vctr)
 
             ! theoretical rake angle c: lambda
-            strike_pole = axis(faultrec1%fltplane%strike_rhr,0)
-            dipdir_pole = axis(faultrec1%fltplane%dipdirection,faultrec1%fltplane%dipangle)
+            strike_pole = geol_axis(faultrec1%flt_pln%strike_rhr,0)
+            dipdir_pole = geol_axis(faultrec1%flt_pln%dip_dir,faultrec1%flt_pln%dip_angle)
 
-            strike_vect = vector_normalization(pole2cartesian(strike_pole))
-            dipdir_vect = vector_normalization(pole2cartesian(dipdir_pole))
+            strike_vect = vect_normaliz(pole2cartes(strike_pole))
+            dipdir_vect = vect_normaliz(pole2cartes(dipdir_pole))
 
-            scalprod_shearstress_strike = vector_scalprod(shearstress_unitvect, strike_vect)
+            scalprod_shearstress_strike = scal_prod(shearstress_unitvect, strike_vect)
 
-            scalprod_shearstress_dipdir = vector_scalprod(shearstress_unitvect, dipdir_vect)
+            scalprod_shearstress_dipdir = scal_prod(shearstress_unitvect, dipdir_vect)
 
             if (scalprod_shearstress_strike>1) then
                 scalprod_shearstress_strike=1
@@ -655,32 +613,32 @@ module stress_processing
                 scalprod_shearstress_strike=-1
             endif
 
-            stresssolution1%theor_rake = r2d*acos(scalprod_shearstress_strike)
+            stress_sol_1%theor_rake = rad2degr*acos(scalprod_shearstress_strike)
 
             if (scalprod_shearstress_dipdir > 0.0_r8b) then
-                stresssolution1%theor_rake = - stresssolution1%theor_rake
+                stress_sol_1%theor_rake = - stress_sol_1%theor_rake
             endif
 
-            stresssolution1%theor_slickenline = rake2slickenline(   &
-                faultrec1%fltplane%strike_rhr,faultrec1%fltplane%dipangle,stresssolution1%theor_rake)
+            stress_sol_1%theor_slicknln = rake2slickenline(   &
+                faultrec1%flt_pln%strike_rhr,faultrec1%flt_pln%dip_angle,stress_sol_1%theor_rake)
 
-            stresssolution1%modif_sliptendency = stresssolution1%shearstress_magn/dabs(stresssolution1%tractionvect_magn)
+            stress_sol_1%mod_slip_tend = stress_sol_1%shear_stress_magn/dabs(stress_sol_1%tract_stress_magn)
 
-            stresssolution1%deformation_index = &
-            (dabs(stresssolution1%tractionvect_magn) - stresssolution1%shearstress_magn)/stresssolution1%tractionvect_magn
+            stress_sol_1%deform_index = &
+            (dabs(stress_sol_1%tract_stress_magn) - stress_sol_1%shear_stress_magn)/stress_sol_1%tract_stress_magn
 
-            stresssolution1%dilation_tendency = &
-            (stressprinccomp1%sigma1 - dabs(stresssolution1%normalstress_magn))/(stressprinccomp1%sigma1 - stressprinccomp1%sigma3)
+            stress_sol_1%dilat_tend = &
+            (stress_pc_1%sigma_1 - dabs(stress_sol_1%norm_stress_magn))/(stress_pc_1%sigma_1 - stress_pc_1%sigma_3)
 
-            tau = stressprinccomp1%cohesive_strength+stressprinccomp1%intern_friction_resist*dabs(stresssolution1%normalstress_magn)
-            stresssolution1%fracture_stability = &
-            (dabs(stresssolution1%normalstress_magn) - tau)/ stressprinccomp1%intern_friction_resist
+            tau = stress_pc_1%cohes_streng+stress_pc_1%int_frict_res*dabs(stress_sol_1%norm_stress_magn)
+            stress_sol_1%fract_stab = &
+            (dabs(stress_sol_1%norm_stress_magn) - tau)/ stress_pc_1%int_frict_res
 
-            stresssolution1%leakage_factor = stressprinccomp1%fluid_pressure/(dabs(stresssolution1%normalstress_magn) - tau)
+            stress_sol_1%leakage_factor = stress_pc_1%fluid_press/(dabs(stress_sol_1%norm_stress_magn) - tau)
 
         endif
 
-    end function stresssolution_calc
+    end function stresssol_calc
 
 
 end module stress_processing
@@ -868,9 +826,9 @@ subroutine r8vec_print ( n, a, title )
 !
 !  Parameters:
 !
-!    Input, integer N, the number of components of the vector.
+!    Input, integer N, the number of components of the cartes_vect.
 !
-!    Input, real ( kind = r8b ) A(N), the vector to be printed.
+!    Input, real ( kind = r8b ) A(N), the cartes_vect to be printed.
 !
 !    Input, character ( len = * ) TITLE, an optional title.
 !
@@ -975,7 +933,7 @@ subroutine svd(m, n, a, s, sigma, u, v)
 
 ! write program header on screen
 
-subroutine WelcomeScreen()
+subroutine welcome_screen()
 
     write (*,"(A)") '*****************************************'
     write (*,*)
@@ -984,7 +942,7 @@ subroutine WelcomeScreen()
     write (*,"(16X,A)")	'vers. 0.0.1'
     write (*,"(17X,A)") '2016-11-31'
     write (*,*)
-    write (*,"(5X,A)") 'Fortran program for determining Best-Fit-Plane to surface traces'
+    write (*,"(5X,A)") 'Fortran program for determining Best-Fit-geol_plane to surface traces'
     write (*,*)
     write (*,"(A)") '*****************************************'
 
@@ -993,11 +951,11 @@ subroutine WelcomeScreen()
     write (*,"(4X,A)") 'Input parameters definition'
     write (*,*)
 
-end subroutine WelcomeScreen
+end subroutine welcome_screen
 
 ! choice and opening of input file, that stores the list of data sources
 
-subroutine InputFileDef()
+subroutine input_file_def()
 
     character (len=50) :: InputFileName
     integer :: ios
@@ -1023,11 +981,11 @@ subroutine InputFileDef()
 
 	write (*,*)
 
-end subroutine InputFileDef
+end subroutine input_file_def
 
 ! define output files storing results
 
-subroutine OutputFileDef()
+subroutine output_file_def()
 
 	character (len= 37) :: OutputFileName
 
@@ -1046,7 +1004,7 @@ subroutine OutputFileDef()
 
     write (*,*)
 
-end subroutine OutputFileDef
+end subroutine output_file_def
 
 
 program invert_attitudes
@@ -1070,15 +1028,15 @@ program invert_attitudes
 
     ! printout of welcome screen
 
-    call WelcomeScreen()
+    call welcome_screen()
 
     ! user-definition of source file
 
-    call InputFileDef()
+    call input_file_def()
 
     ! user-definition of output file
 
-    call OutputFileDef()
+    call output_file_def()
 
     ! defines the number of input points
 
@@ -1137,11 +1095,11 @@ program invert_attitudes
     end do
     write (16, *) ''
 
-    ! calculates resulting product vector
+    ! calculates resulting product cartes_vect
 
     b = matmul ( u, matmul ( sigma, transpose(v) ) )
 
-    ! writes resulting product vector in output file
+    ! writes resulting product cartes_vect in output file
 
     write (16, *) 'The product U * S * Vt'
     do i = 1, m
