@@ -35,6 +35,7 @@
 # Directories
 bin/
 images/
+Invert/codice_pregresso
 Invert/tests
 Invert/obj
 Invert/bin
@@ -44,6 +45,8 @@ test_data/
 
 # Individual files
 geoSurfDEM
+.gitignore
+
 
 
 
