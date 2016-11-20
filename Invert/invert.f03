@@ -31,21 +31,36 @@ module data_types
 
     implicit none
 
+    type :: real_opt
+        real (kind=r8b) :: real_val
+        logical :: valid
+    end type real_opt
+
     type :: cartes_vect
         sequence
         real (kind=r8b)	:: x, y, z
     end type cartes_vect
 
+    type vect_opt
+        type(cartes_vect) :: vect
+        logical :: valid
+    end type vect_opt
+
     type :: geol_axis
-        real (kind=r8b)	:: trend, plunge
+        real (kind=r8b)	:: trend, plunge ! as degrees
     end type geol_axis
+
+    type :: geol_axis_opt
+        type(geol_axis) :: geoax
+        logical :: valid
+    end type
 
     type :: orthonorm_triad
         type(cartes_vect) :: X, Y, Z
     end type orthonorm_triad
 
     type :: geol_plane
-        real (kind=r8b)	:: strike_rhr, dip_dir, dip_angle
+        real (kind=r8b)	:: strike_rhr, dip_dir, dip_angle ! as degrees
     end type geol_plane
 
     type :: fault_datum
@@ -72,14 +87,13 @@ module data_types
     end type stress_solution
 
     integer :: ios !status of input/output connection
-    real (kind=r8b) :: pi  	! pi radians
-    real (kind=r8b) :: rad2degr, degr2rad	! for conversion from radians to degrees
-
-    type(orthonorm_triad), parameter :: frame0 = orthonorm_triad(cartes_vect(1.0,0.0,0.0), &
-                                                                 cartes_vect(0.0,1.0,0.0), &
-                                                                 cartes_vect(0.0,0.0,1.0))
-    real (kind=r8b),parameter :: unit_vect_tol = 1.0e-6 !maximum accepted value for unitary cartes_vect magnitude difference with unit
-    real (kind=r8b),parameter :: vect_norm_tol = 1.0e-5 !minimum accepted value for cartes_vect magnitude to apply normalization
+    real (kind=r8b), parameter :: pi = 3.1415926535897931_r8b  	! pi radians
+    real (kind=r8b), parameter :: rad2degr = 180.0_r8b/pi, degr2rad = pi/180.0_r8b	! for conversion from radians to degrees
+    type(orthonorm_triad), parameter :: frame0 = orthonorm_triad(cartes_vect(1.0_r8b,0.0_r8b,0.0_r8b), &
+                                                                 cartes_vect(0.0_r8b,1.0_r8b,0.0_r8b), &
+                                                                 cartes_vect(0.0_r8b,0.0_r8b,1.0_r8b))
+    real (kind=r8b), parameter :: vect_magn_min_thresh = 1.0e-7
+    real (kind=r8b), parameter :: vect_div_min_thresh = 1.0e-7
     real (kind=r8b), parameter :: shear_magn_thresh = 1.0e-5 !minimum accepted value for shear stress to be considered meaningful
 
 end module data_types
@@ -89,7 +103,76 @@ module vector_processing
 
     use data_types
 
+    implicit none
+
     contains
+
+    ! cartes_vect magnitude
+
+    real (kind=r8b) function vect_magn(vect1)
+
+        type(cartes_vect), intent(in) :: vect1
+
+        vect_magn = sqrt((vect1%x)**2 + (vect1%y)**2 + (vect1%z)**2)
+
+    end function vect_magn
+
+    ! test if is zero vector
+
+    logical function almost_zero_vect(vect1)
+
+        type(cartes_vect), intent(in) :: vect1
+
+        almost_zero_vect = vect_magn(vect1) < vect_magn_min_thresh
+
+    end function almost_zero_vect
+
+    ! test if a cartes_vect has magnitude = 1
+
+    logical function almost_unit_vect(vect1)
+
+        type(cartes_vect), intent(in) :: vect1
+
+        almost_unit_vect = dabs(1.0 - vect_magn(vect1)) < vect_magn_min_thresh
+
+    end function almost_unit_vect
+
+    ! calculates the product of a cartesian vector by a scalar
+
+    type (cartes_vect) function vect_by_scal(vect1, scalar1)
+
+        type(cartes_vect), intent(in) :: vect1
+        real (kind=r8b), intent(in) :: scalar1
+
+        vect_by_scal%x = scalar1 * vect1%x
+        vect_by_scal%y = scalar1 * vect1%y
+        vect_by_scal%z = scalar1 * vect1%z
+
+    end function vect_by_scal
+
+    ! divides a cartesian vector by a scalar
+
+    type (vect_opt) function vect_scal_div_opt(vect1, scalar1)
+
+        type(cartes_vect), intent(in) :: vect1
+        real (kind=r8b), intent(in) :: scalar1
+
+        vect_scal_div_opt%valid = scalar1 < vect_div_min_thresh
+        if (vect_scal_div_opt%valid) then
+            vect_scal_div_opt%vect = vect_by_scal(vect1, 1.0/scalar1)
+        endif
+
+    end function
+
+    ! cartes_vect normalization
+
+    type(vect_opt) function unit_vect_opt(vect1)
+
+        type(cartes_vect), intent(in) :: vect1
+
+        unit_vect_opt = vect_scal_div_opt(vect1, vect_magn(vect1))
+
+    end function unit_vect_opt
 
     ! calculates the sum of two vectors
 
@@ -117,87 +200,42 @@ module vector_processing
 
     ! angle (in radians) between two vectors (radiants, 0-pi)
 
-    real (kind=r8b) function vect_angl_rad(vect1,vect2)
+    type(real_opt) function vect_angl_rad_opt(vect1, vect2) result(angle_val)
 
         type(cartes_vect), intent(in) :: vect1, vect2
+        real (kind=r8b) :: vect1_magn, vect2_magn, scaled_scal_prod
 
-        vector1_magn = vect_magn(vect1)
-        vector2_magn = vect_magn(vect2)
-        if ((vector1_magn < vect_norm_tol).or.(vector2_magn < vect_norm_tol)) then
-            write(*,*) 'Error in cartes_vect magnitude (function vect_angl_rad). Hit any key to stop'
-            read(*,*)
-            stop	! STOP PROGRAM FOR ERROR IN DATA INPUT
+        vect1_magn = vect_magn(vect1)
+        vect2_magn = vect_magn(vect2)
+        angle_val%valid = vect1_magn * vect2_magn >= vect_magn_min_thresh
+        if (angle_val%valid) then
+            scaled_scal_prod = scal_prod(vect1, vect2)/(vect1_magn*vect2_magn)
+            if (scaled_scal_prod < -1.) then
+                angle_val%real_val = pi
+            else if (scaled_scal_prod > 1.) then
+                angle_val%real_val = 0.0
+            else
+                angle_val%real_val = acos(scaled_scal_prod)
+            end if
         end if
 
-        ! scalar product between two vectors
-        scaled_scal_prod = scal_prod(vect1, vect2)/(vector1_magn*vector2_magn)
-
-        ! angle between vectors (in radians)
-        if (scaled_scal_prod < -1.) then
-            vect_angl_rad = pi
-        else if (scaled_scal_prod > 1.) then
-            vect_angl_rad = 0.0
-        else
-            vect_angl_rad = acos(scaled_scal_prod)
-        end if
-
-    end  function vect_angl_rad
+    end  function
 
     ! angle (in radians) between two axes (radiants, 0-pi/2)
 
-    real (kind=r8b) function axes_angle_rad(vect1, vect2)
+    type(real_opt) function axes_angle_rad_opt(vect1, vect2)
 
         type(cartes_vect), intent(in) :: vect1, vect2
+        type(real_opt) :: vect_angle_rad
 
         ! angle between vectors (in radians)
-        axes_angle_rad = vect_angl_rad(vect1,vect2)
-        axes_angle_rad = min(axes_angle_rad, pi-axes_angle_rad)
-
-    end function axes_angle_rad
-
-    ! cartes_vect normalization
-
-    type(cartes_vect) function vect_normaliz(vect1) result(vect2)
-
-        type(cartes_vect), intent(in) :: vect1
-
-        vector1_magn = vect_magn(vect1)
-
-        if (vector1_magn < vect_norm_tol) then
-          write(*,*) 'Error in cartes_vect magnitude processing. Hit any key to stop'
-          read (*,*)
-          stop ! STOP PROGRAM FOR ERROR IN DATA INPUT
+        vect_angle_rad = vect_angl_rad_opt(vect1, vect2)
+        axes_angle_rad_opt%valid = vect_angle_rad%valid
+        if (axes_angle_rad_opt%valid) then
+            axes_angle_rad_opt%real_val = min(vect_angle_rad%real_val, pi - vect_angle_rad%real_val)
         end if
 
-        vect2%x = vect1%x / vector1_magn
-        vect2%y = vect1%y / vector1_magn
-        vect2%z = vect1%z / vector1_magn
-
-
-    end function vect_normaliz
-
-    ! cartes_vect magnitude
-
-    real (kind=r8b) function vect_magn(vect1)
-
-        type(cartes_vect), intent(in) :: vect1
-
-        vect_magn = sqrt((vect1%x)**2 + (vect1%y)**2 + (vect1%z)**2)
-
-    end function vect_magn
-
-    ! calculates the product of a cartes_vect by a scalar
-
-    type (cartes_vect) function vect_by_scal(vect1, scalar1)
-
-        type(cartes_vect), intent(in) :: vect1
-        real (kind=r8b), intent(in) :: scalar1
-
-        vect_by_scal%x = scalar1 * vect1%x
-        vect_by_scal%y = scalar1 * vect1%y
-        vect_by_scal%z = scalar1 * vect1%z
-
-    end function vect_by_scal
+    end function
 
     ! scalar product of two vectors (given as their cartesian coordinates)
 
@@ -223,34 +261,20 @@ module vector_processing
 
     ! vect1 projection on vect2
 
-    type (cartes_vect) function vect_project(vect1,vect2)
+    type (vect_opt) function vect_project_opt(vect1, vect2)
 
         type(cartes_vect), intent(in) :: vect1, vect2
         real (kind=r8b) :: scalprod
+        type(vect_opt) :: vect_2_opt
 
-        scalprod = scal_prod(vect1, vect_normaliz(vect2))
-        vect_project = vect_by_scal(vect2, scalprod)
+        vect_2_opt = unit_vect_opt(vect2)
+        vect_project_opt%valid = vect_2_opt%valid
+        if (vect_project_opt%valid) then
+            scalprod = scal_prod(vect1, vect_2_opt%vect)
+            vect_project_opt%vect = vect_by_scal(vect2, scalprod)
+        end if
 
-    end function vect_project
-
-    ! test if a cartes_vect has magnitude = 1
-
-    logical function is_unit_vect(vect1) result(vect_is_normalized)
-
-        type(cartes_vect), intent(in) :: vect1
-        real (kind=r8b) :: vector1_magn
-
-        vector1_magn = vect_magn(vect1)
-
-        abs_diff = dabs(1-vector1_magn)
-
-        if (abs_diff > unit_vect_tol) then
-            vect_is_normalized = .false.
-        else
-            vect_is_normalized = .true.
-        endif
-
-    end function is_unit_vect
+    end function
 
     ! converts a 3D cartes_vect to a 3x1 array
 
@@ -259,7 +283,7 @@ module vector_processing
         type(cartes_vect), intent(in) :: vect1
         real(kind=r8b) :: array1(3)
 
-        array1 = (/vect1%x, vect1%y, vect1%z/)
+        array1 = [vect1%x, vect1%y, vect1%z]
 
     end function vect2arr
 
@@ -284,6 +308,8 @@ module geometric_processing
 
     use vector_processing
 
+    implicit none
+
     contains
 
     ! calculates the polar components from the cartesian ones
@@ -292,47 +318,41 @@ module geometric_processing
 
         type(geol_axis), intent(in) :: axis1
 
-
         vect1%x = cos(degr2rad*axis1%plunge) * cos(degr2rad*axis1%trend)
-        vect1%y  = cos(degr2rad*axis1%plunge) * sin(degr2rad*axis1%trend)
-        vect1%z  =  sin(degr2rad*axis1%plunge)
-
+        vect1%y = cos(degr2rad*axis1%plunge) * sin(degr2rad*axis1%trend)
+        vect1%z = sin(degr2rad*axis1%plunge)
 
     end function pole2cartes
 
     ! calculates polar components from cartesian ones
 
-    type(geol_axis) function cartes2pole(vect1) result(axis1)
+    type(geol_axis_opt) function cartes2pole_opt(vect1) result(axis1_opt)
 
-        type(cartes_vect):: vect1
-        logical :: vect_is_normalized
+        type(cartes_vect), intent(in) :: vect1
+        type(vect_opt) :: vect_unit_opt
+        type(cartes_vect) :: vect_unit
+        type(geol_axis) :: geoaxis
 
-        vect_is_normalized = is_unit_vect(vect1)
+        vect_unit_opt = unit_vect_opt(vect1)
+        axis1_opt%valid = vect_unit_opt%valid
 
-        if (.not.vect_is_normalized) then
-          vect1 = vect_normaliz(vect1)
-        endif
-
-        ! polar coordinates calculation
-
-        if (vect1%z > 1.0_r8b) then
-            vect1%z = 1.0_r8b
-        elseif (vect1%z < -1.0_r8b) then
-            vect1%z = -1.0_r8b
-        endif
-
-        axis1%plunge = rad2degr*dasin(vect1%z)
-
-        if (dabs(axis1%plunge)> 89.5) then
-                axis1%trend = 0.0
-        else
-            axis1%trend = rad2degr*atan2(vect1%y,vect1%x)
-            if (axis1%trend < 0.0) then
-                axis1%trend = 360.0 + axis1%trend
+        if (axis1_opt%valid) then ! polar coordinates calculation
+            vect_unit = vect_unit_opt%vect
+            if (vect_unit%z > 1.0_r8b) then
+                vect_unit%z = 1.0_r8b
+            elseif (vect_unit%z < -1.0_r8b) then
+                vect_unit%z = -1.0_r8b
             endif
+            geoaxis%plunge = rad2degr*dasin(vect_unit%z)
+            if (dabs(geoaxis%plunge)> 89.9_r8b) then
+                geoaxis%trend = 0.0_r8b
+            else
+                geoaxis%trend = modulo(rad2degr*atan2(vect_unit%y,vect_unit%x), 360.0_r8b)
+            endif
+            axis1_opt%geoax = geoaxis
         endif
 
-    end function cartes2pole
+    end function cartes2pole_opt
 
     ! calculates the down geol_axis from the geol_axis
 
@@ -342,16 +362,35 @@ module geometric_processing
 
         if (axis1%plunge < 0.0) then
           axis2%plunge = -axis1%plunge
-          axis2%trend = axis1%trend + 180.0
-          if (axis2%trend >= 360.0) then
-            axis2%trend = axis2%trend - 360.0
-          endif
+          axis2%trend = modulo(axis1%trend + 180.0, 360.0_r8b)
         else
-          axis2%trend = axis1%trend
-          axis2%plunge = axis1%plunge
+          axis2 = axis1
         endif
 
     end function axis2downaxis
+
+    ! calculates dip direction of a fault
+
+    subroutine dipdir_calc(geolplane1)
+
+        type(geol_plane), intent(inout) :: geolplane1
+
+        geolplane1%dip_dir = modulo(geolplane1%strike_rhr + 90.0_r8b, 360.0_r8b)
+
+    end subroutine dipdir_calc
+
+     ! calculates geological plane normal
+
+    type(cartes_vect) function geolplane_norm_calc(geoplane1) result(geoplane_normal)
+
+        type(geol_plane), intent(in) :: geoplane1
+
+        ! formulas from Aki and Richards, 1980
+        geoplane_normal%x = -sin(degr2rad * geoplane1%dip_angle) * sin(degr2rad * geoplane1%strike_rhr)
+        geoplane_normal%y =  sin(degr2rad * geoplane1%dip_angle) * cos(degr2rad * geoplane1%strike_rhr)
+        geoplane_normal%z = -cos(degr2rad * geoplane1%dip_angle)
+
+    end function
 
 
 end module geometric_processing
@@ -364,33 +403,6 @@ module fault_processing
     implicit none
 
     contains
-
-    ! calculates dip direction of a fault
-
-    subroutine dipdir_calc(faultplane1)
-
-        type(geol_plane), intent(inout) :: faultplane1
-
-        faultplane1%dip_dir = faultplane1%strike_rhr + 90.0
-        if (faultplane1%dip_dir >= 360.0) then
-          faultplane1%dip_dir = faultplane1%dip_dir - 360.0
-        endif
-
-    end subroutine dipdir_calc
-
-    ! calculates fault normal
-
-    type(cartes_vect) function faultplanenorm_calc(faultplane1) result(faultnorm)
-
-        type(geol_plane), intent(in) :: faultplane1
-
-        ! Fault Normal cartesian coordinates
-        ! formulas from Aki and Richards, 1980
-        faultnorm%x = -sin(degr2rad*faultplane1%dip_angle) * sin(degr2rad*faultplane1%strike_rhr)
-        faultnorm%y = sin(degr2rad*faultplane1%dip_angle) * cos(degr2rad*faultplane1%strike_rhr)
-        faultnorm%z = -cos(degr2rad*faultplane1%dip_angle)
-
-    end function faultplanenorm_calc
 
     ! calculates cartes_vect (cartesian) components of fault record
 
@@ -418,7 +430,7 @@ module fault_processing
 
     ! calculate the slickln_ax (trend and plunge) from the rake angle
 
-    type(geol_axis) function rake2slickenline(strike, dip, rake) result(slicken_pole)
+    type(geol_axis_opt) function rake2slickenline(strike, dip, rake) result(slicken_pole_opt)
 
         implicit none
 
@@ -435,213 +447,12 @@ module fault_processing
         slick_vect%z = -sin(rake_rd) * sin(dip_rd)
 
         ! determination of trend and plunge of slickln_ax
-        slicken_pole = cartes2pole(slick_vect)
+        slicken_pole_opt = cartes2pole_opt(slick_vect)
 
     end function rake2slickenline
 
 
 end module fault_processing
-
-
-module stress_processing
-
-    use fault_processing
-
-    implicit none
-
-    contains
-
-    ! calculation of S2_ax as cartes_vect product of S3_ax and S1_ax
-
-    subroutine S2_calc(stress_pc_1)
-
-        type(stress_prcomp), intent(inout) :: stress_pc_1
-
-        stress_pc_1%S2_vctr = vect_prod(stress_pc_1%S3_vctr,stress_pc_1%S1_vctr)
-        stress_pc_1%S2_ax = cartes2pole(stress_pc_1%S2_vctr)
-        stress_pc_1%S2_ax = axis2downaxis(stress_pc_1%S2_ax)
-
-    end subroutine S2_calc
-
-    ! calculation of sigma_2 from S1_ax, S3_ax and PHI values
-
-    subroutine sigma2_calc(stress_pc_1)
-
-        type(stress_prcomp), intent(inout) :: stress_pc_1
-
-        stress_pc_1%sigma_2 = stress_pc_1%phi*stress_pc_1%sigma_1 				&
-                                    + (1-stress_pc_1%phi)*stress_pc_1%sigma_3
-
-
-    end subroutine sigma2_calc
-
-    ! define rotation matrix based on stress principal axes
-
-    function rotmatr(stress_pc_1) result(rot_matrix)
-
-        ! based on Kuipers, 2002, p.161, eqs. 7.8
-
-        type(stress_prcomp), intent(in) :: stress_pc_1
-        real (kind=r8b) :: rot_matrix(3,3)
-
-        rot_matrix(1,1) = scal_prod(stress_pc_1%S1_vctr, frame0%X)
-        rot_matrix(1,2) = scal_prod(stress_pc_1%S2_vctr, frame0%X)
-        rot_matrix(1,3) = scal_prod(stress_pc_1%S3_vctr, frame0%X)
-
-        rot_matrix(2,1) = scal_prod(stress_pc_1%S1_vctr, frame0%Y)
-        rot_matrix(2,2) = scal_prod(stress_pc_1%S2_vctr, frame0%Y)
-        rot_matrix(2,3) = scal_prod(stress_pc_1%S3_vctr, frame0%Y)
-
-        rot_matrix(3,1) = scal_prod(stress_pc_1%S1_vctr, frame0%Z)
-        rot_matrix(3,2) = scal_prod(stress_pc_1%S2_vctr, frame0%Z)
-        rot_matrix(3,3) = scal_prod(stress_pc_1%S3_vctr, frame0%Z)
-
-
-    end function rotmatr
-
-    ! calculate stress tensor expressed in frame components
-
-    function stresstensorcalc(stress_pc_1,rot_matrix) result(tens)
-
-        ! from Kagan and Knopoff, 1985a, p. 433
-
-        type(stress_prcomp), intent(in) :: stress_pc_1
-        real (kind=r8b), intent(in)  :: rot_matrix(3,3)
-
-        real (kind=r8b) :: stresstens0(3,3), tens(3,3)
-
-        ! stress eigentensor
-        stresstens0 = reshape((/0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0/),shape=(/3,3/),order=(/2,1/))
-        stresstens0(1,1) = stress_pc_1%sigma_1
-        stresstens0(2,2) = stress_pc_1%sigma_2
-        stresstens0(3,3) = stress_pc_1%sigma_3
-
-        tens = matmul(rot_matrix,matmul(stresstens0,transpose(rot_matrix)))
-
-    end function stresstensorcalc
-
-    ! calculation of stress solution for the given geol_plane and stress tensor
-
-    type(stress_solution) function stresssol_calc(tens1,stress_pc_1,faultrec1) result(stress_sol_1)
-
-        ! based on Xu, 2004 (Geoph. J. Int., 157,1316-1330) and references within.
-
-        ! QUATstress_stress&fault2rake
-        !last modified: 2008/01/05
-
-        ! INPUT
-        !    SELF with 2 objects:
-        !      (0): fault geol_plane orientation: strike rhr, dip direction, dip angle
-        !      (1): stress field tensor components: x,y,z (sigma 1,2,3)
-
-        !  OUTPUT
-        !    normal and tangential stresses magnitudes
-        !    slip tendency
-        !    theoretical rake angle of tangential stress
-
-        !  STEPS
-        !    input of data:
-        !      fault geol_plane orientation: strike rhr, dip direction, dip angle     stress field tensor components: x,y,z (sigma 1,2,3)
-        !    fault normal calculation: n (1,2,3)
-        !    traction cartes_vect c.: sigma (1,2,3)
-        !    normal stress c.: sigma n (1,2,3)
-        !    shear stress c: tau s (1,2,3)
-        !    slip tendency c.: Ts
-        !    theoretical rake angle c: lambda
-        !    output of results:
-        !      magnitudes of normal and shear stresses,
-        !      slip tendency,
-        !      theoretical rake angle
-
-        !    input of data:
-        !      fault geol_plane orientation: strike rhr, dip direction, dip angle
-        !      stress field tensor components: x,y,z (sigma 1,2,3)
-
-        implicit none
-
-        real (kind=r8b), intent(in)  :: tens1(3,3)
-        type(stress_prcomp), intent(in) :: stress_pc_1
-        type(fault_datum), intent(in)  :: faultrec1
-
-        type(cartes_vect) :: shearstress_unitvect
-        type(geol_axis) :: strike_pole, dipdir_pole
-        type(cartes_vect) :: strike_vect, dipdir_vect, flt_norm_vctr
-        real (kind=r8b) :: faultnormal_array(3), scalprod_shearstress_strike, scalprod_shearstress_dipdir
-        real (kind=r8b) :: tau
-
-        ! calculation of fault normal calculation: n (1,2,3)
-        flt_norm_vctr = faultplanenorm_calc(faultrec1%flt_pln)
-        faultnormal_array = vect2arr(flt_norm_vctr)
-
-        !    traction cartes_vect c.: sigma (1,2,3)
-        stress_sol_1%tract_vctr = arr2vect(- matmul(tens1,faultnormal_array))
-        stress_sol_1%tract_stress_magn = vect_magn(stress_sol_1%tract_vctr)
-        if (scal_prod(stress_sol_1%tract_vctr, flt_norm_vctr)<0.0_r8b) then
-            stress_sol_1%tract_stress_magn = -stress_sol_1%tract_stress_magn
-        endif
-
-        !    normal stress c.: SigmaN
-        stress_sol_1%norm_stress_vctr = vect_project(stress_sol_1%tract_vctr, flt_norm_vctr)
-        stress_sol_1%norm_stress_magn = vect_magn(stress_sol_1%norm_stress_vctr)
-        if (scal_prod(stress_sol_1%norm_stress_vctr, flt_norm_vctr)<0.0_r8b) then
-            stress_sol_1%norm_stress_magn = -stress_sol_1%norm_stress_magn
-        endif
-
-        !    shear stress c: tau s (1,2,3)
-        stress_sol_1%shear_stress_vctr = vect_diff(stress_sol_1%tract_vctr,stress_sol_1%norm_stress_vctr)
-        stress_sol_1%shear_stress_magn = vect_magn(stress_sol_1%shear_stress_vctr)
-
-
-        if (stress_sol_1%shear_stress_magn > shear_magn_thresh) then
-
-            shearstress_unitvect = vect_normaliz(stress_sol_1%shear_stress_vctr)
-
-            ! theoretical rake angle c: lambda
-            strike_pole = geol_axis(faultrec1%flt_pln%strike_rhr,0)
-            dipdir_pole = geol_axis(faultrec1%flt_pln%dip_dir,faultrec1%flt_pln%dip_angle)
-
-            strike_vect = vect_normaliz(pole2cartes(strike_pole))
-            dipdir_vect = vect_normaliz(pole2cartes(dipdir_pole))
-
-            scalprod_shearstress_strike = scal_prod(shearstress_unitvect, strike_vect)
-
-            scalprod_shearstress_dipdir = scal_prod(shearstress_unitvect, dipdir_vect)
-
-            if (scalprod_shearstress_strike>1) then
-                scalprod_shearstress_strike=1
-            elseif (scalprod_shearstress_strike<-1) then
-                scalprod_shearstress_strike=-1
-            endif
-
-            stress_sol_1%theor_rake = rad2degr*acos(scalprod_shearstress_strike)
-
-            if (scalprod_shearstress_dipdir > 0.0_r8b) then
-                stress_sol_1%theor_rake = - stress_sol_1%theor_rake
-            endif
-
-            stress_sol_1%theor_slicknln = rake2slickenline(   &
-                faultrec1%flt_pln%strike_rhr,faultrec1%flt_pln%dip_angle,stress_sol_1%theor_rake)
-
-            stress_sol_1%mod_slip_tend = stress_sol_1%shear_stress_magn/dabs(stress_sol_1%tract_stress_magn)
-
-            stress_sol_1%deform_index = &
-            (dabs(stress_sol_1%tract_stress_magn) - stress_sol_1%shear_stress_magn)/stress_sol_1%tract_stress_magn
-
-            stress_sol_1%dilat_tend = &
-            (stress_pc_1%sigma_1 - dabs(stress_sol_1%norm_stress_magn))/(stress_pc_1%sigma_1 - stress_pc_1%sigma_3)
-
-            tau = stress_pc_1%cohes_streng+stress_pc_1%int_frict_res*dabs(stress_sol_1%norm_stress_magn)
-            stress_sol_1%fract_stab = &
-            (dabs(stress_sol_1%norm_stress_magn) - tau)/ stress_pc_1%int_frict_res
-
-            stress_sol_1%leakage_factor = stress_pc_1%fluid_press/(dabs(stress_sol_1%norm_stress_magn) - tau)
-
-        endif
-
-    end function stresssol_calc
-
-
-end module stress_processing
 
 
 subroutine r8mat_print ( m, n, a, title )
@@ -859,6 +670,8 @@ subroutine svd(m, n, a, s, sigma, u, v)
 
     use kinds
 
+    implicit none
+
     ! modified from: TEST07 tests DGESVD
     !                 by John Burkardt
 
@@ -996,11 +809,11 @@ subroutine output_file_def()
 		open (unit=16, file=trim(OutputFileName), status='NEW' &
   		, access='sequential', form='formatted', iostat=ios)
 		if (ios /= 0) then
-  			write (*,"(A,/,A)") 'Error with output file creation.','Change name'
-  			cycle
-		end if
+            write (*,"(A,/,A)") 'Error with output file creation.','Change name'
+            cycle
+        end if
         exit
-	end do
+    end do
 
     write (*,*)
 
@@ -1077,7 +890,7 @@ program invert_attitudes
 
     ! debug
 
-    call r8mat_print ( n, n, v, '  The matrix V:' )
+    call r8mat_print ( n, n, v, '  The matrix V:')
 
     ! write singular values in output file
 
