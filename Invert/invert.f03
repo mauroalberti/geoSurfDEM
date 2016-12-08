@@ -124,7 +124,7 @@ module vector_processing
         type(cart_vect), intent(in) :: vect1
         real (kind=r8b), intent(in) :: scalar1
 
-        vect_scal_div_opt%valid = scalar1 < vect_div_min_thresh
+        vect_scal_div_opt%valid = scalar1 > vect_div_min_thresh
         if (vect_scal_div_opt%valid) then
             vect_scal_div_opt%vect = vect_by_scal(vect1, 1.0/scalar1)
         endif
@@ -332,7 +332,7 @@ module geologic_processing
             if (dabs(geoaxis%plunge)> 89.9_r8b) then
                 geoaxis%trend = 0.0_r8b
             else
-                geoaxis%trend = modulo(rad2degr*atan2(vect_unit%y,vect_unit%x), 360.0_r8b)
+                geoaxis%trend = modulo(rad2degr*atan2(vect_unit%x,vect_unit%y), 360.0_r8b)
             endif
             axis1_opt%geoax = geoaxis
         endif
@@ -788,6 +788,8 @@ program invert_attitudes
     real ( kind = r8b ), dimension(:, :), allocatable :: points
 
     type(cart_vect_opt) :: svd_res
+    type(geol_plane_opt) :: geolplaneopt_res
+    type(geol_plane) :: geoplane_res
 
     ! printout of welcome screen
 
@@ -833,13 +835,23 @@ program invert_attitudes
     end do
     write (16, *) ''
 
-    ! calculates the SVD solution
+    ! calculates the SVD solution and the geological plane
 
+    geolplaneopt_res%valid = .false.
     svd_res = svd(num_points, points)
-    if (.not. svd_res%valid) then
+    if (svd_res%valid) then
+        write (16, *) svd_res%vect%x, svd_res%vect%y, svd_res%vect%z
+        geolplaneopt_res = normalvect2geolplane(svd_res%vect)
+    end if
+
+    ! output results
+
+    if (.not. geolplaneopt_res%valid) then
         write (16, *) 'invalid result'
     else
-        write (16, *) svd_res%vect%x, svd_res%vect%y, svd_res%vect%z
+        geoplane_res = geolplaneopt_res%geolplane
+
+        write (16, *) geoplane_res%strike_rhr, geoplane_res%dip_dir, geoplane_res%dip_angle
     end if
 
     ! write end message
