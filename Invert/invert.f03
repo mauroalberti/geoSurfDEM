@@ -12,7 +12,9 @@
 !   This code is distributed under the GNU GPL v. 3 license.
 
 
-module kinds
+module var_types
+
+    implicit none
 
     integer, parameter :: i1b = selected_int_kind(1)
     integer, parameter :: i2b = selected_int_kind(4)
@@ -20,98 +22,63 @@ module kinds
     integer, parameter :: r4b = selected_real_kind( 6, 37)
     integer, parameter :: r8b = selected_real_kind(15, 307)
 
-end module kinds
-
-
-module data_types
-
-    use kinds
-
-    ! variable declarations
-
-    implicit none
-
     type :: real_opt
         real (kind=r8b) :: real_val
         logical :: valid
     end type real_opt
 
-    type :: cartes_vect
-        sequence
-        real (kind=r8b)	:: x, y, z
-    end type cartes_vect
+end module var_types
 
-    type vect_opt
-        type(cartes_vect) :: vect
-        logical :: valid
-    end type vect_opt
 
-    type :: geol_axis
-        real (kind=r8b)	:: trend, plunge ! as degrees
-    end type geol_axis
+module math_constants
 
-    type :: geol_axis_opt
-        type(geol_axis) :: geoax
-        logical :: valid
-    end type
+    use var_types
 
-    type :: orthonorm_triad
-        type(cartes_vect) :: X, Y, Z
-    end type orthonorm_triad
+    implicit none
 
-    type :: geol_plane
-        real (kind=r8b)	:: strike_rhr, dip_dir, dip_angle ! as degrees
-    end type geol_plane
+    real (kind=r8b), parameter :: pi = 3.1415926535897931_r8b  ! pi radians
+    real (kind=r8b), parameter :: rad2degr = 180.0_r8b/pi, degr2rad = pi/180.0_r8b  ! for conversion from radians to degrees
 
-    type :: fault_datum
-        type (geol_plane) :: flt_pln
-        type (geol_axis) :: slickln_ax
-        real (kind=r8b)	:: slickln_rake_aki
-        type(cartes_vect) :: flt_norm_vctr, slickenl_vctr
-        real(kind=r8b) :: x, y, z
-    end type fault_datum
-
-    type :: stress_prcomp
-        type (geol_axis) :: S1_ax, S2_ax, S3_ax
-        type (cartes_vect) :: S1_vctr, S2_vctr, S3_vctr
-        real (kind=r8b) :: sigma_1, sigma_2, sigma_3, phi
-        real (kind=r8b) :: fluid_press, cohes_streng, int_frict_res
-    end type stress_prcomp
-
-    type :: stress_solution
-        type(cartes_vect) :: tract_vctr, norm_stress_vctr, shear_stress_vctr
-        real (kind=r8b)	:: theor_rake, tract_stress_magn, norm_stress_magn, shear_stress_magn
-        real (kind=r8b)	:: mod_slip_tend, deform_index
-        real (kind=r8b) :: dilat_tend, fract_stab, leakage_factor
-        type (geol_axis) :: theor_slicknln
-    end type stress_solution
-
-    integer :: ios !status of input/output connection
-    real (kind=r8b), parameter :: pi = 3.1415926535897931_r8b  	! pi radians
-    real (kind=r8b), parameter :: rad2degr = 180.0_r8b/pi, degr2rad = pi/180.0_r8b	! for conversion from radians to degrees
-    type(orthonorm_triad), parameter :: frame0 = orthonorm_triad(cartes_vect(1.0_r8b,0.0_r8b,0.0_r8b), &
-                                                                 cartes_vect(0.0_r8b,1.0_r8b,0.0_r8b), &
-                                                                 cartes_vect(0.0_r8b,0.0_r8b,1.0_r8b))
-    real (kind=r8b), parameter :: vect_magn_min_thresh = 1.0e-7
-    real (kind=r8b), parameter :: vect_div_min_thresh = 1.0e-7
-    real (kind=r8b), parameter :: shear_magn_thresh = 1.0e-5 !minimum accepted value for shear stress to be considered meaningful
-
-end module data_types
+end module math_constants
 
 
 module vector_processing
 
-    use data_types
+    use var_types
+    use math_constants
 
     implicit none
 
+    type :: cart_vect
+
+        sequence
+        real (kind=r8b) :: x, y, z
+
+    end type cart_vect
+
+    type cart_vect_opt
+        type(cart_vect) :: vect
+        logical :: valid
+    end type cart_vect_opt
+
+    type :: orthonorm_triad
+        type(cart_vect) :: X, Y, Z
+    end type orthonorm_triad
+
+    real (kind=r8b), parameter :: vect_magn_min_thresh = 1.0e-7
+    real (kind=r8b), parameter :: vect_div_min_thresh = 1.0e-7
+
+    type(orthonorm_triad), parameter :: frame0 = orthonorm_triad(cart_vect(1.0_r8b,0.0_r8b,0.0_r8b), &
+                                                                 cart_vect(0.0_r8b,1.0_r8b,0.0_r8b), &
+                                                                 cart_vect(0.0_r8b,0.0_r8b,1.0_r8b))
+
     contains
 
-    ! cartes_vect magnitude
+    ! cart_vect magnitude
 
     real (kind=r8b) function vect_magn(vect1)
 
-        type(cartes_vect), intent(in) :: vect1
+        type(cart_vect), intent(in) :: vect1
 
         vect_magn = sqrt((vect1%x)**2 + (vect1%y)**2 + (vect1%z)**2)
 
@@ -121,17 +88,17 @@ module vector_processing
 
     logical function almost_zero_vect(vect1)
 
-        type(cartes_vect), intent(in) :: vect1
+        type(cart_vect), intent(in) :: vect1
 
         almost_zero_vect = vect_magn(vect1) < vect_magn_min_thresh
 
     end function almost_zero_vect
 
-    ! test if a cartes_vect has magnitude = 1
+    ! test if a cart_vect has magnitude = 1
 
     logical function almost_unit_vect(vect1)
 
-        type(cartes_vect), intent(in) :: vect1
+        type(cart_vect), intent(in) :: vect1
 
         almost_unit_vect = dabs(1.0 - vect_magn(vect1)) < vect_magn_min_thresh
 
@@ -139,9 +106,9 @@ module vector_processing
 
     ! calculates the product of a cartesian vector by a scalar
 
-    type (cartes_vect) function vect_by_scal(vect1, scalar1)
+    type (cart_vect) function vect_by_scal(vect1, scalar1)
 
-        type(cartes_vect), intent(in) :: vect1
+        type(cart_vect), intent(in) :: vect1
         real (kind=r8b), intent(in) :: scalar1
 
         vect_by_scal%x = scalar1 * vect1%x
@@ -152,9 +119,9 @@ module vector_processing
 
     ! divides a cartesian vector by a scalar
 
-    type (vect_opt) function vect_scal_div_opt(vect1, scalar1)
+    type (cart_vect_opt) function vect_scal_div_opt(vect1, scalar1)
 
-        type(cartes_vect), intent(in) :: vect1
+        type(cart_vect), intent(in) :: vect1
         real (kind=r8b), intent(in) :: scalar1
 
         vect_scal_div_opt%valid = scalar1 < vect_div_min_thresh
@@ -164,11 +131,11 @@ module vector_processing
 
     end function
 
-    ! cartes_vect normalization
+    ! cart_vect normalization
 
-    type(vect_opt) function unit_vect_opt(vect1)
+    type(cart_vect_opt) function unit_vect_opt(vect1)
 
-        type(cartes_vect), intent(in) :: vect1
+        type(cart_vect), intent(in) :: vect1
 
         unit_vect_opt = vect_scal_div_opt(vect1, vect_magn(vect1))
 
@@ -176,9 +143,9 @@ module vector_processing
 
     ! calculates the sum of two vectors
 
-    type(cartes_vect) function vect_sum(vect1, vect2)
+    type(cart_vect) function vect_sum(vect1, vect2)
 
-        type(cartes_vect), intent(in) :: vect1, vect2
+        type(cart_vect), intent(in) :: vect1, vect2
 
         vect_sum%x = vect1%x + vect2%x
         vect_sum%y = vect1%y + vect2%y
@@ -188,9 +155,9 @@ module vector_processing
 
     ! calculates the difference between two vectors
 
-    type(cartes_vect) function vect_diff(vect1,vect2)
+    type(cart_vect) function vect_diff(vect1,vect2)
 
-        type(cartes_vect), intent(in) :: vect1, vect2
+        type(cart_vect), intent(in) :: vect1, vect2
 
         vect_diff%x = vect1%x - vect2%x
         vect_diff%y = vect1%y - vect2%y
@@ -202,7 +169,7 @@ module vector_processing
 
     type(real_opt) function vect_angl_rad_opt(vect1, vect2) result(angle_val)
 
-        type(cartes_vect), intent(in) :: vect1, vect2
+        type(cart_vect), intent(in) :: vect1, vect2
         real (kind=r8b) :: vect1_magn, vect2_magn, scaled_scal_prod
 
         vect1_magn = vect_magn(vect1)
@@ -225,7 +192,7 @@ module vector_processing
 
     type(real_opt) function axes_angle_rad_opt(vect1, vect2)
 
-        type(cartes_vect), intent(in) :: vect1, vect2
+        type(cart_vect), intent(in) :: vect1, vect2
         type(real_opt) :: vect_angle_rad
 
         ! angle between vectors (in radians)
@@ -241,7 +208,7 @@ module vector_processing
 
     real (kind=r8b) function scal_prod(vect1, vect2)
 
-        type(cartes_vect), intent(in) :: vect1, vect2
+        type(cart_vect), intent(in) :: vect1, vect2
 
         scal_prod = vect1%x * vect2%x + vect1%y * vect2%y + vect1%z * vect2%z
 
@@ -249,9 +216,9 @@ module vector_processing
 
     ! vectorial product of two vectors (given as their cartesian coordinates)
 
-    type(cartes_vect) function vect_prod(vect1,vect2)
+    type(cart_vect) function vect_prod(vect1,vect2)
 
-        type(cartes_vect), intent(in) :: vect1, vect2
+        type(cart_vect), intent(in) :: vect1, vect2
 
         vect_prod%x = (vect1%y * vect2%z)-(vect1%z * vect2%y)
         vect_prod%y = (vect1%z * vect2%x)-(vect1%x * vect2%z)
@@ -261,11 +228,11 @@ module vector_processing
 
     ! vect1 projection on vect2
 
-    type (vect_opt) function vect_project_opt(vect1, vect2)
+    type (cart_vect_opt) function vect_project_opt(vect1, vect2)
 
-        type(cartes_vect), intent(in) :: vect1, vect2
+        type(cart_vect), intent(in) :: vect1, vect2
         real (kind=r8b) :: scalprod
-        type(vect_opt) :: vect_2_opt
+        type(cart_vect_opt) :: vect_2_opt
 
         vect_2_opt = unit_vect_opt(vect2)
         vect_project_opt%valid = vect_2_opt%valid
@@ -276,23 +243,23 @@ module vector_processing
 
     end function
 
-    ! converts a 3D cartes_vect to a 3x1 array
+    ! converts a 3D cart_vect to a 3x1 array
 
     function vect2arr(vect1) result(array1)
 
-        type(cartes_vect), intent(in) :: vect1
+        type(cart_vect), intent(in) :: vect1
         real(kind=r8b) :: array1(3)
 
         array1 = [vect1%x, vect1%y, vect1%z]
 
     end function vect2arr
 
-    ! converts a 3x1 array to a 3D cartes_vect
+    ! converts a 3x1 array to a 3D cart_vect
 
     function arr2vect(array1) result(vect1)
 
         real(kind=r8b), intent(in) :: array1(3)
-        type(cartes_vect):: vect1
+        type(cart_vect):: vect1
 
         vect1%x = array1(1)
         vect1%y = array1(2)
@@ -304,17 +271,35 @@ module vector_processing
 end module vector_processing
 
 
-module geometric_processing
+module geologic_processing
 
     use vector_processing
 
     implicit none
 
+    type :: geol_axis
+        real (kind=r8b) :: trend, plunge  ! as degrees
+    end type geol_axis
+
+    type :: geol_axis_opt
+        type(geol_axis) :: geoax
+        logical :: valid
+    end type
+
+    type :: geol_plane
+        real (kind=r8b) :: strike_rhr, dip_dir, dip_angle ! as degrees
+    end type geol_plane
+
+    type :: geol_plane_opt
+        type(geol_plane) :: geolplane
+        logical :: valid
+    end type
+
     contains
 
     ! calculates the polar components from the cartesian ones
 
-    type(cartes_vect) function pole2cartes(axis1) result(vect1)
+    type(cart_vect) function pole2cartes(axis1) result(vect1)
 
         type(geol_axis), intent(in) :: axis1
 
@@ -328,9 +313,9 @@ module geometric_processing
 
     type(geol_axis_opt) function cartes2pole_opt(vect1) result(axis1_opt)
 
-        type(cartes_vect), intent(in) :: vect1
-        type(vect_opt) :: vect_unit_opt
-        type(cartes_vect) :: vect_unit
+        type(cart_vect), intent(in) :: vect1
+        type(cart_vect_opt) :: vect_unit_opt
+        type(cart_vect) :: vect_unit
         type(geol_axis) :: geoaxis
 
         vect_unit_opt = unit_vect_opt(vect1)
@@ -362,7 +347,7 @@ module geometric_processing
 
         if (axis1%plunge < 0.0) then
           axis2%plunge = -axis1%plunge
-          axis2%trend = modulo(axis1%trend + 180.0, 360.0_r8b)
+          axis2%trend = modulo(axis1%trend + 180.0_r8b, 360.0_r8b)
         else
           axis2 = axis1
         endif
@@ -379,465 +364,430 @@ module geometric_processing
 
     end subroutine dipdir_calc
 
+    ! calculates the geological plane normal to a dow-axis (downward-oriented axis)
+
+    type(geol_plane) function downaxis2geolplane(downaxis1) result(geolplane1)
+
+        type(geol_axis), intent(in) :: downaxis1
+
+        geolplane1%strike_rhr = modulo(downaxis1%trend + 90.0_r8b, 360.0_r8b)
+        call dipdir_calc(geolplane1)
+        geolplane1%dip_angle = 90.0_r8b - downaxis1%plunge
+
+    end function downaxis2geolplane
+
      ! calculates geological plane normal
 
-    type(cartes_vect) function geolplane_norm_calc(geoplane1) result(geoplane_normal)
+    type(cart_vect) function geolplane2normalvect(geoplane1) result(geolplanenorm1)
 
         type(geol_plane), intent(in) :: geoplane1
 
         ! formulas from Aki and Richards, 1980
-        geoplane_normal%x = -sin(degr2rad * geoplane1%dip_angle) * sin(degr2rad * geoplane1%strike_rhr)
-        geoplane_normal%y =  sin(degr2rad * geoplane1%dip_angle) * cos(degr2rad * geoplane1%strike_rhr)
-        geoplane_normal%z = -cos(degr2rad * geoplane1%dip_angle)
+        geolplanenorm1%x = -sin(degr2rad * geoplane1%dip_angle) * sin(degr2rad * geoplane1%strike_rhr)
+        geolplanenorm1%y =  sin(degr2rad * geoplane1%dip_angle) * cos(degr2rad * geoplane1%strike_rhr)
+        geolplanenorm1%z = -cos(degr2rad * geoplane1%dip_angle)
+
+    end function
+
+    ! calculates the geological plane given its normal
+
+    type(geol_plane_opt) function normalvect2geolplane(normvect1) result(geolplaneopt1)
+
+        !implicit none
+
+        type(cart_vect), intent(in) :: normvect1
+        type(geol_axis_opt) :: geolaxisopt1
+
+        geolaxisopt1 = cartes2pole_opt(normvect1)
+        geolplaneopt1%valid = geolaxisopt1%valid
+        if (geolplaneopt1%valid) then
+            geolplaneopt1%geolplane = downaxis2geolplane(axis2downaxis(geolaxisopt1%geoax))
+        end if
 
     end function
 
 
-end module geometric_processing
+end module geologic_processing
 
 
-module fault_processing
+module bestfitplane
 
-    use geometric_processing
+    use vector_processing
 
     implicit none
 
     contains
 
-    ! calculates cartes_vect (cartesian) components of fault record
+    ! calculates SVD solution (s, sigma, u, v) for a given array a with m rows and n columns
 
-    subroutine fault_cartcmp(faultplane1, rake1, flt_norm_vctr, slickenl_vctr)
-
-        ! QUATf_faultpole2faultvector
-
-        type(geol_plane), intent(in) :: faultplane1
-        real (kind=r8b)	:: rake1
-        type (cartes_vect) , intent(out) :: flt_norm_vctr, slickenl_vctr
-
-        ! Fault Normal and slickln_ax cartesian coordinates
-        ! formulas from Aki and Richards, 1980
-        flt_norm_vctr%x = -sin(degr2rad*faultplane1%dip_angle)*sin(degr2rad*faultplane1%strike_rhr)
-        flt_norm_vctr%y = sin(degr2rad*faultplane1%dip_angle)*cos(degr2rad*faultplane1%strike_rhr)
-        flt_norm_vctr%z = -cos(degr2rad*faultplane1%dip_angle)
-
-        slickenl_vctr%x = cos(degr2rad*rake1) * cos(degr2rad*faultplane1%strike_rhr)   &
-         + sin(degr2rad*rake1) * cos(degr2rad*faultplane1%dip_angle) * sin(degr2rad*faultplane1%strike_rhr)
-        slickenl_vctr%y = cos(degr2rad*rake1) * sin(degr2rad*faultplane1%strike_rhr)  &
-         - sin(degr2rad*rake1) * cos(degr2rad*faultplane1%dip_angle) * cos(degr2rad*faultplane1%strike_rhr)
-        slickenl_vctr%z = -sin(degr2rad*rake1) * sin(degr2rad*faultplane1%dip_angle)
-
-    end subroutine fault_cartcmp
-
-    ! calculate the slickln_ax (trend and plunge) from the rake angle
-
-    type(geol_axis_opt) function rake2slickenline(strike, dip, rake) result(slicken_pole_opt)
+    type (cart_vect_opt) function svd(m, pts) result(res_vect)
+     ! modified from: TEST07 tests DGESVD
+     !                 by John Burkardt
 
         implicit none
 
-        real (kind=r8b), intent(in) :: strike, dip, rake
-        real (kind=r8b) :: strike_rd, dip_rd, rake_rd
-        type (cartes_vect) :: slick_vect
+        integer (kind = i4b), intent(in) :: m
+        integer (kind= i4b), parameter :: n = 3
+        real (kind = r8b), intent(in) :: pts(m, n)
 
-        strike_rd = degr2rad*strike
-        dip_rd = degr2rad*dip
-        rake_rd = degr2rad*rake
+        real (kind = r8b) :: s(min(m, n))
+        real (kind = r8b) :: u(m, m)
 
-        slick_vect%x = cos(rake_rd) * cos(strike_rd) + sin(rake_rd) * sin(strike_rd) * cos(dip_rd)
-        slick_vect%y = cos(rake_rd) * sin(strike_rd) - sin(rake_rd) * cos(strike_rd) * cos(dip_rd)
-        slick_vect%z = -sin(rake_rd) * sin(dip_rd)
+        ! internal variables
 
-        ! determination of trend and plunge of slickln_ax
-        slicken_pole_opt = cartes2pole_opt(slick_vect)
+        character :: jobu
+        character :: jobvt
+        integer ( kind = i4b ) :: lwork
+        integer ( kind = i4b ) :: info
+        integer ( kind = i4b ) :: lda
+        integer ( kind = i4b ) :: ldu
+        integer ( kind = i4b ) :: ldvt
+        real ( kind = r8b ) :: vt(n,n)
+        real ( kind = r8b ), allocatable :: work(:)
 
-    end function rake2slickenline
+        !  Compute the singular values and singular vectors
 
+        lwork = 3*min(m,n) + max ( max(m,n), 2*min(m,n) )
+        allocate (work(lwork))
 
-end module fault_processing
+        jobu = 'A'
+        jobvt = 'A'
+        lda = m
+        ldu = m
+        ldvt = n
 
+        call dgesvd ( jobu, jobvt, m, n, pts, lda, s, u, ldu, vt, ldvt, work, &
+                      lwork, info )
 
-subroutine r8mat_print ( m, n, a, title )
-
-!*****************************************************************************80
-!
-!! R8MAT_PRINT prints an R8MAT.
-!  Licensing:
-!
-!    This code is distributed under the GNU LGPL license.
-!
-!  Discussion:
-!
-!    An R8MAT is a two dimensional matrix of double precision real values.
-!
-!  Licensing:
-!
-!    This code is distributed under the GNU LGPL license.
-!
-!  Modified:
-!
-!    12 September 2004
-!
-!  Author:
-!
-!    John Burkardt
-!
-!  Parameters:
-!
-!    Input, integer M, the number of rows in A.
-!
-!    Input, integer N, the number of columns in A.
-!
-!    Input, real ( kind = r8b ) A(M,N), the matrix.
-!
-!    Input, character ( len = * ) TITLE, a title to be printed.
-!
-  implicit none
-
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) n
-
-  real ( kind = 8 ) a(m,n)
-  character ( len = * ) title
-
-  call r8mat_print_some ( m, n, a, 1, 1, m, n, title )
-
-  return
-end
-
-
-subroutine r8mat_print_some ( m, n, a, ilo, jlo, ihi, jhi, title )
-
-!*****************************************************************************80
-!
-!! R8MAT_PRINT_SOME prints some of an R8MAT.
-!
-!  Discussion:
-!
-!    An R8MAT is a two dimensional matrix of double precision real values.
-!
-!  Licensing:
-!
-!    This code is distributed under the GNU LGPL license.
-!
-!  Modified:
-!
-!    26 March 2005
-!
-!  Author:
-!
-!    John Burkardt
-!
-!  Parameters:
-!
-!    Input, integer M, N, the number of rows and columns.
-!
-!    Input, real ( kind = r8b ) A(M,N), an M by N matrix to be printed.
-!
-!    Input, integer ILO, JLO, the first row and column to print.
-!
-!    Input, integer IHI, JHI, the last row and column to print.
-!
-!    Input, character ( len = * ) TITLE, an optional title.
-!
-  implicit none
-
-  integer ( kind = 4 ), parameter :: incx = 5
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) n
-
-  real ( kind = 8 ) a(m,n)
-  character ( len = 14 ) ctemp(incx)
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) i2hi
-  integer ( kind = 4 ) i2lo
-  integer ( kind = 4 ) ihi
-  integer ( kind = 4 ) ilo
-  integer ( kind = 4 ) inc
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) j2
-  integer ( kind = 4 ) j2hi
-  integer ( kind = 4 ) j2lo
-  integer ( kind = 4 ) jhi
-  integer ( kind = 4 ) jlo
-  character ( len = * ) title
-
-  if ( 0 < len_trim ( title ) ) then
-    write ( *, '(a)' ) ' '
-    write ( *, '(a)' ) trim ( title )
-  end if
-
-  do j2lo = max ( jlo, 1 ), min ( jhi, n ), incx
-
-    j2hi = j2lo + incx - 1
-    j2hi = min ( j2hi, n )
-    j2hi = min ( j2hi, jhi )
-
-    inc = j2hi + 1 - j2lo
-
-    write ( *, '(a)' ) ' '
-
-    do j = j2lo, j2hi
-      j2 = j + 1 - j2lo
-      write ( ctemp(j2), '(i8,6x)' ) j
-    end do
-
-    write ( *, '(''  Col   '',5a14)' ) ctemp(1:inc)
-    write ( *, '(a)' ) '  Row'
-    write ( *, '(a)' ) ' '
-
-    i2lo = max ( ilo, 1 )
-    i2hi = min ( ihi, m )
-
-    do i = i2lo, i2hi
-
-      do j2 = 1, inc
-
-        j = j2lo - 1 + j2
-
-        if ( a(i,j) == real ( int ( a(i,j) ), kind = 8 ) ) then
-          write ( ctemp(j2), '(f8.0,6x)' ) a(i,j)
+        if (info /= 0) then
+            res_vect%valid = .FALSE.
         else
-          write ( ctemp(j2), '(g14.6)' ) a(i,j)
+             res_vect%valid = .TRUE.
+             res_vect%vect = cart_vect(vt(3,1),vt(3,2),vt(3,3))
         end if
 
-      end do
+     end function
 
-      write ( *, '(i5,1x,5a14)' ) i, ( ctemp(j), j = 1, inc )
-
-    end do
-
-  end do
-
-  write ( *, '(a)' ) ' '
-
-  return
-end
+end module bestfitplane
 
 
-subroutine r8vec_print ( n, a, title )
-
-!*****************************************************************************80
-!
-!! R8VEC_PRINT prints an R8VEC.
-!
-!  Discussion:
-!
-!    An R8VEC is an array of double precision real values.
-!
-!  Licensing:
-!
-!    This code is distributed under the GNU LGPL license.
-!
-!  Modified:
-!
-!    22 August 2000
-!
-!  Author:
-!
-!    John Burkardt
-!
-!  Parameters:
-!
-!    Input, integer N, the number of components of the cartes_vect.
-!
-!    Input, real ( kind = r8b ) A(N), the cartes_vect to be printed.
-!
-!    Input, character ( len = * ) TITLE, an optional title.
-!
-  implicit none
-
-  integer ( kind = 4 ) n
-
-  real ( kind = 8 ) a(n)
-  integer ( kind = 4 ) i
-  character ( len = * ) title
-
-  if ( 0 < len_trim ( title ) ) then
-    write ( *, '(a)' ) ' '
-    write ( *, '(a)' ) trim ( title )
-  end if
-
-  write ( *, '(a)' ) ' '
-  do i = 1, n
-    write ( *, '(2x,i8,2x,g16.8)' ) i, a(i)
-  end do
-
-  return
-end
-
-! calculates SVD solution (s, sigma, u, v) for a given array a with m rows and n columns
-
-subroutine svd(m, n, a, s, sigma, u, v)
-
-    use kinds
+module io
 
     implicit none
 
-    ! modified from: TEST07 tests DGESVD
-    !                 by John Burkardt
+    integer :: ios ! status of input/output connection
 
-    integer ( kind = i4b ), intent(in) :: m, n
-    real ( kind = r8b ), intent(in) :: a(m, n)
+    contains
 
-    real ( kind = r8b ), intent(out) :: s(min(m, n))
-    real ( kind = r8b ), intent(out) :: sigma(m, n)
-    real ( kind = r8b ), intent(out) :: u(m, m)
-    real ( kind = r8b ), intent(out) :: v(n, n)
+    ! write program header on screen
 
-    ! internal variables
+    subroutine welcome_screen()
 
-    character :: jobu
-    character :: jobvt
-    integer ( kind = i4b ) :: lwork
-    integer ( kind = i4b ) :: i
-    integer ( kind = i4b ) :: info
-    integer ( kind = i4b ) :: lda
-    integer ( kind = i4b ) :: ldu
-    integer ( kind = i4b ) :: ldvt
-    real ( kind = r8b ) :: vt(n,n)
-    real ( kind = r8b ) :: b(m, n)
-    real ( kind = r8b ), allocatable :: work(:)
 
-    ! debug printouts
+        write (*,"(A)") '*****************************************'
+        write (*,*)
+        write (*,"(16X,A)") 'geoSurfDEM - Invert'
+        write (*,*)
+        write (*,"(16X,A)") 'vers. 0.0.1'
+        write (*,"(17X,A)") '2016-11-31'
+        write (*,*)
+        write (*,"(5X,A)") 'Fortran program for determining Best-Fit Geological Planes to surface traces'
+        write (*,*)
+        write (*,"(A)") '*****************************************'
 
-    write ( *, '(a)' ) ' '
-    write ( *, '(a)' ) '  For a double precision real matrix (D)'
-    write ( *, '(a)' ) '  in general storage mode (GE):'
-    write ( *, '(a)' ) ' '
-    write ( *, '(a)' ) '  DGESVD computes the singular value decomposition:'
-    write ( *, '(a)' ) '    A = U * S * V'''
+        write (*,*)
+        write (*,*)
+        write (*,"(4X,A)") 'Input parameters definition'
+        write (*,*)
 
-    call r8mat_print(m, n, a, '  The matrix A:')
+    end subroutine welcome_screen
 
-    !  Compute the singular values and singular vectors.
+    ! choice and opening of input file, that stores the list of data sources
 
-    lwork = 3*min(m,n) + max ( max(m,n), 2*min(m,n) )
-    allocate (work(lwork))
+    subroutine input_file_def()
 
-    jobu = 'A'
-    jobvt = 'A'
-    lda = m
-    ldu = m
-    ldvt = n
 
-    call dgesvd ( jobu, jobvt, m, n, a, lda, s, u, ldu, vt, ldvt, work, &
-                  lwork, info )
+        character (len=50) :: InputFileName
+        integer :: ios
+        logical :: exists
 
-    if (info /= 0) then
+        do
+            write(*,"(A)", ADVANCE="no") 'Enter the name of input file: '
+            read(*,*) InputFileName
+            inquire(file=trim(InputFileName),exist=exists)
+            if (.NOT.exists) then
+                write(*,*) 'INPUT FILE: not found'
+                cycle
+            end if
+            ! open the input file with sequential access
+            open(unit=15,file=trim(InputFileName),status='old',access='sequential'  &
+                ,form='formatted',iostat=ios)
+            if (ios /= 0) then
+                write(*,*) 'INPUT FILE: not opened'
+                cycle
+            end if
+            exit
+        end do
+
+        write (*,*)
+
+    end subroutine input_file_def
+
+    ! define output files storing results
+
+    subroutine output_file_def()
+
+
+        character (len= 37) :: OutputFileName
+
+        do
+            write (*,"(A)", ADVANCE="no") 'Enter output filename: '
+            read (*,*) OutputFileName
+            ! create output file
+            open (unit=16, file=trim(OutputFileName), status='NEW' &
+            , access='sequential', form='formatted', iostat=ios)
+            if (ios /= 0) then
+                write (*,"(A,/,A)") 'Error with output file creation.','Change name'
+                cycle
+            end if
+            exit
+        end do
+
+        write (*,*)
+
+    end subroutine output_file_def
+
+
+    subroutine r8mat_print ( m, n, a, title )
+
+
+    !*****************************************************************************80
+    !
+    !! R8MAT_PRINT prints an R8MAT.
+    !  Licensing:
+    !
+    !    This code is distributed under the GNU LGPL license.
+    !
+    !  Discussion:
+    !
+    !    An R8MAT is a two dimensional matrix of double precision real values.
+    !
+    !  Licensing:
+    !
+    !    This code is distributed under the GNU LGPL license.
+    !
+    !  Modified:
+    !
+    !    12 September 2004
+    !
+    !  Author:
+    !
+    !    John Burkardt
+    !
+    !  Parameters:
+    !
+    !    Input, integer M, the number of rows in A.
+    !
+    !    Input, integer N, the number of columns in A.
+    !
+    !    Input, real ( kind = r8b ) A(M,N), the matrix.
+    !
+    !    Input, character ( len = * ) TITLE, a title to be printed.
+    !
+      implicit none
+
+      integer ( kind = 4 ) m
+      integer ( kind = 4 ) n
+
+      real ( kind = 8 ) a(m,n)
+      character ( len = * ) title
+
+      call r8mat_print_some ( m, n, a, 1, 1, m, n, title )
+
+      return
+    end
+
+
+    subroutine r8mat_print_some ( m, n, a, ilo, jlo, ihi, jhi, title )
+
+
+    !*****************************************************************************80
+    !
+    !! R8MAT_PRINT_SOME prints some of an R8MAT.
+    !
+    !  Discussion:
+    !
+    !    An R8MAT is a two dimensional matrix of double precision real values.
+    !
+    !  Licensing:
+    !
+    !    This code is distributed under the GNU LGPL license.
+    !
+    !  Modified:
+    !
+    !    26 March 2005
+    !
+    !  Author:
+    !
+    !    John Burkardt
+    !
+    !  Parameters:
+    !
+    !    Input, integer M, N, the number of rows and columns.
+    !
+    !    Input, real ( kind = r8b ) A(M,N), an M by N matrix to be printed.
+    !
+    !    Input, integer ILO, JLO, the first row and column to print.
+    !
+    !    Input, integer IHI, JHI, the last row and column to print.
+    !
+    !    Input, character ( len = * ) TITLE, an optional title.
+    !
+      implicit none
+
+      integer ( kind = 4 ), parameter :: incx = 5
+      integer ( kind = 4 ) m
+      integer ( kind = 4 ) n
+
+      real ( kind = 8 ) a(m,n)
+      character ( len = 14 ) ctemp(incx)
+      integer ( kind = 4 ) i
+      integer ( kind = 4 ) i2hi
+      integer ( kind = 4 ) i2lo
+      integer ( kind = 4 ) ihi
+      integer ( kind = 4 ) ilo
+      integer ( kind = 4 ) inc
+      integer ( kind = 4 ) j
+      integer ( kind = 4 ) j2
+      integer ( kind = 4 ) j2hi
+      integer ( kind = 4 ) j2lo
+      integer ( kind = 4 ) jhi
+      integer ( kind = 4 ) jlo
+      character ( len = * ) title
+
+      if ( 0 < len_trim ( title ) ) then
         write ( *, '(a)' ) ' '
-        write ( *, '(a,i8)' ) '  DGESVD returned nonzero INFO = ', info
-    end if
+        write ( *, '(a)' ) trim ( title )
+      end if
 
-    call r8vec_print ( min ( m, n ), s, '  Singular values' )
-    call r8mat_print ( m, m, u, '  Left singular vectors U:' )
-    call r8mat_print ( n, n, vt, '  Right singular vectors V'':' )
+      do j2lo = max ( jlo, 1 ), min ( jhi, n ), incx
 
-    sigma(1:m, 1:n) = 0.0D+00
-    do i = 1, min ( m, n )
-        sigma(i,i) = s(i)
-    end do
+        j2hi = j2lo + incx - 1
+        j2hi = min ( j2hi, n )
+        j2hi = min ( j2hi, jhi )
 
-    b(1:m, 1:n) = matmul ( u(1:m, 1:m), matmul ( sigma(1:m, 1:n), vt(1:n, 1:n) ) )
+        inc = j2hi + 1 - j2lo
 
-    call r8mat_print ( m, n, b, '  The product U * S * V'':' )
+        write ( *, '(a)' ) ' '
 
-    v = transpose(vt)
+        do j = j2lo, j2hi
+          j2 = j + 1 - j2lo
+          write ( ctemp(j2), '(i8,6x)' ) j
+        end do
 
- end subroutine svd
+        write ( *, '(''  Col   '',5a14)' ) ctemp(1:inc)
+        write ( *, '(a)' ) '  Row'
+        write ( *, '(a)' ) ' '
 
-! write program header on screen
+        i2lo = max ( ilo, 1 )
+        i2hi = min ( ihi, m )
 
-subroutine welcome_screen()
+        do i = i2lo, i2hi
 
-    write (*,"(A)") '*****************************************'
-    write (*,*)
-    write (*,"(16X,A)") 'geoSurfDEM - Invert'
-    write (*,*)
-    write (*,"(16X,A)")	'vers. 0.0.1'
-    write (*,"(17X,A)") '2016-11-31'
-    write (*,*)
-    write (*,"(5X,A)") 'Fortran program for determining Best-Fit-geol_plane to surface traces'
-    write (*,*)
-    write (*,"(A)") '*****************************************'
+          do j2 = 1, inc
 
-    write (*,*)
-    write (*,*)
-    write (*,"(4X,A)") 'Input parameters definition'
-    write (*,*)
+            j = j2lo - 1 + j2
 
-end subroutine welcome_screen
+            if ( a(i,j) == real ( int ( a(i,j) ), kind = 8 ) ) then
+              write ( ctemp(j2), '(f8.0,6x)' ) a(i,j)
+            else
+              write ( ctemp(j2), '(g14.6)' ) a(i,j)
+            end if
 
-! choice and opening of input file, that stores the list of data sources
+          end do
 
-subroutine input_file_def()
+          write ( *, '(i5,1x,5a14)' ) i, ( ctemp(j), j = 1, inc )
 
-    character (len=50) :: InputFileName
-    integer :: ios
-    logical :: exists
+        end do
 
-    do
-        write(*,"(A)", ADVANCE="no") 'Enter the name of input file: '
-        read(*,*) InputFileName
-        inquire(file=trim(InputFileName),exist=exists)
-        if (.NOT.exists) then
-            write(*,*) 'INPUT FILE: not found'
-            cycle
-        end if
-        ! open the input file with sequential access
-        open(unit=15,file=trim(InputFileName),status='old',access='sequential'  &
-            ,form='formatted',iostat=ios)
-        if (ios /= 0) then
-            write(*,*) 'INPUT FILE: not opened'
-            cycle
-        end if
-        exit
-    end do
+      end do
 
-	write (*,*)
+      write ( *, '(a)' ) ' '
 
-end subroutine input_file_def
+      return
+    end
 
-! define output files storing results
 
-subroutine output_file_def()
+    subroutine r8vec_print ( n, a, title )
 
-	character (len= 37) :: OutputFileName
+    !*****************************************************************************80
+    !
+    !! R8VEC_PRINT prints an R8VEC.
+    !
+    !  Discussion:
+    !
+    !    An R8VEC is an array of double precision real values.
+    !
+    !  Licensing:
+    !
+    !    This code is distributed under the GNU LGPL license.
+    !
+    !  Modified:
+    !
+    !    22 August 2000
+    !
+    !  Author:
+    !
+    !    John Burkardt
+    !
+    !  Parameters:
+    !
+    !    Input, integer N, the number of components of the cart_vect.
+    !
+    !    Input, real ( kind = r8b ) A(N), the cart_vect to be printed.
+    !
+    !    Input, character ( len = * ) TITLE, an optional title.
+    !
+      implicit none
 
-	do
-		write (*,"(A)", ADVANCE="no") 'Enter output filename: '
-		read (*,*) OutputFileName
-		! create output file
-		open (unit=16, file=trim(OutputFileName), status='NEW' &
-  		, access='sequential', form='formatted', iostat=ios)
-		if (ios /= 0) then
-            write (*,"(A,/,A)") 'Error with output file creation.','Change name'
-            cycle
-        end if
-        exit
-    end do
+      integer ( kind = 4 ) n
 
-    write (*,*)
+      real ( kind = 8 ) a(n)
+      integer ( kind = 4 ) i
+      character ( len = * ) title
 
-end subroutine output_file_def
+      if ( 0 < len_trim ( title ) ) then
+        write ( *, '(a)' ) ' '
+        write ( *, '(a)' ) trim ( title )
+      end if
+
+      write ( *, '(a)' ) ' '
+      do i = 1, n
+        write ( *, '(2x,i8,2x,g16.8)' ) i, a(i)
+      end do
+
+      return
+    end
+
+
+end module io
 
 
 program invert_attitudes
 
-    use kinds
+    use var_types
+    use geologic_processing
+    use bestfitplane
+    use io
 
     implicit none
 
-    integer ( kind = i4b ) :: m
     integer ( kind = i4b ), parameter :: n = 3
     real ( kind = r8b ) :: x, y, z
-    real ( kind = r8b ), dimension(:, :), allocatable :: a
-    real ( kind = r8b ), dimension(:), allocatable :: s
-    real ( kind = r8b ), dimension(:, :), allocatable :: sigma
-    real ( kind = r8b ), dimension(:, :), allocatable :: u
-    real ( kind = r8b ), dimension(n, n) :: v
     integer ( kind = i4b ) :: num_points, i
-    integer ( kind = i2b ) :: ios
+    real ( kind = r8b ), dimension(:, :), allocatable :: points
 
-    real ( kind = r8b ), dimension(:, :), allocatable :: b ! debug variable
+    type(cart_vect_opt) :: svd_res
 
     ! printout of welcome screen
 
@@ -863,70 +813,34 @@ program invert_attitudes
             num_points = num_points + 1
         end if
     end do
-    m = num_points
 
     ! allocate arrays
 
-    allocate(a(m, n), s(min(m, n)), sigma(m, n), u(m, m), b(m, n))
+    allocate(points(num_points, n))
 
     ! read source point data for single solution calculation
 
     rewind 15
-    do i = 1, m
-        read (15, *, iostat=ios) a(i, 1), a(i, 2), a(i, 3)
+    do i = 1, num_points
+        read (15, *, iostat=ios) points(i, 1), points(i, 2), points(i, 3)
     end do
 
     ! write source point data in output file
 
     write (16, *) 'point source data'
-    do i = 1, m
-        write (16, *) a(i, 1), a(i, 2), a(i, 3)
+    do i = 1, num_points
+        write (16, *) points(i, 1), points(i, 2), points(i, 3)
     end do
     write (16, *) ''
 
     ! calculates the SVD solution
 
-    call svd(m, n, a, s, sigma, u, v)
-
-    ! debug
-
-    call r8mat_print ( n, n, v, '  The matrix V:')
-
-    ! write singular values in output file
-
-    write (16, *) 'Singular values'
-    do i = 1, m
-        write (16, *) s(i)
-    end do
-    write (16, *) ''
-
-    ! write left singular vectors U in output file
-
-    write (16, *) 'Left singular vectors U'
-    do i = 1, m
-        write (16, *) u(i,1), u(i,2), u(i,3)
-    end do
-    write (16, *) ''
-
-    ! calculates resulting product cartes_vect
-
-    b = matmul ( u, matmul ( sigma, transpose(v) ) )
-
-    ! writes resulting product cartes_vect in output file
-
-    write (16, *) 'The product U * S * Vt'
-    do i = 1, m
-        write (16, *) b(i,1), b(i,2), b(i,3)
-    end do
-    write (16, *) ''
-
-    ! writes V array solution in output file
-
-    write (16, *) 'V array solution'
-    do i = 1, 3
-        write (16, *) v(i, 1), v(i, 2), v(i, 3)
-    end do
-    write (16, *) ''
+    svd_res = svd(num_points, points)
+    if (.not. svd_res%valid) then
+        write (16, *) 'invalid result'
+    else
+        write (16, *) svd_res%vect%x, svd_res%vect%y, svd_res%vect%z
+    end if
 
     ! write end message
 
