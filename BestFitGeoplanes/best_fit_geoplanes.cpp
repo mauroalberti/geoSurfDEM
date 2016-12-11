@@ -36,137 +36,126 @@ int isfloatpart (char c)
         return 0;
 }
 
+
 int main ()
 {
 
-    char sep;
+    // start time
+
+    clock_t start_time = clock();
+
+    // initial screenshot
 
     cout << "\n\nBest Fit Geoplanes\n";
     cout << "by M. Alberti - www.malg.eu\n";
     cout << "2016-12-10\n\n\n";
 
-
     // input of parameter file name and file opening
+
     cout << "Enter input parameter file name: ";
   	string param_filename;
     cin >> param_filename;
 
+    // input parameter file opening
+
     ifstream param_file;
     param_file.open(param_filename.c_str(), ios::binary);
-
     if (param_file.fail())
     {
     cout << "\n\nUnable to open parameter file '" << param_filename << "'\n";
     return 1;
     }
 
-    // start time
-    clock_t start_time = clock();
-
     // parameter reading
 
-    string xyz_indata_fpath, bestfitgeoplanes_fpath, pts_count_grid_fpath, cell_size_str_in;
-    string xyz_data_fnm, bfgeoplanes_fnm, ptnumgrid_flnm, cell_size_str;
+    string xyzdata_line, bfpgeoplanes_line, ptscntgrd_line, cellsize_line;
+    string xyzdata_fpth, bfpgeoplanes_fpth, ptnumgrid_fpth, cellsize_str;
+
+    getline(param_file, xyzdata_line);
+    istringstream df(xyzdata_line);
+    df >> xyzdata_fpth; // xyz file path
+
+    getline(param_file, bfpgeoplanes_line);
+    istringstream fe(bfpgeoplanes_line);
+    fe >> bfpgeoplanes_fpth; // output geoplanes file path
+
+    getline(param_file, ptscntgrd_line);
+    istringstream ge(ptscntgrd_line);
+    ge >> ptnumgrid_fpth; // output point number grid file path
+
+    getline(param_file, cellsize_line);
+    istringstream cs(cellsize_line);
+    cs >> cellsize_str;
+    for (uint i = 0; i < cellsize_str.size(); i++) // tests cell size value being number
+        { if (isfloatpart(cellsize_str[i]) == 0)
+            {cout << "\n\nCell size input: not correct\n";
+             return 1;}};
+    float cell_size;
+	istringstream instr(cellsize_str);
+	instr >> cell_size; // used cell size
+
+    // printout of read parameters
 
     cout << "\nInput parameters\n";
-    getline(param_file, xyz_indata_fpath);
-    istringstream df(xyz_indata_fpath);
-    df >> xyz_data_fnm;
-    cout << " - xyz data (input): " << xyz_data_fnm << "\n";
+    cout << " - xyz data (input): " << xyzdata_fpth << "\n";
+    cout << " - best fit geoplanes (output): " << bfpgeoplanes_fpth << "\n";
+    cout << " - point number grid (output): " << ptnumgrid_fpth << "\n";
+    cout << " - cell size: " << cellsize_str << "\n";
 
-    getline(param_file, bestfitgeoplanes_fpath);
-    istringstream fe(bestfitgeoplanes_fpath);
-    fe >> bfgeoplanes_fnm;
-    cout << " - best fit geoplanes (output): " << bfgeoplanes_fnm << "\n";
-
-    getline(param_file, pts_count_grid_fpath);
-    istringstream ge(pts_count_grid_fpath);
-    ge >> ptnumgrid_flnm;
-    cout << " - point number grid (output): " << ptnumgrid_flnm << "\n";
-
-    getline(param_file, cell_size_str_in);
-    istringstream cs(cell_size_str_in);
-    cs >> cell_size_str;
-    cout << " - cell size: " << cell_size_str << "\n";
-
-
-    // tests cell size value being number
-    for (int i = 0; i < cell_size_str.size(); i++)
-    {
-        if (isfloatpart(cell_size_str[i]) == 0)
-        {
-            cout << "\n\nCell size input: not correct\n";
-            return 1;
-        }
-    }
-    float cell_size;
-	istringstream instr(cell_size_str);
-	instr >> cell_size;
+    // open xyz input file
 
     ifstream infile;
-    infile.open(xyz_data_fnm.c_str(), ios::binary);
-
+    infile.open(xyzdata_fpth.c_str(), ios::binary);
     if (infile.fail())
-    {
-    cout << "\n\nUnable to open input file '" << xyz_data_fnm << "'\n";
-    return 1;
-    }
+        {cout << "\n\nUnable to open input file '" << xyzdata_fpth << "'\n";
+        return 1;}
+
+    // create output geoplanes file
 
     ofstream outfile;
-    outfile.open(bfgeoplanes_fnm.c_str(), ios::binary);
-
+    outfile.open(bfpgeoplanes_fpth.c_str(), ios::binary);
     if (outfile.fail())
-    {
-    cout << "\n\nUnable to create output file '" << bfgeoplanes_fnm << "'\n";
-    return 1;
-    }
+        {cout << "\n\nUnable to create output file '" << bfpgeoplanes_fpth << "'\n";
+         return 1;}
+
+    // create output point number grid file
 
     ofstream outgridfile;
-    outgridfile.open(ptnumgrid_flnm.c_str(), ios::binary);
-
+    outgridfile.open(ptnumgrid_fpth.c_str(), ios::binary);
     if (outgridfile.fail())
-    {
-        cout << "\n\nUnable to create output grid file '" <<  ptnumgrid_flnm << "'\n";
-        return 1;
-    }
+        {cout << "\n\nUnable to create output grid file '" <<  ptnumgrid_fpth << "'\n";
+         return 1;}
 
     //
     // processing begins
     //
 
-    cout << "\n\n -- processing started ... please wait\n\n";
+    cout << "\n\n -- processing started ... please wait\n";
+
+    // vars for reading input raw xyz file
 
     string rec_line;
-
-    //  list of raw data strings
-
-    list<string> rawdata_list;
+    list<string> rawdata_list; //  list of raw data strings
 
     // reads file header
 
     getline(infile, rec_line);
-
     while (!infile.eof())
-    {
-        getline(infile, rec_line);
-        if (rec_line.size() > 0)
-        {
-            rawdata_list.push_back(rec_line);
-        }
-
-    }
-
+        {getline(infile, rec_line);
+         if (rec_line.size() > 0)
+            {rawdata_list.push_back(rec_line);}}
     infile.close();
 
+    // vars for storing xyz input data
+
     int num_recs = rawdata_list.size();
-
-
     list<string>::iterator string_pos; // string list iterator
-
     vector<int> id(num_recs); vector<double> x(num_recs), y(num_recs), z(num_recs);
 
-    int ndx = 0;
+    // read input xyz data into three double vectors
 
+    char sep;
+    int ndx = 0;
     for (string_pos=rawdata_list.begin(); string_pos!=rawdata_list.end(); string_pos++)
     {
         istringstream instr(*string_pos);
@@ -175,7 +164,7 @@ int main ()
 
     }
 
-    // spatial range: min and max of x, y and z
+    // define spatial ranges of x, y and z
 
     double x_min = *min_element( x.begin(), x.end() );
     double x_max = *max_element( x.begin(), x.end() );
@@ -183,19 +172,21 @@ int main ()
     double y_max = *max_element( y.begin(), y.end() );
     double z_min = *min_element( z.begin(), z.end() );
     double z_max = *max_element( z.begin(), z.end() );
-
-    cout << "The spatial range of data is:\n";
-    cout << "  x min: " << x_min << " x max: " << x_max << "\n";
-    cout << "  y min: " << y_min << " y max: " << y_max << "\n";
-    cout << "  z min: " << z_min << " z max: " << z_max << "\n\n";
-
     float x_range = x_max -  x_min;
     float y_range = y_max -  y_min;
 
-    int columns = int(x_range/cell_size) + 1;
-    int rows = int(y_range/cell_size) + 1;
+    // define number of rows and columns for grid analysis
 
-    cout << "Rows number: " << rows << "\nColumn number: " << columns << "\n ";
+    int rows = int(y_range/cell_size) + 1;
+    int columns = int(x_range/cell_size) + 1;
+
+    // printout info on spatial ranges and grid params
+
+    cout << "\nThe spatial range of data is:\n";
+    cout << "  x min: " << x_min << " x max: " << x_max << "\n";
+    cout << "  y min: " << y_min << " y max: " << y_max << "\n";
+    cout << "  z min: " << z_min << " z max: " << z_max << "\n";
+    cout << "\nRows number: " << rows << "\nColumn number: " << columns << "\n ";
 
     // calculation of #grid_n# (linear index of grid) and #set_ndx_nonemptycell#, set of filled cells by index
 
@@ -275,15 +266,20 @@ int main ()
 
     }
 
+
+
     outgridfile.close();
 
+    */
+
     // end time
+
     clock_t end_time = clock();
     float diff_time = ((float)end_time - (float)start_time)/1000.0;  // run time
 
     printf ("\n\nProcessing completed in %.2lf seconds\n\n", diff_time );
-    */
 
+    // appl end
 
     return 0;
 }
