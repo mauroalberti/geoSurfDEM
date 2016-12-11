@@ -34,15 +34,34 @@ int isfloatpart (char c)
         return 1;
     else
         return 0;
-}
+};
+
+class Point {
+
+private:
+
+    double _x, _y, _z;
+
+public:
+
+    Point( double xval, double yval, double zval) {
+       _x = xval;
+       _y = yval;
+       _z = zval; }
+
+    double x() {
+       return _x;}
+
+    double y() {
+       return _y;}
+
+    double z() {
+       return _z;}
+};
 
 
 int main ()
 {
-
-    // start time
-
-    clock_t start_time = clock();
 
     // initial screenshot
 
@@ -102,6 +121,17 @@ int main ()
     cout << " - point number grid (output): " << ptnumgrid_fpth << "\n";
     cout << " - cell size: " << cellsize_str << "\n";
 
+    //
+    // processing begins
+    //
+
+    cout << "\n\n -- processing started ... please wait\n";
+
+    // start time
+
+    clock_t start_time = clock();
+    cout << "\nStart time: " << start_time;
+
     // open xyz input file
 
     ifstream infile;
@@ -125,12 +155,6 @@ int main ()
     if (outgridfile.fail())
         {cout << "\n\nUnable to create output grid file '" <<  ptnumgrid_fpth << "'\n";
          return 1;}
-
-    //
-    // processing begins
-    //
-
-    cout << "\n\n -- processing started ... please wait\n";
 
     // vars for reading input raw xyz file
 
@@ -157,12 +181,9 @@ int main ()
     char sep;
     int ndx = 0;
     for (string_pos=rawdata_list.begin(); string_pos!=rawdata_list.end(); string_pos++)
-    {
-        istringstream instr(*string_pos);
+       {istringstream instr(*string_pos);
         instr >> x[ndx] >> sep >> y[ndx] >> sep >> z[ndx];
-        ndx++;
-
-    }
+        ndx++;}
 
     // define spatial ranges of x, y and z
 
@@ -188,53 +209,41 @@ int main ()
     cout << "  z min: " << z_min << " z max: " << z_max << "\n";
     cout << "\nRows number: " << rows << "\nColumn number: " << columns << "\n ";
 
-    // calculation of #grid_n# (linear index of grid) and #set_ndx_nonemptycell#, set of filled cells by index
+    // define the grid indices for the points, together with non-empty grid cells
 
-   vector<int> grid_i(num_recs), grid_j(num_recs), grid_n(num_recs);
-   set<int> set_ndx_nonemptycell;
-
+   vector<int> pt_cellndx_i(num_recs), pt_cellndx_j(num_recs), pt_cellndx_n(num_recs);
+   set<int> nonemptycell_ndxs_set;
     for (int k = 0; k < num_recs; k++)
-    {
-        grid_i[k] = int( (x[k]- x_min)/cell_size);
-        grid_j[k] = int( (y[k]- y_min)/cell_size);
-        grid_n[k] = (columns*grid_i[k]) + grid_j[k];
-        set_ndx_nonemptycell.insert(grid_n[k]);
-    }
+        {pt_cellndx_i[k] = int((x[k]- x_min)/cell_size);
+         pt_cellndx_j[k] = int((y[k]- y_min)/cell_size);
+         pt_cellndx_n[k] = (columns * pt_cellndx_i[k]) + pt_cellndx_j[k];
+         nonemptycell_ndxs_set.insert(pt_cellndx_n[k]);}
 
-   // calculation of #index_mapping#, representing the records for each non-empty cell
+   // initialize the grid cell - point mapping for non empty cells
 
-   map<int, vector<int> > index_mapping;
-
+   map<int, vector<int> > gridcell2pts_map;
    set<int>::const_iterator pos;
-   for(pos = set_ndx_nonemptycell.begin(); pos != set_ndx_nonemptycell.end(); ++pos)
-    {
-        vector<int> empy_vector;
-        index_mapping[*pos] = empy_vector;
-    }
+   for(pos = nonemptycell_ndxs_set.begin(); pos != nonemptycell_ndxs_set.end(); ++pos)
+      {vector<int> empy_vector;
+      gridcell2pts_map[*pos] = empy_vector;}
 
-    for (int k = 0; k < num_recs; k++)
-    {
+   // insert the point indices into the grid cell references (linear index)
 
-      index_mapping[grid_n[k]].push_back(k);
+   for (int k = 0; k < num_recs; k++)
+      {gridcell2pts_map[pt_cellndx_n[k]].push_back(k);}
 
-    }
+    //outfile << "id_rec, x, y, z\n";
 
-    /*
+    map<int, vector<int> >::iterator map_iter;
+    for(map_iter = gridcell2pts_map.begin(); map_iter != gridcell2pts_map.end(); ++map_iter) {
+        vector<int> vector_ndx = (*map_iter).second;
+        vector<Point> points_in_cell;
+        for (uint pi = 0; pi < vector_ndx.size(); pi++) {
+            points_in_cell.push_back(Point(x[vector_ndx[pi]], y[vector_ndx[pi]], z[vector_ndx[pi]]));}
 
-    outfile << "id_rec, x, y, z\n";
+        // CALL FORTRAN PASSING FOUND POINTS AND GET ESTIMATED GEOPLANE (DIP-DIR & ANGLE
 
-    map<int, vector<int> >::iterator iter_map;
-    for(iter_map = index_mapping.begin(); iter_map != index_mapping.end(); ++iter_map)
-    {
-       vector<int> vector_ndx = (*iter_map).second;
-       vector<double> elevations_in_cell;
-       for (int pi = 0; pi < vector_ndx.size(); pi++)
-       {
-           elevations_in_cell.push_back(z[vector_ndx[pi]]);
-       }
-       //int ndx_raw_median_elevation = ndx_median_value(elevations_in_cell);
-       //int ndx_median_elevation = vector_ndx[ndx_raw_median_elevation];
-       //outfile << id[ndx_median_elevation] << "," << x[ndx_median_elevation] << "," << y[ndx_median_elevation] << "," << z[ndx_median_elevation] << "\n";
+        //outfile << id[ndx_median_elevation] << "," << x[ndx_median_elevation] << "," << y[ndx_median_elevation] << "," << z[ndx_median_elevation] << "\n";
 
     }
 
@@ -247,37 +256,28 @@ int main ()
     outgridfile << "cellsize " << cell_size << "\n";
     outgridfile << "nodata_value " << 0 << "\n";
 
-    for (int j=(rows-1);j>=0;j--)
-    {
-        for (int i=0;i<columns;i++)
-        {
-            int n = (columns*i) + j;
-
-            if (index_mapping.count(n) ==0)
-            {
-                outgridfile << "0 ";
-            }
-            else
-            {
-                int num_of_recs_in_cell = index_mapping[n].size();
-                outgridfile << num_of_recs_in_cell << " ";
-            }
-        }
-
-    }
-
-
+    for (int j=(rows-1);j>=0;j--) {
+       for (int i=0;i<columns;i++) {
+          int n = (columns*i) + j;
+          if (gridcell2pts_map.count(n) == 0) {
+             outgridfile << "0 ";}
+          else {
+             int num_of_recs_in_cell = gridcell2pts_map[n].size();
+             outgridfile << num_of_recs_in_cell << " "; } } }
 
     outgridfile.close();
+
+    /*
 
     */
 
     // end time
 
     clock_t end_time = clock();
-    float diff_time = ((float)end_time - (float)start_time)/1000.0;  // run time
+    cout << "\nEnd time: " << end_time;
+    float diff_time = ((float)end_time - (float)start_time)/CLOCKS_PER_SEC;  // run time
 
-    printf ("\n\nProcessing completed in %.2lf seconds\n\n", diff_time );
+    printf ("\n\nProcessing completed in %.6lf seconds\n\n", diff_time );
 
     // appl end
 
