@@ -28,13 +28,94 @@
 
 using namespace std;
 
-int isfloatpart (char c)
-{
-    if ((c >= '0' && c <='9') or (c == '.'))
-        return 1;
+
+bool is_uint_digit (char c) {
+
+    if (c >= '0' && c <='9')
+        return true;
     else
-        return 0;
+        return false; };
+
+
+bool is_float_digit (char c) {
+
+    if (is_uint_digit(c) or (c == '.') or (c == '-'))
+        return true;
+    else
+        return false; };
+
+
+bool is_uint(string &str) {
+
+    for (uint i = 0; i < str.size(); i++) {
+        if (! is_uint_digit(str[i])) {
+            return false; }; };
+    return true; };
+
+
+bool is_float(string &str) {
+
+    for (uint i = 0; i < str.size(); i++) {
+        if (! is_float_digit(str[i])) {
+            return false; }; };
+    return true; };
+
+
+string read_string(string &line) {
+
+    string readstring;
+    istringstream ss(line);
+    ss >> readstring;
+    return readstring; };
+
+
+int read_int(string &line) {
+
+    string readstring;
+    readstring = read_string(line);
+    return std::stoi(readstring);
+
 };
+
+int read_float(string &line) {
+
+    string readstring;
+    readstring = read_string(line);
+    return std::stof(readstring);
+
+};
+
+void read_params(std::stringstream &param_lines, string &xyzdata_fpth, uint &num_hdrlns,
+                 string &bfpgeoplanes_fpth, string &ptnumgrid_fpth, float &cell_size) {
+
+    string readline;
+
+    getline(param_lines, readline);
+    xyzdata_fpth = read_string(readline);
+
+    getline(param_lines, readline);
+    readline.erase(readline.end()-1);
+    if (is_uint(readline)) {
+        num_hdrlns = read_int(readline);}
+    else {
+        throw "Number of header lines is not an unsigned integer";};
+
+    getline(param_lines, readline);
+    bfpgeoplanes_fpth = read_string(readline);
+
+    getline(param_lines, readline);
+    ptnumgrid_fpth = read_string(readline);
+
+    getline(param_lines, readline);
+    readline.erase(readline.end()-1);
+    if (is_float(readline)) {
+        cell_size = read_float(readline);}
+    else {
+        throw "Cell size is not a float value";};
+
+};
+
+
 
 class Point {
 
@@ -60,77 +141,68 @@ public:
 };
 
 
-int main ()
-{
+int main () {
+
+    //
+    // user interaction processes
+    //
 
     // initial screenshot
 
-    cout << "\n\nBest Fit Geoplanes\n";
-    cout << "by M. Alberti - www.malg.eu\n";
-    cout << "2016-12-10\n\n\n";
+    std::cout << "\n\nBest Fit Geoplanes\n";
+    std::cout << "by M. Alberti - www.malg.eu\n";
+    std::cout << "2016-12-17\n\n\n";
 
     // input of parameter file name and file opening
 
-    cout << "Enter input parameter file name: ";
-  	string param_filename;
-    cin >> param_filename;
-
-    // input parameter file opening
-
-    ifstream param_file;
-    param_file.open(param_filename.c_str(), ios::binary);
-    if (param_file.fail())
-    {
-    cout << "\n\nUnable to open parameter file '" << param_filename << "'\n";
-    return 1;
-    }
-
-    // parameter reading
-
-    string xyzdata_line, bfpgeoplanes_line, ptscntgrd_line, cellsize_line;
-    string xyzdata_fpth, bfpgeoplanes_fpth, ptnumgrid_fpth, cellsize_str;
-
-    getline(param_file, xyzdata_line);
-    istringstream df(xyzdata_line);
-    df >> xyzdata_fpth; // xyz file path
-
-    getline(param_file, bfpgeoplanes_line);
-    istringstream fe(bfpgeoplanes_line);
-    fe >> bfpgeoplanes_fpth; // output geoplanes file path
-
-    getline(param_file, ptscntgrd_line);
-    istringstream ge(ptscntgrd_line);
-    ge >> ptnumgrid_fpth; // output point number grid file path
-
-    getline(param_file, cellsize_line);
-    istringstream cs(cellsize_line);
-    cs >> cellsize_str;
-    for (uint i = 0; i < cellsize_str.size(); i++) // tests cell size value being number
-        { if (isfloatpart(cellsize_str[i]) == 0)
-            {cout << "\n\nCell size input: not correct\n";
-             return 1;}};
-    float cell_size;
-	istringstream instr(cellsize_str);
-	instr >> cell_size; // used cell size
-
-    // printout of read parameters
-
-    cout << "\nInput parameters\n";
-    cout << " - xyz data (input): " << xyzdata_fpth << "\n";
-    cout << " - best fit geoplanes (output): " << bfpgeoplanes_fpth << "\n";
-    cout << " - point number grid (output): " << ptnumgrid_fpth << "\n";
-    cout << " - cell size: " << cellsize_str << "\n";
-
-    //
-    // processing begins
-    //
-
-    cout << "\n\n -- processing started ... please wait\n";
+    std::cout << "Enter input parameter file name: ";
+  	std::string param_filename;
+    std::cin >> param_filename;
 
     // start time
 
     clock_t start_time = clock();
-    cout << "\nStart time: " << start_time;
+
+    // input parameter file reading
+
+    std::ifstream param_file(param_filename);
+    std::stringstream param_lines;
+    param_lines << param_file.rdbuf();
+
+    // reading parameters
+
+    string xyzdata_fpth; // path of input xyz file
+    uint num_hdrlns; // number of header lines in xyz file
+    string bfpgeoplanes_fpth; // output geoplanes file path
+    string ptnumgrid_fpth;  // output point number grid file path
+    float cell_size;  // used cell size
+
+    try {
+
+        read_params(param_lines,
+                    xyzdata_fpth,
+                    num_hdrlns,
+                    bfpgeoplanes_fpth,
+                    ptnumgrid_fpth,
+                    cell_size); }
+    catch (string error_msg) {
+
+        std::cout << "Parameter input error: " << error_msg; };
+
+    // printout read parameters
+
+    cout << "\nInput parameters\n";
+    cout << " - xyz data (input): " << xyzdata_fpth << "\n";
+    cout << " - number of header lines in xyz data file: " << num_hdrlns << "\n";
+    cout << " - best fit geoplanes (output): " << bfpgeoplanes_fpth << "\n";
+    cout << " - point number grid (output): " << ptnumgrid_fpth << "\n";
+    cout << " - cell size: " << cell_size << "\n";
+
+    //
+    // internal processings
+    //
+
+    cout << "\n\n -- processing started ... please wait\n\n";
 
     // open xyz input file
 
@@ -156,19 +228,21 @@ int main ()
         {cout << "\n\nUnable to create output grid file '" <<  ptnumgrid_fpth << "'\n";
          return 1;}
 
-    // vars for reading input raw xyz file
+    // read input raw xyz file
 
     string rec_line;
-    list<string> rawdata_list; //  list of raw data strings
+    list<string> rawdata_list;  // list of raw data strings
 
-    // reads file header
+    for (uint n = 0; n < num_hdrlns; n++) {  // read  and discard file header
+        getline(infile, rec_line);};
 
-    getline(infile, rec_line);
-    while (!infile.eof())
-        {getline(infile, rec_line);
-         if (rec_line.size() > 0)
-            {rawdata_list.push_back(rec_line);}}
+    while (! infile.eof()) {  // read raw data
+        getline(infile, rec_line);
+        if (rec_line.size() > 0) {
+            rawdata_list.push_back(rec_line);}}
     infile.close();
+
+    std::cout << "Read " << rawdata_list.size() << " records\n";
 
     // vars for storing xyz input data
 
@@ -241,7 +315,7 @@ int main ()
         for (uint pi = 0; pi < vector_ndx.size(); pi++) {
             points_in_cell.push_back(Point(x[vector_ndx[pi]], y[vector_ndx[pi]], z[vector_ndx[pi]]));}
 
-        // CALL FORTRAN PASSING FOUND POINTS AND GET ESTIMATED GEOPLANE (DIP-DIR & ANGLE
+        // CALL FORTRAN PASSING FOUND POINTS AND GET ESTIMATED GEOPLANE (DIP-DIR & ANGLE)
 
         //outfile << id[ndx_median_elevation] << "," << x[ndx_median_elevation] << "," << y[ndx_median_elevation] << "," << z[ndx_median_elevation] << "\n";
 
@@ -267,16 +341,9 @@ int main ()
 
     outgridfile.close();
 
-    /*
+    // print run time
 
-    */
-
-    // end time
-
-    clock_t end_time = clock();
-    cout << "\nEnd time: " << end_time;
-    float diff_time = ((float)end_time - (float)start_time)/CLOCKS_PER_SEC;  // run time
-
+    float diff_time = ((float)clock() - (float)start_time)/CLOCKS_PER_SEC;  // run time
     printf ("\n\nProcessing completed in %.6lf seconds\n\n", diff_time );
 
     // appl end
