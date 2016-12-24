@@ -85,26 +85,26 @@ int read_float(string &line) {
 
 };
 
-void read_params(std::stringstream &param_lines, string &xyzdata_fpth, uint &num_hdrlns,
-                 string &bfpgeoplanes_fpth, string &ptnumgrid_fpth, float &cell_size) {
+void read_params(std::stringstream &param_lines, string &xyz_data_fpth, uint &hdr_ln_num,
+                 string &bfp_geoplanes_fpth, string &ptnum_grid_fpth, float &cell_size) {
 
     string readline;
 
     getline(param_lines, readline);
-    xyzdata_fpth = read_string(readline);
+    xyz_data_fpth = read_string(readline);
 
     getline(param_lines, readline);
     readline.erase(readline.end()-1);
     if (is_uint(readline)) {
-        num_hdrlns = read_int(readline);}
+        hdr_ln_num = read_int(readline);}
     else {
         throw "Number of header lines is not an unsigned integer";};
 
     getline(param_lines, readline);
-    bfpgeoplanes_fpth = read_string(readline);
+    bfp_geoplanes_fpth = read_string(readline);
 
     getline(param_lines, readline);
-    ptnumgrid_fpth = read_string(readline);
+    ptnum_grid_fpth = read_string(readline);
 
     getline(param_lines, readline);
     readline.erase(readline.end()-1);
@@ -171,31 +171,30 @@ int main () {
 
     // reading parameters
 
-    string xyzdata_fpth; // path of input xyz file
-    uint num_hdrlns; // number of header lines in xyz file
-    string bfpgeoplanes_fpth; // output geoplanes file path
-    string ptnumgrid_fpth;  // output point number grid file path
+    string xyz_data_fpth; // path of input xyz file
+    uint hdr_ln_num; // number of header lines in xyz file
+    string bfp_geoplanes_fpth; // output geoplanes file path
+    string ptnum_grid_fpth;  // output point number grid file path
     float cell_size;  // used cell size
 
     try {
-
         read_params(param_lines,
-                    xyzdata_fpth,
-                    num_hdrlns,
-                    bfpgeoplanes_fpth,
-                    ptnumgrid_fpth,
+                    xyz_data_fpth,
+                    hdr_ln_num,
+                    bfp_geoplanes_fpth,
+                    ptnum_grid_fpth,
                     cell_size); }
     catch (string error_msg) {
-
-        std::cout << "Parameter input error: " << error_msg; };
+        std::cout << "Parameter input error: " << error_msg;
+        return 1;};
 
     // printout read parameters
 
     cout << "\nInput parameters\n";
-    cout << " - xyz data (input): " << xyzdata_fpth << "\n";
-    cout << " - number of header lines in xyz data file: " << num_hdrlns << "\n";
-    cout << " - best fit geoplanes (output): " << bfpgeoplanes_fpth << "\n";
-    cout << " - point number grid (output): " << ptnumgrid_fpth << "\n";
+    cout << " - xyz data (input): " << xyz_data_fpth << "\n";
+    cout << " - number of header lines in xyz data file: " << hdr_ln_num << "\n";
+    cout << " - best fit geoplanes (output): " << bfp_geoplanes_fpth << "\n";
+    cout << " - point number grid (output): " << ptnum_grid_fpth << "\n";
     cout << " - cell size: " << cell_size << "\n";
 
     //
@@ -207,25 +206,25 @@ int main () {
     // open xyz input file
 
     ifstream infile;
-    infile.open(xyzdata_fpth.c_str(), ios::binary);
+    infile.open(xyz_data_fpth.c_str(), ios::binary);
     if (infile.fail())
-        {cout << "\n\nUnable to open input file '" << xyzdata_fpth << "'\n";
+        {cout << "\n\nUnable to open input file '" << xyz_data_fpth << "'\n";
         return 1;}
 
     // create output geoplanes file
 
     ofstream outfile;
-    outfile.open(bfpgeoplanes_fpth.c_str(), ios::binary);
+    outfile.open(bfp_geoplanes_fpth.c_str(), ios::binary);
     if (outfile.fail())
-        {cout << "\n\nUnable to create output file '" << bfpgeoplanes_fpth << "'\n";
+        {cout << "\n\nUnable to create output file '" << bfp_geoplanes_fpth << "'\n";
          return 1;}
 
     // create output point number grid file
 
     ofstream outgridfile;
-    outgridfile.open(ptnumgrid_fpth.c_str(), ios::binary);
+    outgridfile.open(ptnum_grid_fpth.c_str(), ios::binary);
     if (outgridfile.fail())
-        {cout << "\n\nUnable to create output grid file '" <<  ptnumgrid_fpth << "'\n";
+        {cout << "\n\nUnable to create output grid file '" <<  ptnum_grid_fpth << "'\n";
          return 1;}
 
     // read input raw xyz file
@@ -233,7 +232,7 @@ int main () {
     string rec_line;
     list<string> rawdata_list;  // list of raw data strings
 
-    for (uint n = 0; n < num_hdrlns; n++) {  // read  and discard file header
+    for (uint n = 0; n < hdr_ln_num; n++) {  // read  (and discard) file header
         getline(infile, rec_line);};
 
     while (! infile.eof()) {  // read raw data
@@ -242,24 +241,22 @@ int main () {
             rawdata_list.push_back(rec_line);}}
     infile.close();
 
-    std::cout << "Read " << rawdata_list.size() << " records\n";
-
-    // vars for storing xyz input data
-
-    int num_recs = rawdata_list.size();
-    list<string>::iterator string_pos; // string list iterator
-    vector<int> id(num_recs); vector<double> x(num_recs), y(num_recs), z(num_recs);
+    std::cout << rawdata_list.size() << " records read\n";
 
     // read input xyz data into three double vectors
 
+    int num_recs = rawdata_list.size();  // total number of input points
+    vector<double> x(num_recs), y(num_recs), z(num_recs);  // vectors storing the x, y and z coordinates for all points
+
     char sep;
     int ndx = 0;
+    list<string>::iterator string_pos;  // string list iterator
     for (string_pos=rawdata_list.begin(); string_pos!=rawdata_list.end(); string_pos++)
        {istringstream instr(*string_pos);
         instr >> x[ndx] >> sep >> y[ndx] >> sep >> z[ndx];
         ndx++;}
 
-    // define spatial ranges of x, y and z
+    // calculate spatial ranges of x, y and z
 
     double x_min = *min_element( x.begin(), x.end() );
     double x_max = *max_element( x.begin(), x.end() );
@@ -270,12 +267,12 @@ int main () {
     float x_range = x_max -  x_min;
     float y_range = y_max -  y_min;
 
-    // define number of rows and columns for grid analysis
+    // calculate grid row and column numbers
 
     int rows = int(y_range/cell_size) + 1;
     int columns = int(x_range/cell_size) + 1;
 
-    // printout info on spatial ranges and grid params
+    // print info on spatial ranges and grid params
 
     cout << "\nThe spatial range of data is:\n";
     cout << "  x min: " << x_min << " x max: " << x_max << "\n";
@@ -283,33 +280,41 @@ int main () {
     cout << "  z min: " << z_min << " z max: " << z_max << "\n";
     cout << "\nRows number: " << rows << "\nColumn number: " << columns << "\n ";
 
-    // define the grid indices for the points, together with non-empty grid cells
+    // calculate grid indices of input points, together with non-empty grid cells
 
-   vector<int> pt_cellndx_i(num_recs), pt_cellndx_j(num_recs), pt_cellndx_n(num_recs);
-   set<int> nonemptycell_ndxs_set;
-    for (int k = 0; k < num_recs; k++)
-        {pt_cellndx_i[k] = int((x[k]- x_min)/cell_size);
-         pt_cellndx_j[k] = int((y[k]- y_min)/cell_size);
-         pt_cellndx_n[k] = (columns * pt_cellndx_i[k]) + pt_cellndx_j[k];
-         nonemptycell_ndxs_set.insert(pt_cellndx_n[k]);}
+    vector<int> pt_cellndx_i(num_recs), pt_cellndx_j(num_recs);
 
-   // initialize the grid cell - point mapping for non empty cells
+    for (int k = 0; k < num_recs; k++) {
+        pt_cellndx_i[k] = int((x[k]- x_min)/cell_size);
+        pt_cellndx_j[k] = int((y[k]- y_min)/cell_size);}
 
-   map<int, vector<int> > gridcell2pts_map;
-   set<int>::const_iterator pos;
-   for(pos = nonemptycell_ndxs_set.begin(); pos != nonemptycell_ndxs_set.end(); ++pos)
-      {vector<int> empy_vector;
-      gridcell2pts_map[*pos] = empy_vector;}
+    // define grid linear indices of input points
 
-   // insert the point indices into the grid cell references (linear index)
+    vector<int> pt_cellndx_n(num_recs);
+    for (int k = 0; k < num_recs; k++) {
+        pt_cellndx_n[k] = (columns * pt_cellndx_i[k]) + pt_cellndx_j[k];}
 
-   for (int k = 0; k < num_recs; k++)
-      {gridcell2pts_map[pt_cellndx_n[k]].push_back(k);}
+    // define grid linear indices of cells with at least one point, using a set data structure
 
-    //outfile << "id_rec, x, y, z\n";
+    set<int> nonemptycell_ndxs_set;
+    for (int k = 0; k < num_recs; k++) {
+        nonemptycell_ndxs_set.insert(pt_cellndx_n[k]);}
+
+    // initialize the mapping between each cell grid linear index and associated point indices
+
+    map<int, vector<int> > gridcell_ptndxs_map;
+    set<int>::const_iterator pos;
+    for(pos = nonemptycell_ndxs_set.begin(); pos != nonemptycell_ndxs_set.end(); ++pos) {  // initialize the mapping between each cell grid linear index and associated point indices
+        vector<int> empy_vector;
+        gridcell_ptndxs_map[*pos] = empy_vector;}
+    for (int k = 0; k < num_recs; k++) {  // insert the point indices into the grid cell linear indices
+        gridcell_ptndxs_map[pt_cellndx_n[k]].push_back(k);}
+
+    // iterates on the grid cells, extracting the points for each cell
+    // and computing the possible best-fit-plane
 
     map<int, vector<int> >::iterator map_iter;
-    for(map_iter = gridcell2pts_map.begin(); map_iter != gridcell2pts_map.end(); ++map_iter) {
+    for(map_iter = gridcell_ptndxs_map.begin(); map_iter != gridcell_ptndxs_map.end(); ++map_iter) {
         vector<int> vector_ndx = (*map_iter).second;
         vector<Point> points_in_cell;
         for (uint pi = 0; pi < vector_ndx.size(); pi++) {
@@ -333,10 +338,10 @@ int main () {
     for (int j=(rows-1);j>=0;j--) {
        for (int i=0;i<columns;i++) {
           int n = (columns*i) + j;
-          if (gridcell2pts_map.count(n) == 0) {
+          if (gridcell_ptndxs_map.count(n) == 0) {
              outgridfile << "0 ";}
           else {
-             int num_of_recs_in_cell = gridcell2pts_map[n].size();
+             int num_of_recs_in_cell = gridcell_ptndxs_map[n].size();
              outgridfile << num_of_recs_in_cell << " "; } } }
 
     outgridfile.close();
