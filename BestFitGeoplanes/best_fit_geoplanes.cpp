@@ -28,6 +28,11 @@
 
 using namespace std;
 
+extern "C" {
+    void invert_attitudes(int *num_points, double *pts_array_cform, bool *success, double *dipdir, double *dipang);
+
+}
+
 
 bool is_uint_digit (char c) {
 
@@ -315,14 +320,26 @@ int main () {
 
     map<int, vector<int> >::iterator map_iter;
     for(map_iter = gridcell_ptndxs_map.begin(); map_iter != gridcell_ptndxs_map.end(); ++map_iter) {
-        vector<int> vector_ndx = (*map_iter).second;
-        vector<Point> points_in_cell;
-        for (uint pi = 0; pi < vector_ndx.size(); pi++) {
-            points_in_cell.push_back(Point(x[vector_ndx[pi]], y[vector_ndx[pi]], z[vector_ndx[pi]]));}
+        vector<int> vector_ndxs = (*map_iter).second;
 
-        // CALL FORTRAN PASSING FOUND POINTS AND GET ESTIMATED GEOPLANE (DIP-DIR & ANGLE)
+        int cell_rec_num = vector_ndxs.size();
 
-        //outfile << id[ndx_median_elevation] << "," << x[ndx_median_elevation] << "," << y[ndx_median_elevation] << "," << z[ndx_median_elevation] << "\n";
+        if (cell_rec_num >= 3) {
+
+            // std::cout << cell_rec_num << '\n';
+            double pts_coords[cell_rec_num][3];
+
+            for (int pi = 0; pi < cell_rec_num; pi++) {
+                pts_coords[pi][0] = x[vector_ndxs[pi]];
+                pts_coords[pi][1] = y[vector_ndxs[pi]];
+                pts_coords[pi][2] = z[vector_ndxs[pi]]; }
+
+            bool success;
+            double dipdir, dipang;
+            invert_attitudes(&cell_rec_num, &pts_coords[0][0], &success, &dipdir, &dipang);
+            if (success) {
+                std::cout << dipdir << ", " << dipang << '\n'; }
+        }
 
     }
 

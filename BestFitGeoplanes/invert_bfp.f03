@@ -456,13 +456,13 @@ module bestfitplane
         ldu = m
         ldvt = n
 
-        call dgesvd ( jobu, jobvt, m, n, pts, lda, s, u, ldu, vt, ldvt, work, &
-                      lwork, info )
+        call dgesvd (jobu, jobvt, m, n, pts, lda, s, u, ldu, vt, ldvt, work, &
+                    lwork, info)
 
         if (info /= 0) then
-            res_vect%valid = .FALSE.
+            res_vect%valid = .false.
         else
-             res_vect%valid = .TRUE.
+             res_vect%valid = .true.
              res_vect%vect = cart_vect(vt(3,1),vt(3,2),vt(3,3))
         end if
 
@@ -471,7 +471,9 @@ module bestfitplane
 end module bestfitplane
 
 
-function invert_attitudes
+subroutine invert_attitudes(num_points, pts_array_cform, success, dipdir, dipang) bind(c)
+
+    use iso_c_binding
 
     use var_types
     use geologic_processing
@@ -479,37 +481,43 @@ function invert_attitudes
 
     implicit none
 
-    integer ( kind = i4b ), parameter :: n = 3
-    real ( kind = r8b ) :: x, y, z
-    integer ( kind = i4b ) :: num_points, i
-    real ( kind = r8b ), dimension(:, :), allocatable :: points
+    ! C-connection variables
 
+    integer(c_int) :: num_points
+    real(c_double) :: pts_array_cform(3, num_points)
+    logical(c_bool) :: success
+    real(c_double) :: dipdir, dipang
+
+    ! Fortran internal variables
+
+    real (kind = r8b), dimension(num_points, 3) :: points
     type(cart_vect_opt) :: svd_res
     type(geol_plane_opt) :: geolplaneopt_res
-    type(geol_plane) :: geoplane_res
 
 
-    ! allocate arrays
+    ! define point array (Fortran format)
 
-    allocate(points(num_points, n))
+    points = transpose(pts_array_cform)
 
     ! calculates the SVD solution and the geological plane
 
     geolplaneopt_res%valid = .false.
     svd_res = svd(num_points, points)
     if (svd_res%valid) then
-        write (16, *) svd_res%vect%x, svd_res%vect%y, svd_res%vect%z
         geolplaneopt_res = normalvect2geolplane(svd_res%vect)
     end if
 
-    ! output results
+    ! define results
 
     if (.not. geolplaneopt_res%valid) then
-        write (16, *) 'invalid result'
+        success = .false.
+        dipdir = -99.9
+        dipang = -99.9
     else
-        geoplane_res = geolplaneopt_res%geolplane
-        write (16, *) geoplane_res%strike_rhr, geoplane_res%dip_dir, geoplane_res%dip_angle
+        success = .true.
+        dipdir = geolplaneopt_res%geolplane%dip_dir
+        dipang = geolplaneopt_res%geolplane%dip_angle
     end if
 
+end subroutine
 
-end function
