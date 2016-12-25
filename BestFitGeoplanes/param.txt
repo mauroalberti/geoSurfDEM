@@ -1,0 +1,5 @@
+/home/mauro/Documents/Ricerca/Codice/Geostrutturale/geoSurfDEM/publ_data/intersections.csv
+0
+/home/mauro/Documents/Ricerca/Codice/Geostrutturale/geoSurfDEM/publ_data/bfgeoplanes.txt
+/home/mauro/Documents/Ricerca/Codice/Geostrutturale/geoSurfDEM/publ_data/num_pts.asc
+100

@@ -16,6 +16,8 @@
 #
 */
 
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include <list>
 #include <iostream>
@@ -28,7 +30,9 @@
 
 using namespace std;
 
+
 extern "C" {
+
     void invert_attitudes(int *num_points, double *pts_array_cform, bool *success, double *dipdir, double *dipang);
 
 }
@@ -121,7 +125,6 @@ void read_params(std::stringstream &param_lines, string &xyz_data_fpth, uint &hd
 };
 
 
-
 class Point {
 
 private:
@@ -145,6 +148,13 @@ public:
        return _z;}
 };
 
+// from: http://stackoverflow.com/questions/12774207/fastest-way-to-check-if-a-file-exist-using-standard-c-c11-c
+// fourth and fastest function
+inline bool exists (const std::string& name) {
+  struct stat buffer;
+  return (stat (name.c_str(), &buffer) == 0);
+}
+
 
 int main () {
 
@@ -163,6 +173,10 @@ int main () {
     std::cout << "Enter input parameter file name: ";
   	std::string param_filename;
     std::cin >> param_filename;
+
+    if (! exists(param_filename)) {
+        std::cout << "\nError: input parameter file does not exist\n\n";
+        return 1;}
 
     // start time
 
@@ -190,8 +204,12 @@ int main () {
                     ptnum_grid_fpth,
                     cell_size); }
     catch (string error_msg) {
-        std::cout << "Parameter input error: " << error_msg;
+        std::cout << "\nParameter input error: " << error_msg << "\n\n";
         return 1;};
+
+    if (! exists(xyz_data_fpth)) {
+        std::cout << "\nError: input xyz data file does not exist\n\n";
+        return 1;}
 
     // printout read parameters
 
