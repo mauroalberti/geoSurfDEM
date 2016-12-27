@@ -94,7 +94,7 @@ int read_float(string &line) {
 
 };
 
-void read_params(std::stringstream &param_lines, string &xyz_data_fpth, uint &hdr_ln_num,
+void read_params(std::stringstream &param_lines, string &xyz_data_fpth, int &hdr_ln_num,
                  string &bfp_geoplanes_fpth, string &ptnum_grid_fpth, float &cell_size) {
 
     string readline;
@@ -219,7 +219,7 @@ int main () {
     // reading parameters
 
     string xyz_data_fpth; // path of input xyz file
-    uint hdr_ln_num; // number of header lines in xyz file
+    int hdr_ln_num; // number of header lines in xyz file
     string bfp_geoplanes_fpth; // output geoplanes file path
     string ptnum_grid_fpth;  // output point number grid file path
     float cell_size;  // used cell size
@@ -252,29 +252,29 @@ int main () {
     // internal processings
     //
 
-    cout << "\n\n -- processing started ... please wait\n\n";
+    cout << "\n-- processing started ... please wait\n\n";
 
     // open xyz input file
 
-    ifstream infile;
-    infile.open(xyz_data_fpth.c_str(), ios::binary);
-    if (infile.fail()) {
+    ifstream input_xyz_file;
+    input_xyz_file.open(xyz_data_fpth.c_str(), ios::binary);
+    if (input_xyz_file.fail()) {
         cout << "\n\nUnable to open input file '" << xyz_data_fpth << "'\n";
         return 1;}
 
     // create output geoplanes file
 
-    ofstream outfile;
-    outfile.open(bfp_geoplanes_fpth.c_str(), ios::binary);
-    if (outfile.fail())
+    ofstream output_results_file;
+    output_results_file.open(bfp_geoplanes_fpth.c_str(), ios::binary);
+    if (output_results_file.fail())
         {cout << "\n\nUnable to create output file '" << bfp_geoplanes_fpth << "'\n";
          return 1;}
 
     // create output point number grid file
 
-    ofstream outgridfile;
-    outgridfile.open(ptnum_grid_fpth.c_str(), ios::binary);
-    if (outgridfile.fail())
+    ofstream output_cntgrid_file;
+    output_cntgrid_file.open(ptnum_grid_fpth.c_str(), ios::binary);
+    if (output_cntgrid_file.fail())
         {cout << "\n\nUnable to create output grid file '" <<  ptnum_grid_fpth << "'\n";
          return 1;}
 
@@ -283,14 +283,14 @@ int main () {
     string rec_line;
     list<string> rawdata_list;  // list of raw data strings
 
-    for (uint n = 0; n < hdr_ln_num; n++) {  // read  (and discard) file header
-        getline(infile, rec_line);};
+    for (int n = 0; n < hdr_ln_num; n++) {  // read  (and discard) file header
+        getline(input_xyz_file, rec_line); }
 
-    while (! infile.eof()) {  // read raw data
-        getline(infile, rec_line);
+    while (! input_xyz_file.eof()) {  // read raw data
+        getline(input_xyz_file, rec_line);
         if (rec_line.size() > 0) {
             rawdata_list.push_back(rec_line);}}
-    infile.close();
+    input_xyz_file.close();
 
     std::cout << "Number of read records: " <<rawdata_list.size() << "\n";
 
@@ -302,10 +302,10 @@ int main () {
     char sep;
     int ndx = 0;
     list<string>::iterator string_pos;  // string list iterator
-    for (string_pos=rawdata_list.begin(); string_pos!=rawdata_list.end(); string_pos++)
-       {istringstream instr(*string_pos);
+    for (string_pos=rawdata_list.begin(); string_pos!=rawdata_list.end(); string_pos++) {
+        istringstream instr(*string_pos);
         instr >> x[ndx] >> sep >> y[ndx] >> sep >> z[ndx];
-        ndx++;}
+        ndx++; }
 
     if (x.size() != y.size() || x.size() != z.size()) {
         std::cout << "\nSize of read coordinates is different between x, y or z\n";
@@ -331,12 +331,12 @@ int main () {
 
     // print info on spatial ranges and grid params
 
-    cout << "\nSpatial range of input data :\n";
+    cout << "Spatial range of input data :\n";
     cout << "  x min: " << x_min << " x max: " << x_max << "\n";
     cout << "  y min: " << y_min << " y max: " << y_max << "\n";
     cout << "  z min: " << z_min << " z max: " << z_max << "\n";
-    cout << "\nRows number: " << rows << "\nColumn number: " << columns << "\n";
-    cout << "\nSpatial range of grid :\n";
+    cout << "Rows number: " << rows << "\nColumn number: " << columns << "\n";
+    cout << "Spatial range of grid :\n";
     cout << "  x min: " << x_min << " x max: " << x_min + (columns * cell_size) << "\n";
     cout << "  y min: " << y_max - (rows * cell_size) << " y max: " << y_max << "\n";
 
@@ -344,38 +344,50 @@ int main () {
 
     vector<Point> distinct_points;
     distinct_points.push_back(Point(x[0], y[0], z[0]));
-    for (int m = 1; m < num_input_pts; m++) {
-        Point candidate_point = Point(x[m], y[m], z[m]);
+    output_results_file << "Skipped coincident points\n";
+    for (int n = 1; n < num_input_pts; n++) {
+        Point candidate_point = Point(x[n], y[n], z[n]);
         bool to_add = true;
-        for (uint p = 0; p < distinct_points.size(); p++) {
-            Point added_pt = distinct_points[p];
+        for (uint k = 0; k < distinct_points.size(); k++) {
+            Point added_pt = distinct_points[k];
             if (candidate_point.is_coincident_2d(added_pt)) {
                 to_add = false;
-                std::cout << " - skipped coincident point: " << m + 1 << "\n";
+                output_results_file << " - skipped coincident point: " << n + 1 << "\n";
                 break; } }
         if (to_add) distinct_points.push_back(candidate_point); }
     int num_distinct_pts = distinct_points.size();
 
+    // write distinct point infos in output result file
+
     std::cout << "Number of distinct points: " << num_distinct_pts << "\n";
+    output_results_file << "\nNumber of distinct points: " << num_distinct_pts << "\n";
 
     // calculate grid indices of input points
 
-    vector<int> pt_cellndx_i(num_distinct_pts), pt_cellndx_j(num_distinct_pts);
+    vector<int> dp_cellndx_i(num_distinct_pts), dp_cellndx_j(num_distinct_pts);
     for (int k = 0; k < num_distinct_pts; k++) {
-        pt_cellndx_i[k] = int((y_max - distinct_points[k].y())/cell_size);
-        pt_cellndx_j[k] = int((distinct_points[k].x()- x_min)/cell_size);}
+        dp_cellndx_i[k] = int((y_max - distinct_points[k].y())/cell_size);
+        dp_cellndx_j[k] = int((distinct_points[k].x()- x_min)/cell_size);}
 
     // define grid linear indices of input points
 
-    vector<int> pt_cellndx_n(num_distinct_pts);
+    vector<int> dp_cellndx_n(num_distinct_pts);
     for (int k = 0; k < num_distinct_pts; k++) {
-        pt_cellndx_n[k] = (columns * pt_cellndx_i[k]) + pt_cellndx_j[k];}
+        dp_cellndx_n[k] = (columns * dp_cellndx_i[k]) + dp_cellndx_j[k]; }
+
+    // write distinct point infos in output result file
+
+    output_results_file << "\ncnt, x, y, z, i, j, n\n";
+    for (uint k = 0; k < distinct_points.size(); k++) {
+        Point dp = distinct_points[k];
+        output_results_file << k << ", " << dp.x() << ", " << dp.y() << ", " << dp.z() << ", " <<
+            dp_cellndx_i[k] << ", " << dp_cellndx_j[k] << ", " << dp_cellndx_n[k] << "\n"; }
 
     // define linear grid indices of cells with at least one point, using a set data structure
 
     set<int> non_empty_cells;
     for (int k = 0; k < num_distinct_pts; k++) {
-        non_empty_cells.insert(pt_cellndx_n[k]);}
+        non_empty_cells.insert(dp_cellndx_n[k]); }
     std::cout << "Number of cells with at least one point is: " << non_empty_cells.size() << "\n";
 
     // initialize the mapping between each cell grid linear index and associated point indices
@@ -385,16 +397,30 @@ int main () {
 
     for(pos = non_empty_cells.begin(); pos != non_empty_cells.end(); ++pos) {  // initialize the mapping between each cell grid linear index and associated point indices
         vector<int> empy_vector;
-        gridcell_ptndxs_map[*pos] = empy_vector;}
+        gridcell_ptndxs_map[*pos] = empy_vector; }
 
     for (int k = 0; k < num_distinct_pts; k++) {  // insert the point indices into the grid cell linear indices
-        gridcell_ptndxs_map[pt_cellndx_n[k]].push_back(k);}
+        gridcell_ptndxs_map[dp_cellndx_n[k]].push_back(k); }
+
+    // write non-empty cell infos in output result file
+
+    output_results_file << "\nNon-empty cell infos\n";
+    for (auto cell_ndx : non_empty_cells) {
+        //int cell_ndx = non_empty_cells[l];
+        vector<int> dp_indices = gridcell_ptndxs_map[cell_ndx];
+        int num_pts = dp_indices.size();
+        output_results_file << "grid cell: " << cell_ndx << " - points: " << num_pts << "\n";
+        for (auto pt_ndx : dp_indices) {
+            output_results_file << " point: " << pt_ndx << "\n"; } }
 
     // iterates on the grid cells, extracting the points for each cell
     // and computing the possible best-fit-plane
 
     map<int, vector<int> >::iterator map_iter;
+    output_results_file << "\nInverted geological attitudes\n";
+    output_results_file << "cell_ndx, dipdir, dipang\n";
     for(map_iter = gridcell_ptndxs_map.begin(); map_iter != gridcell_ptndxs_map.end(); ++map_iter) {
+        int cell_ndx = (*map_iter).first;
         vector<int> vector_ndxs = (*map_iter).second;
         int cell_rec_num = vector_ndxs.size();
         if (cell_rec_num >= 3) {
@@ -409,20 +435,19 @@ int main () {
             invert_attitudes(&cell_rec_num, &pts_coords[0][0], &success, &dipdir, &dipang);
 
             if (success) {
-                std::cout << dipdir << ", " << dipang << "\n"; }
+                output_results_file << cell_ndx << ", " << dipdir << ", " << dipang << "\n"; } } }
 
-        }
 
-    }
+    output_results_file.close();
 
     // output of ascii grid storing number of recs per cell
 
-    outgridfile << "ncols " << columns << "\n";
-    outgridfile << "nrows " << rows << "\n";
-    outgridfile << "xllcorner " << x_min << "\n";
-    outgridfile << "yllcorner " << y_max - (rows * cell_size) << "\n";
-    outgridfile << "cellsize " << cell_size << "\n";
-    outgridfile << "nodata_value " << 0 << "\n";
+    output_cntgrid_file << "ncols " << columns << "\n";
+    output_cntgrid_file << "nrows " << rows << "\n";
+    output_cntgrid_file << "xllcorner " << x_min << "\n";
+    output_cntgrid_file << "yllcorner " << y_max - (rows * cell_size) << "\n";
+    output_cntgrid_file << "cellsize " << cell_size << "\n";
+    output_cntgrid_file << "nodata_value " << 0 << "\n";
 
     int num_of_recs_in_cell;
     for (int i = 0; i < rows; i++) {
@@ -432,9 +457,9 @@ int main () {
                 num_of_recs_in_cell = gridcell_ptndxs_map[n].size(); }
             else {
                 num_of_recs_in_cell = 0; }
-            outgridfile << num_of_recs_in_cell << " "; } }
+            output_cntgrid_file << num_of_recs_in_cell << " "; } }
 
-    outgridfile.close();
+    output_cntgrid_file.close();
 
     // print run time
 
