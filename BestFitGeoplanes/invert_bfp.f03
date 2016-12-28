@@ -493,11 +493,20 @@ subroutine invert_attitudes(num_points, pts_array_cform, success, dipdir, dipang
     real (kind = r8b), dimension(num_points, 3) :: points
     type(cart_vect_opt) :: svd_res
     type(geol_plane_opt) :: geolplaneopt_res
+    integer :: i
 
 
     ! define point array (Fortran format)
 
     points = transpose(pts_array_cform)
+
+    ! DEBUG
+    if (num_points == 3) then
+        do i = 1, num_points
+            print *, points(i, 1), points(i, 2), points(i, 3)
+        end do
+        print *,
+    end if
 
     ! calculates the SVD solution and the geological plane
 
