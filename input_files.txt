@@ -1,4 +1,0 @@
-./publ_data/dem_malpi_aster_wgs84utm33.asc
-./publ_data/geological_plane.vtk
-./publ_data/intersections.csv
-

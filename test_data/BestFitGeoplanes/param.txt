@@ -1,0 +1,5 @@
+./geoSurfDEM/test_data/BestFitGeoplanes/intersections.csv
+0
+./geoSurfDEM/test_data/BestFitGeoplanes/bfgeoplanes.txt
+./geoSurfDEM/test_data/BestFitGeoplanes/num_pts.asc
+250

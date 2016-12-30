@@ -1,12 +1,12 @@
-cd /home/mauro/Documents/Ricerca/Codice/Geostrutturale/geoSurfDEM/BestFitGeoplanes
+cd ./geoSurfDEM/BestFitGeoplanes
 
-gfortran -c invert_bfp.f03 
+gfortran -c InvertRoutine.f03 
 
-g++ -c -std=c++11 best_fit_geoplanes.cpp
+g++ -c -std=c++11 InvertGeoplanes.cpp
 
-gfortran invert_bfp.o best_fit_geoplanes.o -lstdc++ -o best_fit_geoplanes.out -L/usr/lib/lapack -llapack  -L/usr/lib/libblas -lblas 
+gfortran InvertRoutine.o InvertGeoplanes.o -lstdc++ -o BestFitGeoplanes.out -L/usr/lib/lapack -llapack  -L/usr/lib/libblas -lblas 
 
-./best_fit_geoplanes.out
+./BestFitGeoplanes.out
 
 ## modified from:
 https://solarianprogrammer.com/2012/05/11/mixed-language-programming-cpp-11-fortran-2008/

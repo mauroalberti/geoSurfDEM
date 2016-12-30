@@ -33,18 +33,9 @@
 *.app
 
 # Directories
-bin/
 images/
-Invert/codice_pregresso
-Invert/tests
-Invert/obj
-Invert/bin
-obj
-publ_utils/
-test_data/
 
 # Individual files
-geoSurfDEM
 .gitignore
 
 
