@@ -297,17 +297,6 @@ module geologic_processing
 
     contains
 
-    ! calculates the polar components from the cartesian ones
-
-    type(cart_vect) function pole2cartes(axis1) result(vect1)
-
-        type(geol_axis), intent(in) :: axis1
-
-        vect1%x = cos(degr2rad*axis1%plunge) * cos(degr2rad*axis1%trend)
-        vect1%y = cos(degr2rad*axis1%plunge) * sin(degr2rad*axis1%trend)
-        vect1%z = sin(degr2rad*axis1%plunge)
-
-    end function pole2cartes
 
     ! calculates polar components from cartesian ones
 
@@ -328,8 +317,10 @@ module geologic_processing
             elseif (vect_unit%z < -1.0_r8b) then
                 vect_unit%z = -1.0_r8b
             endif
-            geoaxis%plunge = rad2degr*dasin(vect_unit%z)
+            geoaxis%plunge = -rad2degr*dasin(vect_unit%z)
             if (dabs(geoaxis%plunge)> 89.9_r8b) then
+                geoaxis%trend = 0.0_r8b
+            elseif (dabs(geoaxis%plunge) < -89.9_r8b) then
                 geoaxis%trend = 0.0_r8b
             else
                 geoaxis%trend = modulo(rad2degr*atan2(vect_unit%x,vect_unit%y), 360.0_r8b)
@@ -364,7 +355,7 @@ module geologic_processing
 
     end subroutine dipdir_calc
 
-    ! calculates the geological plane normal to a dow-axis (downward-oriented axis)
+    ! calculates the geological plane normal to a down-axis (downward-oriented axis)
 
     type(geol_plane) function downaxis2geolplane(downaxis1) result(geolplane1)
 
@@ -375,19 +366,6 @@ module geologic_processing
         geolplane1%dip_angle = 90.0_r8b - downaxis1%plunge
 
     end function downaxis2geolplane
-
-     ! calculates geological plane normal
-
-    type(cart_vect) function geolplane2normalvect(geoplane1) result(geolplanenorm1)
-
-        type(geol_plane), intent(in) :: geoplane1
-
-        ! formulas from Aki and Richards, 1980
-        geolplanenorm1%x = -sin(degr2rad * geoplane1%dip_angle) * sin(degr2rad * geoplane1%strike_rhr)
-        geolplanenorm1%y =  sin(degr2rad * geoplane1%dip_angle) * cos(degr2rad * geoplane1%strike_rhr)
-        geolplanenorm1%z = -cos(degr2rad * geoplane1%dip_angle)
-
-    end function
 
     ! calculates the geological plane given its normal
 
@@ -468,6 +446,24 @@ module bestfitplane
 
      end function
 
+
+    function array_minus_mean(num_points, pts_array) result(array_mm)
+
+        use var_types
+        implicit none
+
+        integer num_points
+        real (kind = r8b), dimension(3, num_points) :: pts_array, array_mm
+        real (kind = r8b), dimension(3) :: sums
+
+        sums = SUM(pts_array, DIM=2)
+        array_mm(1, 1:num_points) = pts_array(1, 1:num_points) - (sums(1) / num_points)
+        array_mm(2, 1:num_points) = pts_array(2, 1:num_points) - (sums(2) / num_points)
+        array_mm(3, 1:num_points) = pts_array(3, 1:num_points) - (sums(3) / num_points)
+
+    end function
+
+
 end module bestfitplane
 
 
@@ -490,30 +486,28 @@ subroutine invert_attitudes(num_points, pts_array_cform, success, dipdir, dipang
 
     ! Fortran internal variables
 
+    real (kind = r8b), dimension(3, num_points) :: points_less_mean
     real (kind = r8b), dimension(num_points, 3) :: points
-    type(cart_vect_opt) :: svd_res
+    type(cart_vect_opt) :: svd_res, unvect_opt
     type(geol_plane_opt) :: geolplaneopt_res
     integer :: i
 
 
     ! define point array (Fortran format)
 
-    points = transpose(pts_array_cform)
+    points_less_mean = array_minus_mean(num_points, pts_array_cform)
 
-    ! DEBUG
-    if (num_points == 3) then
-        do i = 1, num_points
-            print *, points(i, 1), points(i, 2), points(i, 3)
-        end do
-        print *,
-    end if
+    points = transpose(points_less_mean)
 
     ! calculates the SVD solution and the geological plane
 
     geolplaneopt_res%valid = .false.
     svd_res = svd(num_points, points)
     if (svd_res%valid) then
-        geolplaneopt_res = normalvect2geolplane(svd_res%vect)
+        unvect_opt = unit_vect_opt(svd_res%vect)
+        if (unvect_opt%valid) then
+            geolplaneopt_res = normalvect2geolplane(unvect_opt%vect)
+        end if
     end if
 
     ! define results
