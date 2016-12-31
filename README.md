@@ -1,15 +1,19 @@
 # geoSurfDEM
 
-geoSurfDEM is a C++ command-line application for calculating intersection points between 3D geosurfaces and DEMs. 
+geoSurfDEM is a set of C++ and Fortran command-line application for calculating intersection points between 3D geosurfaces and DEMs (IntersectDEM), as well as inverting intersection points to obtain the local best-fit geological planes (BestFitGeoplanes).  
+*As of December 2016, BestFitGeoplanes is in beta-state.*
 
-*As of November 2016, an alpha-state Fortran 95-03 application for estimating the local attitude of geological surfaces given intersection point on a topographic surface is being developed. It is available in the 'invert' branch, and is stored in the 'Invert' folder.*
+IntersectDEM is a C++ console application, made up by a main application, *DEMIntersection.cpp*, that uses a few auxiliary algorithms contained in *algebra.cpp*, *data_prcessing.cpp*, *geographic.cpp*, *spatial.cpp* and related header files.
 
-###Rationale
+BestFitGeoplanes is based on C++ and Fortran 2003 code. The Fortran code uses the Lapack and BLAS library in order to calculate the Singular Value Decomposition of the available points.
+A possible path to compile the code is listed in the *compile* file.
 
-The determination of the theoretical intersections between digital 3D geological surfaces and topography could be of potential help for studying the field attitudes of natural geological surfaces, as mapped from outcrops or from aerial and satellite images. Since geological structures have complex geometries, the analysis of the relationships between 3D surfaces and topography requires tools that can process 3D geological surfaces.
+Below is described in detail the use and application of IntersectDEM. The equivalent part for BestFitGeoplanes has still to be created.
 
-geoSurfDEM aims at determining:
+###IntersectDEM
 
+The forward and backward determination of the theoretical intersections between digital 3D geological surfaces and topography could be of potential help for studying the field attitudes of natural geological surfaces, as mapped from outcrops or from aerial/satellite images. Since geological structures have complex geometries, the analysis of the relationships between 3D surfaces and topography requires tools that can process 3D geological surfaces.
+ 
 *a) the theoretical intersections between a 3D surface and a topography*
 
 *b) the local 3D attitude of that surface at each intersection point*
@@ -103,7 +107,7 @@ I copied and pasted these values in the simSurf displacement tab, so that the pl
 
 Done, after applying.
 
-Save the geosurface as a VTK file and then you can see it in Paraview and use in the geoSurfDEM application. Note that the VTK file stores the plane as triangle mesh, without explicit attitude (i.e., dip direction and angle) information. So the local results calculated by the geoSurfDEM application are derived by the local geosurface triangle attitude stored in the VTK file. Using a simple plane obviously we expect the same results for all intersection points.
+Save the geosurface as a VTK file and then you can see it in Paraview and use in the IntersectDEM application. Note that the VTK file stores the plane as triangle mesh, without explicit attitude (i.e., dip direction and angle) information. So the local results calculated by the geoSurfDEM application are derived by the local geosurface triangle attitude stored in the VTK file. Using a simple plane obviously we expect the same results for all intersection points.
 
 ####Input data preview
 
@@ -120,7 +124,7 @@ And a lateral one, as seen from the South.
 
 ####geoSurfDEM result
 
-At the end, what are the results of the geoSurfDEM application?
+At the end, what are the results of the IntersectDEM application?
 
 We see them displayed in Paraview, by importing the resulting csv file and superposing on the DEM points and the plane surface. The results are symbolized by blue dots. You see them following the visual intersection between the plane with dip direction 135° and dip angle 35° and the DEM.
 
