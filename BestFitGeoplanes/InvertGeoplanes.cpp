@@ -196,9 +196,9 @@ public:
 
 };
 
-vector<uint> cellndxn2ij(uint cell_ndx, uint columns, uint rows) {
+std::vector<uint> cellndxn2ij(uint cell_ndx, uint columns, uint rows) {
 
-    vector<uint> result;
+    std::vector<uint> result;
     uint i = int(cell_ndx / columns);
     uint j = cell_ndx - columns * i;
 
@@ -211,7 +211,7 @@ vector<uint> cellndxn2ij(uint cell_ndx, uint columns, uint rows) {
 
 Point2d cellnxd2centerpoint(uint cell_ndx, double tlc_x, double tlc_y, double cell_size, uint columns, uint rows) {
 
-    vector<uint> ij_vect = cellndxn2ij(cell_ndx, columns, rows);
+    std::vector<uint> ij_vect = cellndxn2ij(cell_ndx, columns, rows);
     uint i = ij_vect[0];
     uint j = ij_vect[1];
 
@@ -289,25 +289,25 @@ int main () {
 
     // printout read parameters
 
-    cout << "\nInput parameters\n";
-    cout << " - xyz data (input): " << xyz_data_fpth << "\n";
-    cout << " - number of header lines in xyz data file: " << hdr_ln_num << "\n";
-    cout << " - best fit geoplanes (output): " << bfp_geoplanes_fpth << "\n";
-    cout << " - Point3d number grid (output): " << ptnum_grid_fpth << "\n";
-    cout << " - cell size: " << cell_size << "\n";
+    std::cout << "\nInput parameters\n";
+    std::cout << " - xyz data (input): " << xyz_data_fpth << "\n";
+    std::cout << " - number of header lines in xyz data file: " << hdr_ln_num << "\n";
+    std::cout << " - best fit geoplanes (output): " << bfp_geoplanes_fpth << "\n";
+    std::cout << " - Point3d number grid (output): " << ptnum_grid_fpth << "\n";
+    std::cout << " - cell size: " << cell_size << "\n";
 
     //
     // internal processings
     //
 
-    cout << "\n-- processing started ... please wait\n\n";
+    std::cout << "\n-- processing started ... please wait\n\n";
 
     // open xyz input file
 
     ifstream input_xyz_file;
     input_xyz_file.open(xyz_data_fpth.c_str(), ios::binary);
     if (input_xyz_file.fail()) {
-        cout << "\n\nUnable to open input file '" << xyz_data_fpth << "'\n";
+        std::cout << "\n\nUnable to open input file '" << xyz_data_fpth << "'\n";
         return 1;}
 
     // create output geoplanes file
@@ -315,7 +315,7 @@ int main () {
     ofstream output_results_file;
     output_results_file.open(bfp_geoplanes_fpth.c_str(), ios::binary);
     if (output_results_file.fail())
-        {cout << "\n\nUnable to create output file '" << bfp_geoplanes_fpth << "'\n";
+        {std::cout << "\n\nUnable to create output file '" << bfp_geoplanes_fpth << "'\n";
          return 1;}
 
     // create output Point3d number grid file
@@ -323,7 +323,7 @@ int main () {
     ofstream output_cntgrid_file;
     output_cntgrid_file.open(ptnum_grid_fpth.c_str(), ios::binary);
     if (output_cntgrid_file.fail())
-        {cout << "\n\nUnable to create output grid file '" <<  ptnum_grid_fpth << "'\n";
+        {std::cout << "\n\nUnable to create output grid file '" <<  ptnum_grid_fpth << "'\n";
          return 1;}
 
     // read input raw xyz file
@@ -345,7 +345,7 @@ int main () {
     // read input xyz data into three double vectors
 
     int num_recs = rawdata_list.size();  // total number of input points
-    vector<double> x(num_recs), y(num_recs), z(num_recs);  // vectors storing the x, y and z coordinates for all points
+    std::vector<double> x(num_recs), y(num_recs), z(num_recs);  // vectors storing the x, y and z coordinates for all points
 
     char sep;
     int ndx = 0;
@@ -381,20 +381,20 @@ int main () {
 
     // print info on spatial ranges and grid params
 
-    output_results_file << "Spatial range of input data :\n";
-    output_results_file << "  x min: " << x_min << " x max: " << x_max << "\n";
-    output_results_file << "  y min: " << y_min << " y max: " << y_max << "\n";
-    output_results_file << "  z min: " << z_min << " z max: " << z_max << "\n";
-    output_results_file << "Rows number: " << rows << "\nColumn number: " << columns << "\n";
-    output_results_file << "Spatial range of grid :\n";
-    output_results_file << "  x min: " << x_min << " x max: " << x_min + (columns * cell_size) << "\n";
-    output_results_file << "  y min: " << y_max - (rows * cell_size) << " y max: " << y_max << "\n";
+    std::cout << "Spatial range of input data :\n";
+    std::cout << "  x min: " << x_min << " x max: " << x_max << "\n";
+    std::cout << "  y min: " << y_min << " y max: " << y_max << "\n";
+    std::cout << "  z min: " << z_min << " z max: " << z_max << "\n";
+    std::cout << "Rows number: " << rows << "\nColumn number: " << columns << "\n";
+    std::cout << "Spatial range of grid :\n";
+    std::cout << "  x min: " << x_min << " x max: " << x_min + (columns * cell_size) << "\n";
+    std::cout << "  y min: " << y_max - (rows * cell_size) << " y max: " << y_max << "\n";
 
     // creates vector of distinct points
 
-    vector<Point3d> distinct_points;
+    std::vector<Point3d> distinct_points;
     distinct_points.push_back(Point3d(x[0], y[0], z[0]));
-    output_results_file << "Skipped coincident points\n";
+    std::cout << "Skipped coincident points\n";
     for (int n = 1; n < num_input_pts; n++) {
         Point3d candidate_point = Point3d(x[n], y[n], z[n]);
         bool to_add = true;
@@ -402,7 +402,7 @@ int main () {
             Point3d added_pt = distinct_points[k];
             if (candidate_point.is_coincident_2d(added_pt)) {
                 to_add = false;
-                output_results_file << " " << n + 1 << "\n";
+                std::cout << " " << n + 1 << "\n";
                 break; } }
         if (to_add) distinct_points.push_back(candidate_point); }
     int num_distinct_pts = distinct_points.size();
@@ -410,27 +410,27 @@ int main () {
     // write distinct Point3d infos in output result file
 
     std::cout << "Number of distinct points: " << num_distinct_pts << "\n";
-    output_results_file << "\nNumber of distinct points: " << num_distinct_pts << "\n";
+    std::cout << "\nNumber of distinct points: " << num_distinct_pts << "\n";
 
     // calculate grid indices of input points
 
-    vector<int> dp_cellndx_i(num_distinct_pts), dp_cellndx_j(num_distinct_pts);
+    std::vector<int> dp_cellndx_i(num_distinct_pts), dp_cellndx_j(num_distinct_pts);
     for (int k = 0; k < num_distinct_pts; k++) {
         dp_cellndx_i[k] = int((y_max - distinct_points[k].y())/cell_size);
         dp_cellndx_j[k] = int((distinct_points[k].x()- x_min)/cell_size);}
 
     // define grid linear indices of input points
 
-    vector<int> dp_cellndx_n(num_distinct_pts);
+    std::vector<int> dp_cellndx_n(num_distinct_pts);
     for (int k = 0; k < num_distinct_pts; k++) {
         dp_cellndx_n[k] = (columns * dp_cellndx_i[k]) + dp_cellndx_j[k]; }
 
     // write distinct Point3d infos in output result file
 
-    output_results_file << "\ncnt, x, y, z, i, j, n\n";
+    std::cout << "\ncnt, x, y, z, i, j, n\n";
     for (uint k = 0; k < distinct_points.size(); k++) {
         Point3d dp = distinct_points[k];
-        output_results_file << k << ", " << dp.x() << ", " << dp.y() << ", " << dp.z() << ", " <<
+        std::cout << k << ", " << dp.x() << ", " << dp.y() << ", " << dp.z() << ", " <<
             dp_cellndx_i[k] << ", " << dp_cellndx_j[k] << ", " << dp_cellndx_n[k] << "\n"; }
 
     // define linear grid indices of cells with at least one Point3d, using a set data structure
@@ -442,11 +442,11 @@ int main () {
 
     // initialize the mapping between each cell grid linear index and associated Point3d indices
 
-    map<int, vector<int> > gridcell_ptndxs_map;
+    map<int, std::vector<int> > gridcell_ptndxs_map;
     set<int>::const_iterator pos;
 
     for(auto const & cell_ndx : non_empty_cells) {  // initialize the mapping between each cell grid linear index and associated Point3d indices
-        vector<int> empy_vector;
+        std::vector<int> empy_vector;
         gridcell_ptndxs_map[cell_ndx] = empy_vector; }
 
     for (int k = 0; k < num_distinct_pts; k++) {  // insert the Point3d indices into the grid cell linear indices
@@ -454,45 +454,66 @@ int main () {
 
     // write non-empty cell infos in output result file
 
-    output_results_file << "\nNon-empty cell infos\n";
+    std::cout << "\nNon-empty cell infos\n";
     for (auto const & cell_ndx : non_empty_cells) {
         //int cell_ndx = non_empty_cells[l];
-        vector<int> dp_indices = gridcell_ptndxs_map[cell_ndx];
+        std::vector<int> dp_indices = gridcell_ptndxs_map[cell_ndx];
         int num_pts = dp_indices.size();
-        output_results_file << "grid cell: " << cell_ndx << " - points: " << num_pts << "\n";
+        std::cout << "grid cell: " << cell_ndx << " - points: " << num_pts << "\n";
         for (auto const & pt_ndx : dp_indices) {
             Point3d dp = distinct_points[pt_ndx];
-            output_results_file << pt_ndx << ", " << dp.x() << ", " << dp.y() << ", " << dp.z() << "\n"; } }
+            std::cout << pt_ndx << ", " << dp.x() << ", " << dp.y() << ", " << dp.z() << "\n"; } }
 
     // iterates on the grid cells, extracting the points for each cell
     // and computing the possible best-fit-plane
 
-    map<int, vector<int> >::iterator map_iter;
-    output_results_file << "\nInverted geological attitudes\n";
-    output_results_file << "cell_ndx, dipdir, dipang\n";
+    std::cout << "\nInverting geological attitudes..\n";
+
+    output_results_file << "x, y, pt_num, dip_dir, dip_ang, x_range, y_range, z_range, pseudo-volume\n";
     for (auto const & kv : gridcell_ptndxs_map) {
+
         int cell_ndx = kv.first;
-        vector<int> vector_ndxs = kv.second;
+        std::vector<int> vector_ndxs = kv.second;
         int cell_rec_num = vector_ndxs.size();
+
         if (cell_rec_num >= 3) {
+
             double pts_coords[cell_rec_num][3];
-            for (int pi = 0; pi < cell_rec_num; pi++) {
-                pts_coords[pi][0] = distinct_points[vector_ndxs[pi]].x();
-                pts_coords[pi][1] = distinct_points[vector_ndxs[pi]].y();
-                pts_coords[pi][2] = distinct_points[vector_ndxs[pi]].z(); }
+            std::vector<double> pts_x, pts_y, pts_z;  // vectors storing the x, y and z coordinates for cell points
+
+            for (int pi = 0; pi < cell_rec_num; pi++) { // fill array and vectors with point coordinates
+
+                double pt_x = distinct_points[vector_ndxs[pi]].x();
+                double pt_y = distinct_points[vector_ndxs[pi]].y();
+                double pt_z = distinct_points[vector_ndxs[pi]].z();
+
+                pts_coords[pi][0] = pt_x; pts_x.push_back(pt_x);
+                pts_coords[pi][1] = pt_y; pts_y.push_back(pt_y);
+                pts_coords[pi][2] = pt_z; pts_z.push_back(pt_z); }
 
             bool success;
             double dipdir, dipang;
             invert_attitudes(&cell_rec_num, &pts_coords[0][0], &success, &dipdir, &dipang);
 
-            if (success) {
-                output_results_file << "cell ndx: " << cell_ndx << "\n";
-                Point2d cell_center = cellnxd2centerpoint((uint)cell_ndx, tlc_x, tlc_y, cell_size, (uint)columns, (uint)rows);
-                for (int pi = 0; pi < cell_rec_num; pi++) {
-                    output_results_file << pts_coords[pi][0] << ", " << pts_coords[pi][1] << ", " << pts_coords[pi][2] << "\n"; }
-                output_results_file << " cell center: " << cell_center.x() << ", " << cell_center.y() << "\n";
-                output_results_file << " result: " << dipdir << ", " << dipang << "\n"; } } }
+            if (success) {  // inverted geological attitude
 
+                double pts_x_min = *min_element( pts_x.begin(), pts_x.end() );
+                double pts_x_max = *max_element( pts_x.begin(), pts_x.end() );
+
+                double pts_y_min = *min_element( pts_y.begin(), pts_y.end() );
+                double pts_y_max = *max_element( pts_y.begin(), pts_y.end() );
+
+                double pts_z_min = *min_element( pts_z.begin(), pts_z.end() );
+                double pts_z_max = *max_element( pts_z.begin(), pts_z.end() );
+
+                double range_x = pts_x_max -  pts_x_min;
+                double range_y = pts_y_max -  pts_y_min;
+                double range_z = pts_z_max -  pts_z_min;
+
+                Point2d cell_center = cellnxd2centerpoint((uint)cell_ndx, tlc_x, tlc_y, cell_size, (uint)columns, (uint)rows);
+                output_results_file << cell_center.x() << ", " << cell_center.y() << ", " <<
+                                    cell_rec_num << ", " << dipdir << ", " << dipang << ", " <<
+                                    range_x << ", " << range_y << ", " << range_z << ", " << range_x*range_y*range_z <<"\n"; } } }
 
     output_results_file.close();
 
