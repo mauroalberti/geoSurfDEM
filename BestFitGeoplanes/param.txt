@@ -1,5 +1,5 @@
-/home/mauro/Documents/Ricerca/Codice/Geostrutturale/geoSurfDEM/test_data/BestFitGeoplanes/intersections.csv
+/home/mauro/Documents/Ricerca/Codice/Geostrutturale/geoSurfDEM/test_data/BestFitGeoplanes/inters_malpi_135_35.csv
 0
-/home/mauro/Documents/Ricerca/Codice/Geostrutturale/geoSurfDEM/test_data/BestFitGeoplanes/bfgeoplanes.txt
-/home/mauro/Documents/Ricerca/Codice/Geostrutturale/geoSurfDEM/test_data/BestFitGeoplanes/num_pts.asc
-250
+/home/mauro/Documents/Ricerca/Codice/Geostrutturale/geoSurfDEM/test_data/BestFitGeoplanes/bfg_malpi_13535_100.txt
+/home/mauro/Documents/Ricerca/Codice/Geostrutturale/geoSurfDEM/test_data/BestFitGeoplanes/pts_malpi_13535_100.asc
+100

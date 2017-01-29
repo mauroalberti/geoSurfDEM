@@ -1,4 +1,4 @@
-./geoSurfDEM/test_data/IntersectDEM/dem_malpi_aster_wgs84utm33.asc
-./geoSurfDEM/test_data/IntersectDEM/geological_plane.vtk
-./geoSurfDEM/test_data/IntersectDEM/intersections.csv
+/home/mauro/Documents/Ricerca/Codice/Geostrutturale/geoSurfDEM/test_data/IntersectDEM/dem_malpi_aster_wgs84utm33.asc
+/home/mauro/Documents/Ricerca/Codice/Geostrutturale/geoSurfDEM/test_data/src_planes/malpi_135_35.vtk
+/home/mauro/Documents/Ricerca/Codice/Geostrutturale/geoSurfDEM/test_data/IntersectDEM/inters_malpi_135_35.csv
 

@@ -1,0 +1,6 @@
+g++ -Wall -fexceptions -g -std=c++11  -c /home/mauro/Documents/Ricerca/Codice/Geostrutturale/geoSurfDEM/IntersectDEM/algebr.cpp -o obj/Debug/algebr.o
+g++ -Wall -fexceptions -g -std=c++11  -c /home/mauro/Documents/Ricerca/Codice/Geostrutturale/geoSurfDEM/IntersectDEM/data_processing.cpp -o obj/Debug/data_processing.o
+g++ -Wall -fexceptions -g -std=c++11  -c /home/mauro/Documents/Ricerca/Codice/Geostrutturale/geoSurfDEM/IntersectDEM/DEMIntersection.cpp -o obj/Debug/DEMIntersection.o
+g++ -Wall -fexceptions -g -std=c++11  -c /home/mauro/Documents/Ricerca/Codice/Geostrutturale/geoSurfDEM/IntersectDEM/geographic.cpp -o obj/Debug/geographic.o
+g++ -Wall -fexceptions -g -std=c++11  -c /home/mauro/Documents/Ricerca/Codice/Geostrutturale/geoSurfDEM/IntersectDEM/spatial.cpp -o obj/Debug/spatial.o
+g++  -o bin/Debug/IntersectDEM obj/Debug/algebr.o obj/Debug/data_processing.o obj/Debug/DEMIntersection.o obj/Debug/geographic.o obj/Debug/spatial.o 

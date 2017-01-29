@@ -1,5 +1,6 @@
 #include "data_processing.hpp"
-
+#include <iostream>
+#include <iomanip>
 
 struct inters_result {
   Point3D inter_pt;
@@ -231,6 +232,7 @@ int main() {
             inters_result intersection = *intersection_ref;
             Point3D inters_pt = intersection.inter_pt;
             GeologicalPlane geoplane = intersection.geoplane;
+            outdatafile << std::setprecision(2) << std::fixed;
             outdatafile << inters_pt.x() << "," << inters_pt.y() << "," << inters_pt.z() << "," << geoplane.dipdir() << "," << geoplane.dipangle() << "\n";
         };
     };
