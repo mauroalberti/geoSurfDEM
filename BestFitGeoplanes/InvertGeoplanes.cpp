@@ -18,7 +18,7 @@
 
 #include <sys/stat.h>
 #include <unistd.h>
-
+#include <ctype.h>
 #include <list>
 #include <iostream>
 #include <fstream>
@@ -37,6 +37,25 @@ extern "C" {
 
 }
 
+
+bool is_emptywhitespace(std::string& s) {
+
+    bool result = true;
+
+    if (s.empty())
+        return result;
+
+    std::string::iterator p;
+    for (p = s.begin(); p != s.end(); ++p) {
+        if (!isspace(*p)) {
+            result = false;
+            break;
+        }
+    }
+
+    return result;
+
+}
 
 bool is_uint_digit (char c) {
 
@@ -95,7 +114,7 @@ int read_float(string &line) {
 };
 
 void read_params(std::stringstream &param_lines, string &xyz_data_fpth, int &hdr_ln_num,
-                 string &bfp_geoplanes_fpth, string &ptnum_grid_fpth, float &cell_size) {
+                 string &bfp_geoplanes_fpth, string &rep_analysis_fpth, string &ptnum_grid_fpth, float &cell_size) {
 
     string readline;
 
@@ -111,6 +130,9 @@ void read_params(std::stringstream &param_lines, string &xyz_data_fpth, int &hdr
 
     getline(param_lines, readline);
     bfp_geoplanes_fpth = read_string(readline);
+
+    getline(param_lines, readline);
+    rep_analysis_fpth = read_string(readline);
 
     getline(param_lines, readline);
     ptnum_grid_fpth = read_string(readline);
@@ -242,7 +264,7 @@ int main () {
 
     std::cout << "\n\nBest Fit Geoplanes\n";
     std::cout << "by M. Alberti - www.malg.eu\n";
-    std::cout << "2016-12-17\n\n\n";
+    std::cout << "2017-02-03\n\n";
 
     // input of parameter file name and file opening
 
@@ -269,6 +291,7 @@ int main () {
     string xyz_data_fpth; // path of input xyz file
     int hdr_ln_num; // number of header lines in xyz file
     string bfp_geoplanes_fpth; // output geoplanes file path
+    string rep_analysis_fpth; // analysis report file path
     string ptnum_grid_fpth;  // output Point3d number grid file path
     float cell_size;  // used cell size
 
@@ -277,37 +300,23 @@ int main () {
                     xyz_data_fpth,
                     hdr_ln_num,
                     bfp_geoplanes_fpth,
+                    rep_analysis_fpth,
                     ptnum_grid_fpth,
                     cell_size); }
     catch (string error_msg) {
-        std::cout << "\nParameter input error: " << error_msg << "\n\n";
+        std::cout << "\nError: parameter input - " << error_msg << "\n\n";
         return 1;};
 
     if (! exists(xyz_data_fpth)) {
         std::cout << "\nError: input xyz data file does not exist\n\n";
         return 1;}
 
-    // printout read parameters
-
-    std::cout << "\nInput parameters\n";
-    std::cout << " - xyz data (input): " << xyz_data_fpth << "\n";
-    std::cout << " - number of header lines in xyz data file: " << hdr_ln_num << "\n";
-    std::cout << " - best fit geoplanes (output): " << bfp_geoplanes_fpth << "\n";
-    std::cout << " - Point3d number grid (output): " << ptnum_grid_fpth << "\n";
-    std::cout << " - cell size: " << cell_size << "\n";
-
-    //
-    // internal processings
-    //
-
-    std::cout << "\n-- processing started ... please wait\n\n";
-
     // open xyz input file
 
     ifstream input_xyz_file;
     input_xyz_file.open(xyz_data_fpth.c_str(), ios::binary);
     if (input_xyz_file.fail()) {
-        std::cout << "\n\nUnable to open input file '" << xyz_data_fpth << "'\n";
+        std::cout << "\nError: unable to open input file '" << xyz_data_fpth << "'\n";
         return 1;}
 
     // create output geoplanes file
@@ -315,7 +324,15 @@ int main () {
     ofstream output_results_file;
     output_results_file.open(bfp_geoplanes_fpth.c_str(), ios::binary);
     if (output_results_file.fail())
-        {std::cout << "\n\nUnable to create output file '" << bfp_geoplanes_fpth << "'\n";
+        {std::cout << "\nError: unable to create output result file '" << bfp_geoplanes_fpth << "'\n";
+         return 1;}
+
+    // create output analysis report
+
+    ofstream output_report_file;
+    output_report_file.open(rep_analysis_fpth.c_str(), ios::binary);
+    if (output_report_file.fail())
+        {std::cout << "\nError: unable to create output report file '" << rep_analysis_fpth << "'\n";
          return 1;}
 
     // create output Point3d number grid file
@@ -323,8 +340,25 @@ int main () {
     ofstream output_cntgrid_file;
     output_cntgrid_file.open(ptnum_grid_fpth.c_str(), ios::binary);
     if (output_cntgrid_file.fail())
-        {std::cout << "\n\nUnable to create output grid file '" <<  ptnum_grid_fpth << "'\n";
+        {std::cout << "\nError: unable to create output grid file '" <<  ptnum_grid_fpth << "'\n";
          return 1;}
+
+    //
+    // Calculations
+    //
+
+    std::cout << "\nCalculations started ... please wait";
+
+    // printout read parameters
+
+    output_report_file << "BestFitGeoplane analysis report\n";
+    output_report_file << "\nInput parameters\n";
+    output_report_file << " - xyz data (input): " << xyz_data_fpth << "\n";
+    output_report_file << " - number of header lines in xyz data file: " << hdr_ln_num << "\n";
+    output_report_file << " - best fit geoplanes (output): " << bfp_geoplanes_fpth << "\n";
+    output_report_file << " - analysis report (output): " << rep_analysis_fpth << "\n";
+    output_report_file << " - Point3d number grid (output): " << ptnum_grid_fpth << "\n";
+    output_report_file << " - cell size: " << cell_size << "\n\n";
 
     // read input raw xyz file
 
@@ -332,15 +366,22 @@ int main () {
     list<string> rawdata_list;  // list of raw data strings
 
     for (int n = 0; n < hdr_ln_num; n++) {  // read  (and discard) file header
-        getline(input_xyz_file, rec_line); }
+        getline(input_xyz_file, rec_line);
+        output_report_file << "header line: " << rec_line << "\n";
+    }
 
+    unsigned long int rd_cnt = 0;
     while (! input_xyz_file.eof()) {  // read raw data
         getline(input_xyz_file, rec_line);
-        if (rec_line.size() > 0) {
-            rawdata_list.push_back(rec_line);}}
+        if (!is_emptywhitespace(rec_line) > 0) {
+            rd_cnt++;
+            output_report_file << rd_cnt << ": " << rec_line << "\n";
+            rawdata_list.push_back(rec_line);
+        }
+    }
     input_xyz_file.close();
 
-    std::cout << "Number of read records: " <<rawdata_list.size() << "\n";
+    output_report_file << "\n\nNumber of read records: " << rawdata_list.size() << "\n";
 
     // read input xyz data into three double vectors
 
@@ -356,10 +397,10 @@ int main () {
         ndx++; }
 
     if (x.size() != y.size() || x.size() != z.size()) {
-        std::cout << "\nSize of read coordinates is different between x, y or z\n";
+        output_report_file << "\nSize of read coordinates is different between x, y or z\n";
         return 1;}
     int num_input_pts = x.size();
-    std::cout << "Number of input points: " << num_input_pts << "\n";
+    output_report_file << "Number of input points: " << num_input_pts << "\n";
 
     // calculate spatial ranges of x, y and z
 
@@ -381,20 +422,20 @@ int main () {
 
     // print info on spatial ranges and grid params
 
-    std::cout << "Spatial range of input data :\n";
-    std::cout << "  x min: " << x_min << " x max: " << x_max << "\n";
-    std::cout << "  y min: " << y_min << " y max: " << y_max << "\n";
-    std::cout << "  z min: " << z_min << " z max: " << z_max << "\n";
-    std::cout << "Rows number: " << rows << "\nColumn number: " << columns << "\n";
-    std::cout << "Spatial range of grid :\n";
-    std::cout << "  x min: " << x_min << " x max: " << x_min + (columns * cell_size) << "\n";
-    std::cout << "  y min: " << y_max - (rows * cell_size) << " y max: " << y_max << "\n";
+    output_report_file << "Spatial range of input data :\n";
+    output_report_file << "  x min: " << x_min << " x max: " << x_max << "\n";
+    output_report_file << "  y min: " << y_min << " y max: " << y_max << "\n";
+    output_report_file << "  z min: " << z_min << " z max: " << z_max << "\n";
+    output_report_file << "Rows number: " << rows << "\nColumn number: " << columns << "\n";
+    output_report_file << "Spatial range of grid :\n";
+    output_report_file << "  x min: " << x_min << " x max: " << x_min + (columns * cell_size) << "\n";
+    output_report_file << "  y min: " << y_max - (rows * cell_size) << " y max: " << y_max << "\n";
 
     // creates vector of distinct points
 
     std::vector<Point3d> distinct_points;
     distinct_points.push_back(Point3d(x[0], y[0], z[0]));
-    std::cout << "Skipped coincident points\n";
+    output_report_file << "Skipped coincident points\n";
     for (int n = 1; n < num_input_pts; n++) {
         Point3d candidate_point = Point3d(x[n], y[n], z[n]);
         bool to_add = true;
@@ -402,15 +443,15 @@ int main () {
             Point3d added_pt = distinct_points[k];
             if (candidate_point.is_coincident_2d(added_pt)) {
                 to_add = false;
-                std::cout << " " << n + 1 << "\n";
+                output_report_file << " " << n + 1 << "\n";
                 break; } }
         if (to_add) distinct_points.push_back(candidate_point); }
     int num_distinct_pts = distinct_points.size();
 
     // write distinct Point3d infos in output result file
 
-    std::cout << "Number of distinct points: " << num_distinct_pts << "\n";
-    std::cout << "\nNumber of distinct points: " << num_distinct_pts << "\n";
+    output_report_file << "Number of distinct points: " << num_distinct_pts << "\n";
+    output_report_file << "\nNumber of distinct points: " << num_distinct_pts << "\n";
 
     // calculate grid indices of input points
 
@@ -427,10 +468,10 @@ int main () {
 
     // write distinct Point3d infos in output result file
 
-    std::cout << "\ncnt, x, y, z, i, j, n\n";
+    output_report_file << "\ncnt, x, y, z, i, j, n\n";
     for (uint k = 0; k < distinct_points.size(); k++) {
         Point3d dp = distinct_points[k];
-        std::cout << k << ", " << dp.x() << ", " << dp.y() << ", " << dp.z() << ", " <<
+        output_report_file << k << ", " << dp.x() << ", " << dp.y() << ", " << dp.z() << ", " <<
             dp_cellndx_i[k] << ", " << dp_cellndx_j[k] << ", " << dp_cellndx_n[k] << "\n"; }
 
     // define linear grid indices of cells with at least one Point3d, using a set data structure
@@ -438,7 +479,7 @@ int main () {
     set<int> non_empty_cells;
     for (int k = 0; k < num_distinct_pts; k++) {
         non_empty_cells.insert(dp_cellndx_n[k]); }
-    std::cout << "Number of cells containing at least one point is: " << non_empty_cells.size() << "\n";
+    output_report_file << "Number of cells containing at least one point is: " << non_empty_cells.size() << "\n";
 
     // initialize the mapping between each cell grid linear index and associated Point3d indices
 
@@ -454,20 +495,24 @@ int main () {
 
     // write non-empty cell infos in output result file
 
-    std::cout << "\nNon-empty cell infos\n";
+    output_report_file << "\nNon-empty cell infos\n";
     for (auto const & cell_ndx : non_empty_cells) {
         //int cell_ndx = non_empty_cells[l];
         std::vector<int> dp_indices = gridcell_ptndxs_map[cell_ndx];
         int num_pts = dp_indices.size();
-        std::cout << "grid cell: " << cell_ndx << " - points: " << num_pts << "\n";
+        output_report_file << "grid cell: " << cell_ndx << " - points: " << num_pts << "\n";
         for (auto const & pt_ndx : dp_indices) {
             Point3d dp = distinct_points[pt_ndx];
-            std::cout << pt_ndx << ", " << dp.x() << ", " << dp.y() << ", " << dp.z() << "\n"; } }
+            output_report_file << pt_ndx << ", " << dp.x() << ", " << dp.y() << ", " << dp.z() << "\n";
+        }
+    }
+
+    output_report_file.close();
 
     // iterates on the grid cells, extracting the points for each cell
     // and computing the possible best-fit-plane
 
-    std::cout << "\nInverting geological attitudes..\n";
+    std::cout << "\n\nInverting geological attitudes ...";
 
     output_results_file << "x, y, pt_num, dip_dir, dip_ang, x_range, y_range, z_range, pseudo-volume\n";
     for (auto const & kv : gridcell_ptndxs_map) {
