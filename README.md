@@ -1,14 +1,14 @@
 # geoSurfDEM
 
 geoSurfDEM is a set of C++ and Fortran command-line application for calculating intersection points between 3D geosurfaces and DEMs (IntersectDEM), as well as inverting intersection points to obtain the local best-fit geological planes (BestFitGeoplanes).  
-*As of December 2016, BestFitGeoplanes is in beta-state.*
 
 IntersectDEM is a C++ console application, made up by a main application, *DEMIntersection.cpp*, that uses a few auxiliary algorithms contained in *algebra.cpp*, *data_prcessing.cpp*, *geographic.cpp*, *spatial.cpp* and related header files.
 
 BestFitGeoplanes is based on C++ and Fortran 2003 code. The Fortran code uses the Lapack and BLAS library in order to calculate the Singular Value Decomposition of the available points.
 A possible path to compile the code is listed in the *compile* file.
 
-Below is described in detail the use and application of IntersectDEM. The equivalent part for BestFitGeoplanes has still to be created.
+Below is described in detail the use and application of IntersectDEM. 
+BestFitGeoplanes is described in this post: [A Linux tool for calculating local best-fit plane attitudes from geological traces](https://gisoftw.blogspot.it/2017/02/a-linux-tool-for-calculating-local-best.html)
 
 ###IntersectDEM
 
