@@ -10,7 +10,7 @@ A possible path to compile the code is listed in the *compile* file.
 Below is described in detail the use and application of IntersectDEM. 
 BestFitGeoplanes is described in this post: [A Linux tool for calculating local best-fit plane attitudes from geological traces](https://gisoftw.blogspot.it/2017/02/a-linux-tool-for-calculating-local-best.html)
 
-###IntersectDEM
+### IntersectDEM
 
 The forward and backward determination of the theoretical intersections between digital 3D geological surfaces and topography could be of potential help for studying the field attitudes of natural geological surfaces, as mapped from outcrops or from aerial/satellite images. Since geological structures have complex geometries, the analysis of the relationships between 3D surfaces and topography requires tools that can process 3D geological surfaces.
  
@@ -19,7 +19,7 @@ The forward and backward determination of the theoretical intersections between 
 *b) the local 3D attitude of that surface at each intersection point*
 
 
-###How does it work?
+### How does it work?
 
 Below you see the screenshot of an application run in a Linux shell. When compiled for Windows, the procedure is identical. The total run time can be quite long, many minutes or more.
 
@@ -53,11 +53,11 @@ Examples of input data files (i.e., DEM ASCII grid, VTK geosurface file, CSV int
 Afterwards, the application outputs a few informative messages about the number of found features and at the last prints out the number of found intersecting points, hopefully greater than zero. 
 The results are stored in the text file referenced by the third path in the input text file. 
 
-###Example of use
+### Example of use
 
 To present the application and check the validity of its results we use a theoretical test case, i.e. a geological plane with a desired attitude 135°/35°, and with a spatial extent fitting that of the test DEM, covering the Mt. Alpi zone (Basilicata, Southern Italy), derived from global ASTER data. You can export a DEM in ESRI ASCII grid format with Saga GIS (in addition to ArcGIS). 
 
-####Creation of test geological plane 
+#### Creation of test geological plane 
 
 The geological plane is created and saved as a VTK text file with [simSurf](https://github.com/mauroalberti/simSurf). With this Python 2.7 tool, it is possible to simulate geological surfaces by using analytical formulas. 
 
@@ -81,7 +81,7 @@ Then to the geographical parameters, that have to fit the DEM extent without cre
 
 We create the simulated geosurface, optionally view it in three dimensions and then have to export it in the *Geo Analytical Surface* (GAS) format, i.e. a jason format.
 
-#####Plane rotation
+##### Plane rotation
 
 We then pass to the Geosurface deformation tool, import the previously exported jason file and then apply a rotation to the plane around a N-S horizontal axis, by 35°.
 
@@ -93,7 +93,7 @@ Apply and then rotate by 45° around a vertical axis (plunge equal to 90°).
 
 In this way we obtain a plane dipping 35° towards N135°.
 
-#####Plane displacement to DEM extent
+##### Plane displacement to DEM extent
 
 Now we locate the rotated plane to a geographical position that broadly fits with the DEM. I choose to use my [qgSurf](https://plugins.qgis.org/plugins/qgSurf/) plugin for QGIS for quickly locating a point at the center of the used DEM, while knowing also the z value.
 
@@ -109,7 +109,7 @@ Done, after applying.
 
 Save the geosurface as a VTK file and then you can see it in Paraview and use in the IntersectDEM application. Note that the VTK file stores the plane as triangle mesh, without explicit attitude (i.e., dip direction and angle) information. So the local results calculated by the geoSurfDEM application are derived by the local geosurface triangle attitude stored in the VTK file. Using a simple plane obviously we expect the same results for all intersection points.
 
-####Input data preview
+#### Input data preview
 
 We see how are the DEM and the VTK plane data in Paraview.
 
