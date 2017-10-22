@@ -67,7 +67,7 @@ a) *geosurface_simulation.py*: creates, geolocates and saves/exports an analytic
 
 b) *geosurface_deformation.py*: reads an analytical surface created by the previous module, deforms it and saves/exports
 
-#####Horizontal plane creation
+##### Horizontal plane creation
 
 So we start creating a horizontal plane with the Geosurface simulation tool, *Analytical formula* part. See figure below.
 
@@ -122,7 +122,7 @@ And a lateral one, as seen from the South.
 
 ![alt tag](/images/paraview_src_lateral.png)
 
-####geoSurfDEM result
+#### geoSurfDEM result
 
 At the end, what are the results of the IntersectDEM application?
 
