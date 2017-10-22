@@ -33,7 +33,6 @@
 *.app
 
 # Directories
-images/
 IntersectDEM/bin/
 
 

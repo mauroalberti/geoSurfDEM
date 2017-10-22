@@ -23,7 +23,7 @@ The forward and backward determination of the theoretical intersections between 
 
 Below you see the screenshot of an application run in a Linux shell. When compiled for Windows, the procedure is identical. The total run time can be quite long, many minutes or more.
 
-![alt tag](http://www.malg.eu/geosurfdem/images/appl_run.png)
+![alt tag](/images/appl_run.png)
 
 What is to note?
 
@@ -71,13 +71,13 @@ b) *geosurface_deformation.py*: reads an analytical surface created by the previ
 
 So we start creating a horizontal plane with the Geosurface simulation tool, *Analytical formula* part. See figure below.
 
-![alt tag](http://www.malg.eu/geosurfdem/images/simSurf_analitical_surface.png)
+![alt tag](/images/simSurf_analitical_surface.png)
 
 The zero in the formula section is for the horizontal plane creation. You calculate the matrix and you can see the plane in three dimensions.
 
 Then to the geographical parameters, that have to fit the DEM extent without creating an excessively large geological plane.
 
-![alt tag](http://www.malg.eu/geosurfdem/images/simSurf_geog_params.png)
+![alt tag](/images/simSurf_geog_params.png)
 
 We create the simulated geosurface, optionally view it in three dimensions and then have to export it in the *Geo Analytical Surface* (GAS) format, i.e. a jason format.
 
@@ -85,11 +85,11 @@ We create the simulated geosurface, optionally view it in three dimensions and t
 
 We then pass to the Geosurface deformation tool, import the previously exported jason file and then apply a rotation to the plane around a N-S horizontal axis, by 35°.
 
-![alt tag](http://www.malg.eu/geosurfdem/images/simSurf_rot_horiz_axis_35d.png)
+![alt tag](/images/simSurf_rot_horiz_axis_35d.png)
 
 Apply and then rotate by 45° around a vertical axis (plunge equal to 90°).
 
-![alt tag](http://www.malg.eu/geosurfdem/images/simSurf_rot_vert_axis_45d.png)
+![alt tag](/images/simSurf_rot_vert_axis_45d.png)
 
 In this way we obtain a plane dipping 35° towards N135°.
 
@@ -97,13 +97,13 @@ In this way we obtain a plane dipping 35° towards N135°.
 
 Now we locate the rotated plane to a geographical position that broadly fits with the DEM. I choose to use my [qgSurf](https://plugins.qgis.org/plugins/qgSurf/) plugin for QGIS for quickly locating a point at the center of the used DEM, while knowing also the z value.
 
-![alt tag](http://www.malg.eu/geosurfdem/images/qgis_qgsurf_snap_point_dem.png)
+![alt tag](/images/qgis_qgsurf_snap_point_dem.png)
 
 You see to the right the coordinates (x-y-z) of the point at the DEM center, showed within QGIS.
 
 I copied and pasted these values in the simSurf displacement tab, so that the plane is displaced by the given delta-x, delta-y and delta-z amounts.
 
-![alt tag](http://www.malg.eu/geosurfdem/images/simSurf_displacement.png)
+![alt tag](/images/simSurf_displacement.png)
 
 Done, after applying.
 
@@ -116,11 +116,11 @@ We see how are the DEM and the VTK plane data in Paraview.
 You can import the DEM when in x-y-z format (could create with Saga), then applying a *Table to Point* filter, while the VTK format is directly read from Paraview.
 Here a nadiral view. Y axis represents the North.
 
-![alt tag](http://www.malg.eu/geosurfdem/images/paraview_src_up.png)
+![alt tag](/images/paraview_src_up.png)
 
 And a lateral one, as seen from the South.
 
-![alt tag](http://www.malg.eu/geosurfdem/images/paraview_src_lateral.png)
+![alt tag](/images/paraview_src_lateral.png)
 
 ####geoSurfDEM result
 
@@ -128,11 +128,11 @@ At the end, what are the results of the IntersectDEM application?
 
 We see them displayed in Paraview, by importing the resulting csv file and superposing on the DEM points and the plane surface. The results are symbolized by blue dots. You see them following the visual intersection between the plane with dip direction 135° and dip angle 35° and the DEM.
 
-![alt tag](http://www.malg.eu/geosurfdem/images/paraview_result_lateral.png)
+![alt tag](/images/paraview_result_lateral.png)
 
 Always in Paraview we see, for a few records, that the corresponding point attitudes calculated by geoSurfDEM are as expected: 135°/35° for each point, since in this test case we were dealing with a geological plane.
 
-![alt tag](http://www.malg.eu/geosurfdem/images/paraview_result_table.png)
+![alt tag](/images/paraview_result_table.png)
 
 
 
