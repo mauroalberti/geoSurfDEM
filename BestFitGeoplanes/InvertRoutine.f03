@@ -441,7 +441,7 @@ module bestfitplane
             res_vect%valid = .false.
         else
              res_vect%valid = .true.
-             res_vect%vect = cart_vect(vt(3,1),vt(3,2),vt(3,3))
+             res_vect%vect = cart_vect(vt(3,1), vt(3,2), vt(3,3))
         end if
 
      end function

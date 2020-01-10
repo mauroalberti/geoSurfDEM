@@ -54,7 +54,6 @@ std::array<double, 2> Point2D::arr_pt()  // C++11
 }
 
 
-
 double Point2D::x() {
 
     return pt[0];

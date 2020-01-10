@@ -2,7 +2,7 @@
 /*
 #
 # best_fit_geoplanes.cpp
-# by Mauro Alberti - www.malg.eu, alberti.m65@gmail.com
+# by Mauro Alberti - alberti.m65@gmail.com
 # start 2016-12-10
 #
 # This program or module is free software: you can redistribute it and/or
@@ -57,6 +57,7 @@ bool is_emptywhitespace(std::string& s) {
 
 }
 
+
 bool is_uint_digit (char c) {
 
     if (c >= '0' && c <='9')
@@ -105,6 +106,7 @@ int read_int(string &line) {
 
 };
 
+
 int read_float(string &line) {
 
     string readstring;
@@ -112,6 +114,7 @@ int read_float(string &line) {
     return std::stof(readstring);
 
 };
+
 
 void read_params(std::stringstream &param_lines, string &xyz_data_fpth, int &hdr_ln_num,
                  string &bfp_geoplanes_fpth, string &rep_analysis_fpth, string &ptnum_grid_fpth, float &cell_size) {
@@ -218,6 +221,7 @@ public:
 
 };
 
+
 std::vector<uint> cellndxn2ij(uint cell_ndx, uint columns, uint rows) {
 
     std::vector<uint> result;
@@ -230,6 +234,7 @@ std::vector<uint> cellndxn2ij(uint cell_ndx, uint columns, uint rows) {
     return result;
 
 }
+
 
 Point2d cellnxd2centerpoint(uint cell_ndx, double tlc_x, double tlc_y, double cell_size, uint columns, uint rows) {
 
@@ -263,7 +268,7 @@ int main () {
     // initial screenshot
 
     std::cout << "\n\nBest Fit Geoplanes\n";
-    std::cout << "by M. Alberti - www.malg.eu\n";
+    std::cout << "by M. Alberti\n";
     std::cout << "2017-02-03\n\n";
 
     // input of parameter file name and file opening
