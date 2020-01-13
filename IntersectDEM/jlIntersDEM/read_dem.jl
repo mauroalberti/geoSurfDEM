@@ -59,6 +59,45 @@ function read_header(fltpth)
 end
 
 
+function progr2array(cntr, ncols)
+
+	curr_row, curr_col = divrem(cntr - 1, ncols)
+	curr_row += 1
+	curr_col += 1
+
+	return curr_row, curr_col
+
+
+function read_dem_values(fltpth, dem_params::AsciiDemParams)
+
+	dem_matrix = Matrix{Float64}(undef, dem_params.nrows, dem_params.ncols)
+
+	open(dem_flpth) do fdem
+
+	    linecounter = 0
+	    nvals = 0
+	    timetaken = @elapsed for l in eachline(fdem)
+	        linecounter += 1
+	        #println("\t", linecounter, "\n", l)
+	        if linecounter < 7
+	        	continue
+	        end
+	        vals = split(l)
+	        for val in vals
+	        	nvals += 1
+	        	curr_row, curr_col = progr2array(nvals, dem_params.ncols))
+	        	println(nvacurr_row, curr_col = ls, curr_row, curr_col)
+	        end
+	    end
+
+	end
+
+	#println(totaltime, "\n\t", totallines)
+
+	#return dem_matrix
+
+end
+
 
 data_fldrpth = "test_data/IntersectDEM"
 dem_flnm = "dem_malpi_aster_wgs84utm33.asc"
@@ -69,5 +108,9 @@ dem_flpth = input_project_fldrpth * "/" * data_fldrpth * "/" * dem_flnm
 
 dem_header = read_header(dem_flpth)
 
-print(dem_header)
+#print(dem_header)
+
+read_dem_values(dem_flpth, dem_header)
+
+#print(dem_data)
 
