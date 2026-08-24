@@ -1,5 +1,9 @@
 # geoSurfDEM
 
+> **Archive only — no longer updated here.**
+> Active development has moved to GitLab: **https://gitlab.com/mauroalberti/geoSurfDEM**
+> This repository is kept for reference and is several commits behind. Please open issues and merge requests on GitLab.
+
 geoSurfDEM is a set of C++ and Fortran command-line application for calculating intersection points between 3D geosurfaces and DEMs (IntersectDEM), as well as inverting intersection points to obtain the local best-fit geological planes (BestFitGeoplanes).  
 
 IntersectDEM is a C++ console application, made up by a main application, *DEMIntersection.cpp*, that uses a few auxiliary algorithms contained in *algebra.cpp*, *data_prcessing.cpp*, *geographic.cpp*, *spatial.cpp* and related header files.
